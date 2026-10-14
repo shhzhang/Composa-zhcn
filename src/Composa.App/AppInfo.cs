@@ -11,8 +11,14 @@ public static class AppInfo
 {
     public const string Name = "Composa";
 
-    /// <summary>The release URL a user is sent to when a newer version exists.</summary>
-    public const string ReleasesUrl = "https://github.com/dvdstelt/Composa/releases";
+    /// <summary>
+    /// Where a user is sent when they ask about a newer version. Withdrawn along with the rest of the
+    /// update check for the Chinese trial edition: it used to point at the original project, and from
+    /// there a visitor is one download away from replacing this build with the English one. Put this
+    /// edition's own releases page here before switching updates back on; see
+    /// <see cref="UpdateCheck.Offered"/>.
+    /// </summary>
+    public const string ReleasesUrl = "http://localhost";
 
     /// <summary>
     /// The version without build metadata: MinVer writes <c>0.2.0+&lt;sha&gt;</c>, and the commit hash is

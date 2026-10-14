@@ -48,7 +48,14 @@ public interface IReleaseSource
 /// <param name="handler">Stands in for the network in tests; null uses a real connection.</param>
 public sealed class GitHubReleaseSource(HttpMessageHandler? handler = null) : IReleaseSource
 {
-    private const string Endpoint = "https://api.github.com/repos/dvdstelt/Composa/releases/latest";
+    /// <summary>
+    /// Where the releases are asked for. Left on the loopback address for the Chinese trial edition:
+    /// nothing listens there, so a check that runs anyway fails the way an offline one fails and can
+    /// never offer the original English build. Restoring updates means pointing this, and
+    /// <see cref="AppInfo.ReleasesUrl"/> beside it, at this edition's own repository; see
+    /// <see cref="UpdateCheck.Offered"/>.
+    /// </summary>
+    private const string Endpoint = "http://localhost";
 
     /// <summary>
     /// GitHub refuses a request with no User-Agent. Nothing identifying is sent: no version, no
@@ -126,6 +133,31 @@ public sealed class UpdateCheck(IReleaseSource source, Settings settings, Func<D
     public static bool DisabledByEnvironment =>
         Environment.GetEnvironmentVariable("COMPOSA_DISABLE_UPDATE_CHECK") is { Length: > 0 } value &&
         value != "0" && !value.Equals("false", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Whether this build offers update checking at all. Withdrawn for the Chinese trial edition, and
+    /// switched back on once that edition has a release feed of its own.
+    /// <para>
+    /// Why it had to go: this edition calls itself <c>1.4.0-CN</c>, which <see cref="ReleaseVersion"/>
+    /// reads as a pre-release of the upstream <c>1.4.0</c>, so an offered update would announce the
+    /// original English build as newer, and taking it would replace this one.
+    /// </para>
+    /// <para>
+    /// Three things keep it out of reach, because a feature that is merely switched off can be
+    /// switched on again by a settings file, a stray caller or a later release: this flag, the
+    /// loopback feed address in <see cref="GitHubReleaseSource"/>, and
+    /// <see cref="AppInfo.ReleasesUrl"/>. Restoring updates means putting all three back and aiming
+    /// the first two at this edition's own releases.
+    /// </para>
+    /// <para>
+    /// A field of the build rather than a setting, so no configuration file can bring the check back.
+    /// <c>static readonly</c> rather than <c>const</c>: a constant would have the compiler report the
+    /// code it guards as unreachable, and that code is staying — the tests drive it, and a later
+    /// release switches the flag back on. The menu items stay too, greyed out, because a feature that
+    /// silently vanishes reads as a bug.
+    /// </para>
+    /// </summary>
+    public static readonly bool Offered = false;
 
     /// <summary>Whether the check runs by itself at launch. A manual check is always allowed.</summary>
     public bool RunsAutomatically =>

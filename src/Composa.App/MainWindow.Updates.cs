@@ -43,6 +43,9 @@ public sealed partial class MainWindow
 
     private UpdateCheck NewUpdateCheck() => new(Updates.Source, settings);
 
+    /// <summary>Said by the greyed-out update items, so a dead menu entry explains itself.</summary>
+    private const string WithdrawnUpdates = "中文试用版暂不提供更新检查，后续版本会重新启用。";
+
     private ReleaseVersion? pendingUpdateVersion;
     private string? pendingUpdateUrl;
     private ReleaseInfo? pendingRelease;
@@ -75,6 +78,9 @@ public sealed partial class MainWindow
     /// </summary>
     private void StartUpdateCheck()
     {
+        // Withdrawn in this edition, so nothing reaches the network on startup. Checked before the
+        // settings are consulted, because a settings file that says "check" must not overrule it.
+        if (!UpdateCheck.Offered) return;
         // The once-a-day limit lives in the settings file. Without it, as in the tests, every window
         // would ask GitHub again.
         if (!Settings.Persist) return;

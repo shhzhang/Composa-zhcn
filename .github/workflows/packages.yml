@@ -108,13 +108,25 @@ jobs:
         shell: pwsh
         run: if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup --yes --no-progress }
 
-      - name: Build the zip and the installer
+      # The MSI needs WiX as well, and both of them have to be in place before the build: windows.sh
+      # treats a missing compiler as an error rather than quietly producing a smaller set of downloads.
+      # The licence has to be accepted first, or the first build stops on a prompt no runner can answer.
+      - name: Install WiX
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 7.0.0
+          & "$env:USERPROFILE\.dotnet\tools\wix.exe" eula accept wix7
+          & "$env:USERPROFILE\.dotnet\tools\wix.exe" extension add -g WixToolset.UI.wixext/7.0.0
+          "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Build the zip, the MSI and the installer
         run: scripts/package/windows.sh win-x64 dist
 
       - name: Check what was produced
         run: |
           ls -lh dist/
           test -n "$(find dist -name '*-win-x64.zip')"       || { echo "no zip";       exit 1; }
+          test -n "$(find dist -name '*-win-x64.msi')"       || { echo "no msi";       exit 1; }
           test -n "$(find dist -name '*-win-x64-setup.exe')" || { echo "no installer"; exit 1; }
 
       # Composa is developed on Linux, so this is how a change reaches a Windows machine before it

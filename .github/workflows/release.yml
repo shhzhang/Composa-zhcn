@@ -54,15 +54,20 @@ jobs:
       - name: Install packaging tools
         run: sudo apt-get update && sudo apt-get install -y rpm desktop-file-utils
 
-      # A draft release has no git tag yet, because GitHub only creates one when a release is
-      # published. MinVer therefore has nothing to read and would version the artifacts
-      # 0.0.0-alpha.0.N. The tag the draft is going to get is the version, so it is supplied
-      # through MinVer's own override. Every dotnet invocation below inherits it.
-      - name: Take the version from the draft tag
-        if: inputs.draft_tag != ''
+      # The tag is the version, and it has to be handed to MinVer rather than read from the working
+      # copy: a draft has no tag yet, and a published tag is not always one MinVer would recognise —
+      # this repository's Chinese releases are tagged 1.4.0-CN, without the "v" MinVer looks for.
+      #
+      # A rehearsal dispatch names no tag, and is left to MinVer.
+      - name: Take the version from the release tag
         env:
-          DRAFT_TAG: ${{ inputs.draft_tag }}
-        run: echo "MinVerVersionOverride=${DRAFT_TAG#v}" >> "$GITHUB_ENV"
+          TAG: ${{ inputs.draft_tag || github.event.release.tag_name }}
+        run: |
+          if [ -n "$TAG" ]; then
+            echo "MinVerVersionOverride=${TAG#v}" >> "$GITHUB_ENV"
+          else
+            echo "No tag given: rehearsing the build, with MinVer deriving the version itself."
+          fi
 
       - name: Build every package
         run: scripts/package/all.sh ${{ matrix.rid }} dist
@@ -106,20 +111,37 @@ jobs:
         shell: pwsh
         run: if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup --yes --no-progress }
 
-      # See the Linux job: a draft has no tag yet, so MinVer is told the version it is going to get.
-      - name: Take the version from the draft tag
-        if: inputs.draft_tag != ''
-        env:
-          DRAFT_TAG: ${{ inputs.draft_tag }}
-        run: echo "MinVerVersionOverride=${DRAFT_TAG#v}" >> "$GITHUB_ENV"
+      # The MSI is built by WiX, a dotnet tool rather than a chocolatey package: the .wxs is written
+      # for WiX 7, and the version matters more than the route it is installed by. The licence has to
+      # be accepted before anything is built, or the first build stops on a prompt no runner can answer.
+      - name: Install WiX
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 7.0.0
+          & "$env:USERPROFILE\.dotnet\tools\wix.exe" eula accept wix7
+          & "$env:USERPROFILE\.dotnet\tools\wix.exe" extension add -g WixToolset.UI.wixext/7.0.0
+          "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-      - name: Build the zip and the installer
+      # See the Linux job: a tag is supplied rather than read, so a draft and a published release are
+      # versioned the same way.
+      - name: Take the version from the release tag
+        env:
+          TAG: ${{ inputs.draft_tag || github.event.release.tag_name }}
+        run: |
+          if [ -n "$TAG" ]; then
+            echo "MinVerVersionOverride=${TAG#v}" >> "$GITHUB_ENV"
+          else
+            echo "No tag given: rehearsing the build, with MinVer deriving the version itself."
+          fi
+
+      - name: Build the zip, the MSI and the installer
         run: scripts/package/windows.sh ${{ matrix.rid }} dist
 
       - name: Check what was produced
         run: |
           ls -lh dist/
           test -n "$(find dist -name '*-${{ matrix.rid }}.zip')"       || { echo "no zip";       exit 1; }
+          test -n "$(find dist -name '*-${{ matrix.rid }}.msi')"       || { echo "no msi";       exit 1; }
           test -n "$(find dist -name '*-${{ matrix.rid }}-setup.exe')" || { echo "no installer"; exit 1; }
 
       - uses: actions/upload-artifact@v4

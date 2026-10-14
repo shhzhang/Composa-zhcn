@@ -16,6 +16,10 @@ On Linux the XDG environment variables are honoured if you set them. The pipe an
 
 ## Updates
 
+**Withdrawn in this edition.** The Chinese trial edition ships without update checking at all: Help > Check for Updates and its automatic counterpart are still in the menu but greyed out, and nothing reaches the network at launch. This build calls itself `1.4.0-CN`, which reads as a pre-release of the upstream `1.4.0`, so an offered update would announce the original English build as newer — and installing it would replace this one. The feed address behind the check points at `http://localhost` as well, so nothing is fetched even if the check is reached some other way. `UpdateCheck.Offered` records the three things to put back.
+
+Everything below describes how updates work upstream, and is what returns once this edition has a release feed of its own.
+
 Help > Check for Updates asks the releases page whether a newer version exists and tells you the result. With Help > Check for Updates Automatically on, Composa asks once a day at launch and shows a strip under the menu when a newer version is available, with Download, a link to its release notes, Skip this version, and a dismiss button. A check that fails says nothing. A stable version is never offered a pre-release.
 
 Download fetches the file that replaces your copy, chosen by how it was installed and the processor it runs on: the `.deb`, `.rpm`, AppImage or tarball on Linux, the installer or the zip on Windows. The strip shows how far it got, with Cancel. The file goes into your Downloads folder and is checked against the checksums published with the release before it is offered; one that does not match is deleted. A file already there with the same contents is used as it is, and one with the same name but other contents is left alone, the download taking a name such as `composa_1.3.0_amd64 (1).deb`. A build run from source (`dotnet run`) has no file to download and offers the release notes only.

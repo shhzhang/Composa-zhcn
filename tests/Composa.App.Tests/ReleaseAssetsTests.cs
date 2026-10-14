@@ -33,7 +33,9 @@ public class ReleaseAssetsTests
     }
     """;
 
-    private const string LatestEndpoint = "https://api.github.com/repos/dvdstelt/Composa/releases/latest";
+    // The release feed's address, as the source requests it: a bare host normalises to this form with
+    // a trailing slash. It is the loopback address because this edition ships with updates withdrawn.
+    private const string LatestEndpoint = "http://localhost/";
 
     public static async Task<ReleaseInfo> Parse(string json)
     {

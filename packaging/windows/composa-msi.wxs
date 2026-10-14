@@ -1,23 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Composa 的 Windows x64 MSI 安装包定义。构建方式（在仓库根目录）：
+  Composa 的 Windows MSI 安装包定义，x64 与 arm64 共用一份。由 scripts/package/windows.sh 驱动，
+  它先 publish 出目录树，再用这里定义的四个变量打 MSI：
 
-  1. 发布自包含版本（self-contained，参数细节见 scripts/package/windows.sh）：
-     dotnet publish src/Composa.App -c Release -r win-x64 -p:DebugType=none -p:UpdateChannel=github -o build/msi/publish
+  - PublishDir      发布输出目录（必须已带上 models/*.onnx、THIRD-PARTY-NOTICES.txt、
+                    ImageMagick-NOTICE.txt；发布本身会带上，脚本会在构建前校验）
+  - DisplayVersion  给人看的完整版本号，如 1.4.0-CN，进 [ProductName]
+  - ProductVersion  MSI 只认「major.minor.build」三段纯数字，如 1.4.0
+  - UpgradeCode     产品族标识，**必须按架构区分**：同一个 UpgradeCode 用于两种架构会让两个包互相当
+                    成自己的旧版本
 
-  2. 打 MSI：
-     wix build -arch x64 -culture zh-CN -ext WixToolset.UI.wixext -d PublishDir=build/msi/publish -d ProductVersion=1.4.0 -out build/msi/Composa-1.4.0-CN-win-x64.msi packaging/windows/composa-msi.wxs
+  架构由 wix 的 -arch 参数给出（x64 或 arm64），并单独构建，例如：
 
-  PublishDir 是发布输出目录，必须已带上 models/*.onnx、THIRD-PARTY-NOTICES.txt 与
-  ImageMagick-NOTICE.txt（发布本身会带上，脚本会在构建后校验）。
+    wix build -arch arm64 -culture zh-CN -ext WixToolset.UI.wixext \
+      -d PublishDir=<绝对路径> -d DisplayVersion=1.4.0-CN -d ProductVersion=1.4.0 \
+      -d UpgradeCode=<该架构的 GUID> -out Composa-1.4.0-CN-win-arm64.msi packaging/windows/composa-msi.wxs
+
+  -culture zh-CN 不能省，否则安装向导的按钮与标题会回到英文。
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
-  <!-- ProductName 里带上 -CN，控制面板的「程序和功能」才看得出这是中文版；ProductVersion 必须纯数字。 -->
-  <Package Name="Composa $(var.ProductVersion)-CN"
+  <!-- ProductName 带上完整版本号（含 -CN），控制面板的「程序和功能」才看得出这是哪个中文版。 -->
+  <Package Name="Composa $(var.DisplayVersion)"
            Manufacturer="SHHZHANG"
            Version="$(var.ProductVersion)"
-           UpgradeCode="3D9BED7E-2C94-450E-A609-E183B1E42ACB"
+           UpgradeCode="$(var.UpgradeCode)"
            Scope="perMachine"
            Compressed="yes"
            Language="2052"

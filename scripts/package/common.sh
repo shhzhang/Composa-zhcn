@@ -21,6 +21,26 @@ rpm_arch() { case "$1" in linux-x64) echo x86_64 ;; linux-arm64) echo aarch64 ;;
 # x64compatible rather than x64, so the x64 installer also runs on Windows on Arm under emulation for
 # anyone who picks the wrong download; the arm64 installer refuses anything else.
 inno_arch() { case "$1" in win-x64) echo x64compatible ;; win-arm64) echo arm64 ;; *) echo "unknown RID: $1" >&2; return 1 ;; esac; }
+# WiX spells it differently yet again, and takes it as its own -arch switch. x64 here rather than
+# x64compatible: the MSI declares the processor architecture it installs for, and the emulation
+# allowance belongs in the installer's launch conditions, not in the package.
+wix_arch() { case "$1" in win-x64) echo x64 ;; win-arm64) echo arm64 ;; *) echo "unknown RID: $1" >&2; return 1 ;; esac; }
+
+# MSI's ProductVersion is three dot-separated numbers and nothing else: no pre-release suffix and no
+# fourth field. The full version, -CN and all, is what [ProductName] shows instead.
+msi_product_version() { echo "${1%%-*}"; }
+
+# One UpgradeCode per architecture, never one shared between them: MSI reads two packages with the
+# same UpgradeCode as two versions of one product, so the arm64 install would be treated as an
+# upgrade of the x64 one and would remove it. The x64 GUID is the one 1.4.0-CN shipped with, kept
+# deliberately so a later x64 build upgrades that install instead of sitting beside it.
+msi_upgrade_code() {
+  case "$1" in
+    win-x64)   echo 3D9BED7E-2C94-450E-A609-E183B1E42ACB ;;
+    win-arm64) echo 47D22480-5166-430C-AC4D-F79ABB5DAE31 ;;
+    *) echo "unknown RID: $1" >&2; return 1 ;;
+  esac
+}
 
 # MinVer derives this from the nearest git tag, so it matches what the application reports about
 # itself. The MinVer target answers in under a second, unlike a full build.

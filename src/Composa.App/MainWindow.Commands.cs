@@ -229,15 +229,19 @@ public sealed partial class MainWindow
         commands.Add(new Shortcut("Zoom Out (keypad)", "缩小", "菜单", new KeyGesture(Key.Subtract, ctrl), canvas.ZoomOut, () => HasDocument, hidden: true));
 
         // A build from a repository leaves updates to its package manager, so there is nothing to switch on there.
+        // The Chinese trial edition withdraws the check on top of that and keeps it withdrawn; see
+        // UpdateCheck.Offered. Both items stay where they were and grey themselves out, because a
+        // feature that disappears without a word reads as a bug.
         var autoUpdates = new MenuItem
         {
             Header = "自动检查更新",
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = settings.CheckForUpdates,
-            IsEnabled = UpdateCheck.Channel == UpdateChannel.GitHub
+            IsChecked = UpdateCheck.Offered && settings.CheckForUpdates,
+            IsEnabled = UpdateCheck.Offered && UpdateCheck.Channel == UpdateChannel.GitHub
         };
         autoUpdates.Click += (_, _) =>
         {
+            if (!UpdateCheck.Offered) return;
             settings.CheckForUpdates = !settings.CheckForUpdates;
             autoUpdates.IsChecked = settings.CheckForUpdates;
             settings.Save();
@@ -256,8 +260,14 @@ public sealed partial class MainWindow
         }
         Top("窗口(_W)", PanelToggle("History", "历史记录"));
 
+        // Only the item is switched off, not the command behind it: the update tests drive that
+        // command, and withdrawing the feature must not take its coverage with it.
+        var checkNow = Item("检查更新…", () => _ = CheckForUpdatesNow(), needsDocument: false);
+        checkNow.IsEnabled = UpdateCheck.Offered;
+        ToolTip.SetTip(checkNow, WithdrawnUpdates);
+
         Top("帮助(_H)", Item("键盘快捷键…", () => _ = ShowShortcuts(), Key.F1, needsDocument: false),
-            Item("检查更新…", () => _ = CheckForUpdatesNow(), needsDocument: false),
+            checkNow,
             autoUpdates,
             Line(),
             aiControl,
