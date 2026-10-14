@@ -70,7 +70,7 @@ public sealed class UpdateDownloadTests : IDisposable
         var result = await new UpdateDownload(new FakeHttp(files)).Run(Release(), Asset, folder, null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
-        Assert.Contains("did not match", result.Problem);
+        Assert.Contains("校验和不符", result.Problem);
         Assert.Empty(Leftovers());
     }
 
@@ -81,7 +81,7 @@ public sealed class UpdateDownloadTests : IDisposable
         var result = await new UpdateDownload(http).Run(Release(withSums: false), Asset, folder, null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
-        Assert.Contains("no list of checksums", result.Problem);
+        Assert.Contains("没有校验和列表", result.Problem);
         Assert.Empty(http.Requests);
         Assert.Empty(Leftovers());
     }
@@ -93,7 +93,7 @@ public sealed class UpdateDownloadTests : IDisposable
         var result = await new UpdateDownload(http).Run(Release(), Asset, folder, null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
-        Assert.Contains("does not mention " + Name, result.Problem);
+        Assert.Contains("未包含 " + Name, result.Problem);
         Assert.Single(http.Requests); // Only the checksums were fetched.
     }
 
@@ -188,7 +188,7 @@ public sealed class UpdateDownloadTests : IDisposable
         var result = await new UpdateDownload(http, stallAfter: TimeSpan.FromMilliseconds(300)).Run(Release(), Asset, folder, null, TestContext.Current.CancellationToken);
 
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
-        Assert.Contains("stalled", result.Problem);
+        Assert.Contains("下载停滞", result.Problem);
         Assert.Empty(Leftovers());
     }
 
@@ -203,7 +203,7 @@ public sealed class UpdateDownloadTests : IDisposable
         });
         var result = await new UpdateDownload(http, stallAfter: TimeSpan.FromMilliseconds(200)).Run(Release(), Asset, folder, null, TestContext.Current.CancellationToken);
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
-        Assert.Contains("stalled", result.Problem);
+        Assert.Contains("下载停滞", result.Problem);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public sealed class UpdateDownloadTests : IDisposable
         var http = new FakeHttp((_, _) => throw new HttpRequestException(HttpRequestError.NameResolutionError, "No such host is known."));
         var result = await new UpdateDownload(http).Run(Release(), Asset, folder, null, TestContext.Current.CancellationToken);
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
-        Assert.Equal("Could not reach GitHub. Check the connection and try again.", result.Problem);
+        Assert.Equal("无法连接到 GitHub。请检查网络连接后重试。", result.Problem);
     }
 
     [Fact]
@@ -222,7 +222,7 @@ public sealed class UpdateDownloadTests : IDisposable
         files.Remove(Base + Name);
         var result = await new UpdateDownload(new FakeHttp(files)).Run(Release(), Asset, folder, null, TestContext.Current.CancellationToken);
         Assert.Equal(DownloadOutcome.Failed, result.Outcome);
-        Assert.Contains("no longer has this file", result.Problem);
+        Assert.Contains("已不再提供此文件", result.Problem);
         Assert.Empty(Leftovers());
     }
 
@@ -244,7 +244,7 @@ public sealed class UpdateDownloadTests : IDisposable
     public void A_full_disk_is_said_in_words()
     {
         var full = new IOException("No space left on device", OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28);
-        Assert.Equal("There is not enough space in /home/ada/Downloads for the download.", UpdateDownload.Describe(full, "/home/ada/Downloads"));
+        Assert.Equal("/home/ada/Downloads 的剩余空间不足以容纳下载内容。", UpdateDownload.Describe(full, "/home/ada/Downloads"));
     }
 
     [Fact]

@@ -37,11 +37,11 @@ public sealed partial class EditorSession
         var document = new Document(width, height);
         var pixels = Pixels.NewColor(document.Width, document.Height);
         if (background is { } color) pixels.Erase(color);
-        var layer = Layer.Raster(background == null ? "Layer 1" : "Background", pixels);
+        var layer = Layer.Raster(background == null ? "图层 1" : "背景", pixels);
         document.Layers.Add(layer);
         document.SetActive(layer.Id);
         var session = new EditorSession(document);
-        session.History.BaseName = "New Canvas";
+        session.History.BaseName = "新建画布";
         return session;
     }
 
@@ -60,7 +60,7 @@ public sealed partial class EditorSession
     public int Revision { get; private set; }
     /// <summary>The name shown for a project that has not been saved yet.</summary>
     public string? SuggestedName { get; set; }
-    public string Title => FilePath != null ? Path.GetFileNameWithoutExtension(FilePath) : SuggestedName ?? "Untitled";
+    public string Title => FilePath != null ? Path.GetFileNameWithoutExtension(FilePath) : SuggestedName ?? "未标题";
 
     // Tool state shared with the UI.
     private Tool tool = Tool.Move;
@@ -94,12 +94,12 @@ public sealed partial class EditorSession
     public int SelectionContractAmount { get; set; } = 1;
     public int SelectionFeatherAmount { get; set; } = 2;
     /// <summary>The crop bar's ratio: one of <see cref="CropRatios"/>. Free lets the box take any shape.</summary>
-    public string CropRatio { get; set; } = "Free";
-    public static readonly string[] CropRatios = ["Free", "Original", "1:1", "4:3", "3:4", "16:9", "9:16"];
+    public string CropRatio { get; set; } = "自由";
+    public static readonly string[] CropRatios = ["自由", "原始比例", "1:1", "4:3", "3:4", "16:9", "9:16"];
     /// <summary>Width over height for the chosen crop ratio, or null for Free.</summary>
     public double? CropAspect => CropRatio switch
     {
-        "Original" => (double)document.Width / document.Height,
+        "原始比例" => (double)document.Width / document.Height,
         "1:1" => 1,
         "4:3" => 4 / 3.0,
         "3:4" => 3 / 4.0,
@@ -253,8 +253,8 @@ public sealed partial class EditorSession
     public EditorSession Duplicate()
     {
         if (IsEditingText) FinishText();
-        var copy = new EditorSession(document.Clone()) { SuggestedName = Title + " copy" };
-        copy.History.BaseName = "Duplicate";
+        var copy = new EditorSession(document.Clone()) { SuggestedName = Title + " 拷贝" };
+        copy.History.BaseName = "副本";
         if (IsModified) copy.MarkModified();
         return copy;
     }

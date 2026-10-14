@@ -137,37 +137,37 @@ public class ColorLookupTests
     [Fact]
     public void Cube_without_a_size_line_is_not_a_cube()
     {
-        Assert.Contains("no LUT_3D_SIZE or LUT_1D_SIZE", Refused(() => ColorLattice.ParseCube("0 0 0\n1 1 1\n")).Message);
-        Assert.Equal("Line 1: a color comes before LUT_3D_SIZE.", Refused(() => ColorLattice.ParseCube("0 0 0\nLUT_3D_SIZE 2\n" + string.Join('\n', IdentityRows))).Message);
+        Assert.Contains("缺少 LUT_3D_SIZE 或 LUT_1D_SIZE 行", Refused(() => ColorLattice.ParseCube("0 0 0\n1 1 1\n")).Message);
+        Assert.Equal("第 1 行：颜色出现在 LUT_3D_SIZE 之前。", Refused(() => ColorLattice.ParseCube("0 0 0\nLUT_3D_SIZE 2\n" + string.Join('\n', IdentityRows))).Message);
     }
 
     [Fact]
     public void Cube_that_ends_early_names_the_counts()
     {
         var text = string.Join('\n', ["LUT_3D_SIZE 2", .. IdentityRows.Take(5)]);
-        Assert.Contains("ends after 5 of the 8 colors", Refused(() => ColorLattice.ParseCube(text)).Message);
+        Assert.Contains("尺寸要求 8 个颜色，只读到 5 个", Refused(() => ColorLattice.ParseCube(text)).Message);
     }
 
     [Fact]
     public void Cube_refuses_a_malformed_line_and_says_which()
     {
         string With(string line, int at) => string.Join('\n', ["TITLE \"x\"", "LUT_3D_SIZE 2", .. IdentityRows.Take(at), line, .. IdentityRows.Skip(at)]);
-        Assert.StartsWith("Line 5: expected a color as three numbers", Refused(() => ColorLattice.ParseCube(With("0.1 0.2", 2))).Message);
-        Assert.StartsWith("Line 5: expected a color as three numbers", Refused(() => ColorLattice.ParseCube(With("0.1 0.2 abc", 2))).Message);
-        Assert.StartsWith("Line 5: expected a color as three numbers", Refused(() => ColorLattice.ParseCube(With("0.1 0.2 0.3 0.4", 2))).Message);
-        Assert.StartsWith("Line 5: expected a color as three numbers", Refused(() => ColorLattice.ParseCube(With("0.1 NaN 0.3", 2))).Message);
-        Assert.StartsWith("Line 5: \"COLOUR\" is not a .cube keyword", Refused(() => ColorLattice.ParseCube(With("COLOUR 1 2 3", 2))).Message);
-        Assert.StartsWith("Line 11: more colors than the 8", Refused(() => ColorLattice.ParseCube(With("1 1 1", 8))).Message);
-        Assert.StartsWith("Line 2: LUT_3D_SIZE needs a whole number", Refused(() => ColorLattice.ParseCube("TITLE \"x\"\nLUT_3D_SIZE two\n")).Message);
-        Assert.StartsWith("Line 2: LUT_3D_SIZE must be between 2 and", Refused(() => ColorLattice.ParseCube("TITLE \"x\"\nLUT_3D_SIZE 1\n")).Message);
-        Assert.StartsWith("Line 3: LUT_3D_SIZE is given twice", Refused(() => ColorLattice.ParseCube("TITLE \"x\"\nLUT_3D_SIZE 2\nLUT_3D_SIZE 2\n")).Message);
-        Assert.StartsWith("Line 2: DOMAIN_MIN needs three numbers", Refused(() => ColorLattice.ParseCube("TITLE \"x\"\nDOMAIN_MIN 0 0\n")).Message);
-        Assert.Contains("DOMAIN_MAX must be above DOMAIN_MIN", Refused(() => ColorLattice.ParseCube(string.Join('\n', ["LUT_3D_SIZE 2", "DOMAIN_MAX 0 0 0", .. IdentityRows]))).Message);
+        Assert.StartsWith("第 5 行：颜色应为三个数字。", Refused(() => ColorLattice.ParseCube(With("0.1 0.2", 2))).Message);
+        Assert.StartsWith("第 5 行：颜色应为三个数字。", Refused(() => ColorLattice.ParseCube(With("0.1 0.2 abc", 2))).Message);
+        Assert.StartsWith("第 5 行：颜色应为三个数字。", Refused(() => ColorLattice.ParseCube(With("0.1 0.2 0.3 0.4", 2))).Message);
+        Assert.StartsWith("第 5 行：颜色应为三个数字。", Refused(() => ColorLattice.ParseCube(With("0.1 NaN 0.3", 2))).Message);
+        Assert.StartsWith("第 5 行：「COLOUR」不是 .cube 关键字", Refused(() => ColorLattice.ParseCube(With("COLOUR 1 2 3", 2))).Message);
+        Assert.StartsWith("第 11 行：颜色比尺寸要求的 8 个还多", Refused(() => ColorLattice.ParseCube(With("1 1 1", 8))).Message);
+        Assert.StartsWith("第 2 行：LUT_3D_SIZE 需要一个整数", Refused(() => ColorLattice.ParseCube("TITLE \"x\"\nLUT_3D_SIZE two\n")).Message);
+        Assert.StartsWith("第 2 行：LUT_3D_SIZE 必须在 2 到", Refused(() => ColorLattice.ParseCube("TITLE \"x\"\nLUT_3D_SIZE 1\n")).Message);
+        Assert.StartsWith("第 3 行：LUT_3D_SIZE 出现了两次", Refused(() => ColorLattice.ParseCube("TITLE \"x\"\nLUT_3D_SIZE 2\nLUT_3D_SIZE 2\n")).Message);
+        Assert.StartsWith("第 2 行：DOMAIN_MIN 需要三个数字", Refused(() => ColorLattice.ParseCube("TITLE \"x\"\nDOMAIN_MIN 0 0\n")).Message);
+        Assert.Contains("DOMAIN_MAX 都必须大于 DOMAIN_MIN", Refused(() => ColorLattice.ParseCube(string.Join('\n', ["LUT_3D_SIZE 2", "DOMAIN_MAX 0 0 0", .. IdentityRows]))).Message);
         // The size line is refused as soon as it is read, so the table is never allocated.
-        Assert.StartsWith("Line 4: LUT_3D_SIZE must be between 2 and 144", Refused(() => ColorLattice.ParseCube($"\n\n\nLUT_3D_SIZE {DocumentLimits.MaxLookupSize + 1}\n0 0 0\n")).Message);
-        Assert.StartsWith("Line 1: LUT_1D_SIZE must be between 2 and 65536", Refused(() => ColorLattice.ParseCube($"LUT_1D_SIZE {DocumentLimits.MaxLookupCurveSize + 1}\n")).Message);
+        Assert.StartsWith("第 4 行：LUT_3D_SIZE 必须在 2 到 144", Refused(() => ColorLattice.ParseCube($"\n\n\nLUT_3D_SIZE {DocumentLimits.MaxLookupSize + 1}\n0 0 0\n")).Message);
+        Assert.StartsWith("第 1 行：LUT_1D_SIZE 必须在 2 到 65536", Refused(() => ColorLattice.ParseCube($"LUT_1D_SIZE {DocumentLimits.MaxLookupCurveSize + 1}\n")).Message);
         // The ceiling itself is allowed: a cube at the ceiling fails only on its row count.
-        Assert.Contains("ends after 1 of the", Refused(() => ColorLattice.ParseCube($"LUT_3D_SIZE {DocumentLimits.MaxLookupSize}\n0 0 0\n")).Message);
+        Assert.Contains("只读到 1 个", Refused(() => ColorLattice.ParseCube($"LUT_3D_SIZE {DocumentLimits.MaxLookupSize}\n0 0 0\n")).Message);
     }
 
     [Fact]
@@ -236,14 +236,14 @@ public class ColorLookupTests
     public void Tdl_refuses_what_is_not_a_cube_and_says_which_line()
     {
         var full = TdlText(4, 255).Split('\n');
-        Assert.Contains("ends after 9 of the 64 colors its 4 input levels", Refused(() => ColorLattice.Parse3dl(string.Join('\n', full.Take(10)))).Message);
-        Assert.Contains("10 colors are not a whole cube", Refused(() => ColorLattice.Parse3dl(string.Join('\n', full.Skip(1).Take(10)))).Message);
-        Assert.StartsWith("Line 3: expected a color as three whole numbers", Refused(() => ColorLattice.Parse3dl(string.Join('\n', [full[0], full[1], "1 2", .. full.Skip(2)]))).Message);
-        Assert.StartsWith("Line 3: expected whole numbers", Refused(() => ColorLattice.Parse3dl(string.Join('\n', [full[0], full[1], "1 2 0.5", .. full.Skip(2)]))).Message);
-        Assert.StartsWith("Line 66: more colors than the 4 input levels", Refused(() => ColorLattice.Parse3dl(string.Join('\n', [.. full, "0 0 0"]))).Message);
+        Assert.Contains("4 级输入要求 64 个颜色，只读到 9 个", Refused(() => ColorLattice.Parse3dl(string.Join('\n', full.Take(10)))).Message);
+        Assert.Contains("10 个颜色构不成完整的立方体", Refused(() => ColorLattice.Parse3dl(string.Join('\n', full.Skip(1).Take(10)))).Message);
+        Assert.StartsWith("第 3 行：颜色应为三个整数。", Refused(() => ColorLattice.Parse3dl(string.Join('\n', [full[0], full[1], "1 2", .. full.Skip(2)]))).Message);
+        Assert.StartsWith("第 3 行：应为整数。", Refused(() => ColorLattice.Parse3dl(string.Join('\n', [full[0], full[1], "1 2 0.5", .. full.Skip(2)]))).Message);
+        Assert.StartsWith("第 66 行：颜色比 4 级输入要求的还多", Refused(() => ColorLattice.Parse3dl(string.Join('\n', [.. full, "0 0 0"]))).Message);
         // An outsized levels line never carries the rows to match, so it fails on the count before anything is allocated.
         var mesh = string.Join(' ', Enumerable.Range(0, DocumentLimits.MaxLookupSize + 1));
-        Assert.Contains("ends after 2 of the", Refused(() => ColorLattice.Parse3dl($"{mesh}\n0 0 0\n1 1 1\n")).Message);
+        Assert.Contains("只读到 2 个", Refused(() => ColorLattice.Parse3dl($"{mesh}\n0 0 0\n1 1 1\n")).Message);
     }
 
     // ── routing by name ──────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ public class ColorLookupTests
         Assert.Equal("Identity", ColorLattice.Parse(IdentityCube2).Title);
         Assert.Equal("Identity", ColorLattice.Parse(IdentityCube2, "look.cube").Title);
         // Unlike Lolly, a broken .cube reports its own line instead of falling back to the .3dl reader's message.
-        Assert.StartsWith("Line 1: \"hello,\" is not a .cube keyword", Refused(() => ColorLattice.Parse("hello, this is not a LUT", "broken.cube")).Message);
+        Assert.StartsWith("第 1 行：「hello,」不是 .cube 关键字", Refused(() => ColorLattice.Parse("hello, this is not a LUT", "broken.cube")).Message);
     }
 
     // ── sampling ─────────────────────────────────────────────────────────────
@@ -430,9 +430,9 @@ public class ColorLookupTests
         Assert.Equal(stream.Length, stream.Position);
         // A cut-off or foreign entry is refused as damaged, not read as a smaller table.
         var bytes = stream.ToArray();
-        Assert.Contains("damaged", Assert.Throws<InvalidDataException>(() => ColorLattice.ReadFrom(new MemoryStream(bytes[..^5]))).Message);
-        Assert.Contains("damaged", Assert.Throws<InvalidDataException>(() => ColorLattice.ReadFrom(new MemoryStream("PNG\0\0\0\0\0"u8.ToArray()))).Message);
-        Assert.Contains("damaged", Assert.Throws<InvalidDataException>(() => ColorLattice.ReadFrom(new MemoryStream())).Message);
+        Assert.Contains("损坏", Assert.Throws<InvalidDataException>(() => ColorLattice.ReadFrom(new MemoryStream(bytes[..^5]))).Message);
+        Assert.Contains("损坏", Assert.Throws<InvalidDataException>(() => ColorLattice.ReadFrom(new MemoryStream("PNG\0\0\0\0\0"u8.ToArray()))).Message);
+        Assert.Contains("损坏", Assert.Throws<InvalidDataException>(() => ColorLattice.ReadFrom(new MemoryStream())).Message);
     }
 
     [Fact]
@@ -497,9 +497,9 @@ public class ColorLookupTests
             using var writer = new StreamWriter(zip.CreateEntry("manifest.json").Open());
             writer.Write(text.Replace($"\"version\": {ProjectFile.Version}", $"\"version\": {ProjectFile.Version + 1}"));
         });
-        Assert.Equal($"This project uses format version {ProjectFile.Version + 1}; this app supports up to version {ProjectFile.Version}.", Assert.Throws<InvalidDataException>(() => ProjectFile.Read(newer)).Message);
+        Assert.Equal($"此项目使用的格式版本为 {ProjectFile.Version + 1}；本应用最高支持版本 {ProjectFile.Version}。", Assert.Throws<InvalidDataException>(() => ProjectFile.Read(newer)).Message);
         var missing = Tampered(zip => zip.Entries.Single(e => e.FullName.StartsWith("lookups/")).Delete());
-        Assert.Contains("lookup table inside the project is missing", Assert.Throws<InvalidDataException>(() => ProjectFile.Read(missing)).Message);
+        Assert.Contains("颜色查找表缺失", Assert.Throws<InvalidDataException>(() => ProjectFile.Read(missing)).Message);
     }
 
     [Fact]
@@ -524,7 +524,7 @@ public class ColorLookupTests
     [Fact]
     public void The_bundled_looks_load_and_do_what_their_names_say()
     {
-        Assert.Equal(["Fine Mono", "Muted Chrome", "Standard Slide", "Vivid Slide"], Looks.Names);
+        Assert.Equal(["精致黑白", "柔和胶片", "标准反转片", "鲜艳反转片"], Looks.Names);
         foreach (var name in Looks.Names)
         {
             var look = Looks.Find(name)!;
@@ -540,18 +540,18 @@ public class ColorLookupTests
         }
         Assert.Null(Looks.Find("Acros"));
         Assert.Equal("", Looks.Describe("Acros"));
-        // Fine Mono is neutral everywhere; Vivid Slide pushes a mid color further from grey than Standard Slide does.
-        var mono = Looks.Find("Fine Mono")!;
+        // 精致黑白 is neutral everywhere; 鲜艳反转片 pushes a mid color further from grey than 标准反转片 does.
+        var mono = Looks.Find("精致黑白")!;
         foreach (var (r, g, b) in new[] { (0.8f, 0.2f, 0.3f), (0.1f, 0.6f, 0.9f), (0.5f, 0.5f, 0.5f) })
         {
             var (mr, mg, mb) = mono.Sample(r, g, b);
-            Assert.True(Math.Abs(mr - mg) < 0.01f && Math.Abs(mg - mb) < 0.01f, $"Fine Mono at {(r, g, b)}: {(mr, mg, mb)}");
+            Assert.True(Math.Abs(mr - mg) < 0.01f && Math.Abs(mg - mb) < 0.01f, $"精致黑白 at {(r, g, b)}: {(mr, mg, mb)}");
         }
         static float Chroma((float R, float G, float B) c) => Math.Max(c.R, Math.Max(c.G, c.B)) - Math.Min(c.R, Math.Min(c.G, c.B));
         var leaf = (0.35f, 0.55f, 0.2f);
-        Assert.True(Chroma(Looks.Find("Vivid Slide")!.Sample(leaf.Item1, leaf.Item2, leaf.Item3)) > Chroma(Looks.Find("Standard Slide")!.Sample(leaf.Item1, leaf.Item2, leaf.Item3)));
+        Assert.True(Chroma(Looks.Find("鲜艳反转片")!.Sample(leaf.Item1, leaf.Item2, leaf.Item3)) > Chroma(Looks.Find("标准反转片")!.Sample(leaf.Item1, leaf.Item2, leaf.Item3)));
         // A look on a layer goes through the ordinary adjustment path and names itself.
-        var adjustment = new ColorLookupAdjustment { Lattice = mono, Source = "Fine Mono" };
+        var adjustment = new ColorLookupAdjustment { Lattice = mono, Source = "精致黑白" };
         var pixel = Adjusted(adjustment, new SKColor(200, 60, 90));
         Assert.True(Math.Abs(pixel.Red - pixel.Green) <= 3 && Math.Abs(pixel.Green - pixel.Blue) <= 3, pixel.ToString());
     }
@@ -572,10 +572,10 @@ public class ColorLookupTests
         session.AddMask(masked);
         var clipped = session.AddAdjustmentLayer(new InvertAdjustment());
         session.ToggleClippingMask(clipped);
-        var lookup = session.AddAdjustmentLayer(new ColorLookupAdjustment { Lattice = Looks.Find("Fine Mono"), Source = "Fine Mono" });
+        var lookup = session.AddAdjustmentLayer(new ColorLookupAdjustment { Lattice = Looks.Find("精致黑白"), Source = "精致黑白" });
         var (baked, leftOut) = LookBake.Survey(session.Document);
         Assert.Equal([curves.Id, lookup.Id], baked.Select(l => l.Id));
-        Assert.Equal([(grain.Id, "changes from place to place"), (blur.Id, "reads the pixels around each pixel"), (masked.Id, "has a layer mask"), (clipped.Id, "is clipped to the layer below")],
+        Assert.Equal([(grain.Id, "随位置变化"), (blur.Id, "读取每个像素周围的像素"), (masked.Id, "带有图层蒙版"), (clipped.Id, "剪贴到下方图层")],
             leftOut.Select(l => (l.Layer.Id, l.Why)));
         Assert.DoesNotContain(leftOut, l => l.Layer.Id == hidden.Id || l.Layer.Id == identity.Id);
     }

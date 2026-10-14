@@ -126,7 +126,7 @@ public class EditingTests
         session.EndStroke();
         AssertColor(SKColors.Black, session.Composite().GetPixel(150, 50));
         AssertColor(SKColors.Black, session.Composite().GetPixel(130, 50));
-        Assert.Equal("Brush", session.History.UndoName);
+        Assert.Equal("画笔", session.History.UndoName);
 
         // The length is in screen points: zoomed in twice, the string covers half as many document pixels.
         session.ViewZoom = 2;
@@ -406,7 +406,7 @@ public class EditingTests
         var top = session.AddImageLayer("top", Solid(10, 10, SKColors.Black));
         top.Opacity = 0.5;
         var before = session.Composite().GetPixel(10, 10);
-        Assert.Equal("Merge Down", session.MergeTitle);
+        Assert.Equal("向下合并", session.MergeTitle);
         session.MergeLayers();
         Assert.Single(session.Document.Layers);
         AssertColor(before, session.Composite().GetPixel(10, 10));
@@ -430,7 +430,7 @@ public class EditingTests
         session.Ungroup(folder);
         Assert.Equal(3, session.Document.Layers.Count);
         session.Undo();
-        Assert.Equal("Merge Group", session.MergeTitle);
+        Assert.Equal("合并组", session.MergeTitle);
         session.MergeLayers();
         Assert.False(session.ActiveLayer!.IsGroup);
         AssertColor(SKColors.Blue, session.Composite().GetPixel(10, 10));
@@ -447,13 +447,13 @@ public class EditingTests
         var before = session.Composite().Bytes;
         Assert.True(session.CanMergeVisible);
         session.MergeVisible();
-        Assert.Equal(["hidden", "Background"], session.Document.Layers.Select(l => l.Name));
+        Assert.Equal(["hidden", "背景"], session.Document.Layers.Select(l => l.Name));
         Assert.False(session.Document.Layers[0].Visible);
         Assert.Same(session.Document.Layers[1], session.ActiveLayer);
         Assert.Equal(before, session.Composite().Bytes);
         // One visible layer has nothing to merge with.
         Assert.False(session.CanMergeVisible);
-        Assert.Equal("Merge Visible", session.History.UndoName);
+        Assert.Equal("合并可见图层", session.History.UndoName);
         session.Undo();
         Assert.Equal(3, session.Document.Layers.Count);
     }
@@ -469,7 +469,7 @@ public class EditingTests
         Assert.Equal(3, session.Document.Layers.Count);
         var stamp = session.Document.Layers[^1];
         Assert.Same(stamp, session.ActiveLayer);
-        Assert.Equal("Merged Layer 1", stamp.Name);
+        Assert.Equal("合并的图层 1", stamp.Name);
         Assert.Equal(before, stamp.Pixels!.Bytes);
         Assert.Equal(before, session.Composite().Bytes);
         Assert.Same(red, session.Document.Layers[1]);
@@ -485,10 +485,10 @@ public class EditingTests
         Assert.False(session.Duplicate().IsModified); // A copy of what is on disk loses nothing when it is closed.
         session.AddImageLayer("red", Solid(10, 10, SKColors.Red));
         var copy = session.Duplicate();
-        Assert.Equal("Poster copy", copy.Title);
+        Assert.Equal("Poster 拷贝", copy.Title);
         Assert.True(copy.IsModified);
         Assert.False(copy.History.CanUndo);
-        Assert.Equal(["Duplicate"], copy.History.Steps.Select(s => s.Name));
+        Assert.Equal(["副本"], copy.History.Steps.Select(s => s.Name));
         var original = session.Composite().Bytes;
         Assert.Equal(original, copy.Composite().Bytes);
         // Each goes its own way afterwards.
@@ -507,7 +507,7 @@ public class EditingTests
         Assert.True(session.RevealAll());
         Assert.Equal((40, 40), (session.Document.Width, session.Document.Height));
         Assert.Equal((0, 0), ((int)session.Document.Layers[0].Transform.X, (int)session.Document.Layers[0].Transform.Y));
-        Assert.Equal("Reveal All", session.History.UndoName);
+        Assert.Equal("显示全部", session.History.UndoName);
         Assert.False(session.CanRevealAll);
         Assert.False(session.RevealAll());
     }
@@ -558,7 +558,7 @@ public class EditingTests
         Assert.Null(session.Selection);
         AssertColor(SKColors.Blue, session.Composite().GetPixel(25, 25));
         AssertColor(SKColors.White, session.Composite().GetPixel(17, 17));
-        Assert.Equal("Paste Into", session.History.UndoName);
+        Assert.Equal("贴入", session.History.UndoName);
         session.Undo();
         Assert.NotNull(session.Selection);
         Assert.Single(session.Document.Layers);
@@ -654,17 +654,17 @@ public class PaintStrokeTests
         var problem = session.PaintStroke([new SKPoint(20, 50), new SKPoint(180, 50)], new BrushSettings { Size = 20, Hardness = 1 }, SKColors.Red);
         Assert.Null(problem);
         Assert.Equal(SKColors.Red, session.Document.Layers[0].Pixels!.GetPixel(100, 50));
-        Assert.Equal("Brush", session.History.UndoName);
+        Assert.Equal("画笔", session.History.UndoName);
         Assert.Same(brush, session.Brush);
         Assert.Equal(foreground, session.Foreground);
 
         Assert.Null(session.PaintStroke([new SKPoint(100, 50)], new BrushSettings { Size = 20, Hardness = 1 }, SKColors.Blue, BrushMode.Erase));
         Assert.Equal(0, session.Document.Layers[0].Pixels!.GetPixel(100, 50).Alpha);
-        Assert.Equal("Eraser", session.History.UndoName);
+        Assert.Equal("橡皮擦", session.History.UndoName);
 
         var text = session.AddText(new SKPoint(10, 10), new TextStyle { Text = "Hi", Size = 20 });
         session.SelectLayer(text.Id);
-        Assert.Contains("live text", session.PaintStroke([new SKPoint(20, 20)], new BrushSettings(), SKColors.Red));
+        Assert.Contains("文字", session.PaintStroke([new SKPoint(20, 20)], new BrushSettings(), SKColors.Red));
     }
 }
 
@@ -746,7 +746,7 @@ public class TextLayerTests
         }
         session.Tool = Tool.Brush;
         Assert.False(session.BeginStroke(new SKPoint(30, 30), out var problem));
-        Assert.Contains("text", problem);
+        Assert.Contains("文字", problem);
 
         // Scaling redraws the glyphs at the new size instead of stretching pixels.
         var heightBefore = layer.Pixels!.Height;
@@ -757,7 +757,7 @@ public class TextLayerTests
         Assert.InRange(layer.Pixels!.Height, heightBefore * 1.8, heightBefore * 2.2);
         Assert.Equal(layer.Pixels.Height, layer.Transform.Height);
 
-        session.Begin("Edit Text");
+        session.Begin("编辑文字");
         session.SetText(layer, layer.Text with { Text = "Changed" });
         session.Commit();
         Assert.Equal("Changed", layer.Name);

@@ -44,7 +44,7 @@ public class XcfTests
         token[9] = (byte)'x';
         Assert.False(XcfImport.IsXcf(token));
         Assert.False(XcfImport.IsXcf(new byte[4]));
-        Assert.Equal("This is not a GIMP file.", Assert.Throws<XcfException>(() => XcfImport.Load([1, 2, 3])).Message);
+        Assert.Equal("这不是 GIMP 文件。", Assert.Throws<XcfException>(() => XcfImport.Load([1, 2, 3])).Message);
     }
 
     // ── versions, compressions, pixels ───────────────────────────────────────
@@ -101,8 +101,8 @@ public class XcfTests
         writer.Paths = 2;
         var import = Load(writer);
         AssertPixels(Assert.Single(import.Layers), layer.Rgba!, 130);
-        Assert.Contains(Messages(import), m => m.Contains("saved channel"));
-        Assert.Contains(Messages(import), m => m.Contains("2 paths"));
+        Assert.Contains(Messages(import), m => m.Contains("已保存的通道"));
+        Assert.Contains(Messages(import), m => m.Contains("个路径"));
     }
 
     [Fact]
@@ -128,21 +128,21 @@ public class XcfTests
         var pixels = Assert.Single(import.Layers).Pixels!;
         AssertColor(new SKColor(0, 255, 0), pixels.GetPixel(0, 0), 0);
         AssertColor(new SKColor(0, 0, 255, 100), pixels.GetPixel(1, 0));
-        Assert.Contains(Messages(import), m => m.Contains("indexed palette"));
+        Assert.Contains(Messages(import), m => m.Contains("索引调色板"));
     }
 
     [Theory]
-    [InlineData(100, "8-bit linear", true)]
-    [InlineData(200, "16-bit linear", true)]
-    [InlineData(250, "16-bit", true)]
-    [InlineData(300, "32-bit linear", true)]
-    [InlineData(350, "32-bit", true)]
-    [InlineData(500, "16-bit floating point linear", true)]
-    [InlineData(550, "16-bit floating point", true)]
-    [InlineData(600, "32-bit floating point linear", true)]
-    [InlineData(650, "32-bit floating point", true)]
-    [InlineData(700, "64-bit floating point linear", true)]
-    [InlineData(750, "64-bit floating point", true)]
+    [InlineData(100, "8 位线性", true)]
+    [InlineData(200, "16 位线性", true)]
+    [InlineData(250, "16 位", true)]
+    [InlineData(300, "32 位线性", true)]
+    [InlineData(350, "32 位", true)]
+    [InlineData(500, "16 位浮点线性", true)]
+    [InlineData(550, "16 位浮点", true)]
+    [InlineData(600, "32 位浮点线性", true)]
+    [InlineData(650, "32 位浮点", true)]
+    [InlineData(700, "64 位浮点线性", true)]
+    [InlineData(750, "64 位浮点", true)]
     public void Every_precision_converts_to_eight_bit_srgb_and_says_so(uint precision, string name, bool noted)
     {
         var writer = Writer(11, 16, 4, compression: 0);
@@ -157,7 +157,7 @@ public class XcfTests
         // the whole of the shadows, so its darks come back coarsely; the rest are exact to a step.
         AssertPixels(only, layer.Rgba!, 16, precision == 100 ? 8 : precision is 500 or 550 ? 2 : 1);
         for (var i = 0; i < 64; i++) Assert.InRange(only.Mask!.GetPixelSpan()[i % 16 + i / 16 * only.Mask.RowBytes], Math.Max(0, i * 4 - 1), Math.Min(255, i * 4 + 1));
-        if (noted) Assert.Contains(Messages(import), m => m.Contains($"keeps {name} pixels") || (precision == 100 && m.Contains("linear-light")));
+        if (noted) Assert.Contains(Messages(import), m => m.Contains($"{name} 像素") || (precision == 100 && m.Contains("线性光像素")));
     }
 
     private static byte[] Ramp(int width, int height)
@@ -189,7 +189,7 @@ public class XcfTests
         }
         var unknown = Writer(11, 2, 2);
         unknown.Precision = 999;
-        Assert.Contains("precision", Assert.Throws<XcfException>(() => Load(unknown)).Message);
+        Assert.Contains("精度", Assert.Throws<XcfException>(() => Load(unknown)).Message);
     }
 
     // ── groups, masks, guides ────────────────────────────────────────────────
@@ -213,7 +213,7 @@ public class XcfTests
         Assert.Equal(200, group.Mask.GetPixelSpan()[0]);
         Assert.Equal(["inside", "Inner"], group.Children.Select(l => l.Name));
         Assert.Equal(["deep"], group.Children[1].Children.Select(l => l.Name));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Inner" && c.Message.Contains("Folder blend mode \"Multiply\""));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Inner" && c.Message.Contains("文件夹混合模式「正片叠底」"));
         Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Group");
 
         // A pass-through folder, and a member whose group was never listed, land at the top level.
@@ -264,13 +264,13 @@ public class XcfTests
     [InlineData(28, BlendMode.Normal, null)]
     [InlineData(30, BlendMode.Multiply, null)]
     [InlineData(23, BlendMode.Overlay, null)]
-    [InlineData(5, BlendMode.SoftLight, "no exact equivalent")]
+    [InlineData(5, BlendMode.SoftLight, "没有完全对应")]
     [InlineData(46, BlendMode.GrainExtract, null)]
     [InlineData(21, BlendMode.GrainMerge, null)]
     [InlineData(48, BlendMode.VividLight, null)]
-    [InlineData(1, BlendMode.Normal, "isn't supported")]
-    [InlineData(58, BlendMode.Normal, "isn't supported")]
-    [InlineData(99, BlendMode.Normal, "isn't known")]
+    [InlineData(1, BlendMode.Normal, "不受支持")]
+    [InlineData(58, BlendMode.Normal, "不受支持")]
+    [InlineData(99, BlendMode.Normal, "无法识别")]
     public void Blend_modes_map_where_the_math_agrees_and_are_reported_where_it_does_not(int mode, BlendMode expected, string? note)
     {
         var writer = Writer(11, 2, 2, compression: 0);
@@ -291,9 +291,9 @@ public class XcfTests
         writer.Layers.Add(new XcfWriterLayer { Name = "clipped", Width = 2, Height = 2, Mode = 28, CompositeMode = 3 }.Filled(SKColors.Red));
         var import = Load(writer);
         Assert.DoesNotContain(import.Conversions, c => c.LayerName == "plain");
-        Assert.Contains(import.Conversions, c => c.LayerName == "faded" && c.Message.Contains("linear light"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "faded" && c.Message.Contains("线性光"));
         Assert.Contains(import.Conversions, c => c.LayerName == "lab" && c.Message.Contains("LAB"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "clipped" && c.Message.Contains("Clip to layer"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "clipped" && c.Message.Contains("剪贴到图层"));
     }
 
     [Fact]
@@ -307,11 +307,11 @@ public class XcfTests
         writer.Layers.Add(new XcfWriterLayer { Name = "Linked", Width = 4, Height = 4, LinkLayer = true }.Filled(SKColors.Black));
         var import = Load(writer);
         Assert.Equal(4, import.Layers.Count);
-        Assert.Contains(import.Conversions, c => c.LayerName == "Title" && c.Message.Contains("retyped"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Blurred" && c.Message.Contains("2 effects"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Shape" && c.Message.Contains("vector layer"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Linked" && c.Message.Contains("link layer"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "The image" && c.Message.Contains("color profile"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Title" && c.Message.Contains("已按像素导入"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Blurred" && c.Message.Contains("2 个效果"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Shape" && c.Message.Contains("矢量图层"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Linked" && c.Message.Contains("链接图层"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "图像" && c.Message.Contains("颜色配置文件"));
     }
 
     [Fact]
@@ -321,7 +321,7 @@ public class XcfTests
         var layer = new XcfWriterLayer { Name = "future", Width = 3, Height = 3 }.Patterned();
         writer.Layers.Add(layer);
         var import = Load(writer);
-        Assert.Contains(Messages(import), m => m.Contains("format 27"));
+        Assert.Contains(Messages(import), m => m.Contains("格式 27"));
         AssertPixels(Assert.Single(import.Layers), layer.Rgba!, 3);
     }
 
@@ -348,7 +348,7 @@ public class XcfTests
         var import = Load(writer);
         var only = Assert.Single(import.Layers);
         Assert.Equal(0, only.Pixels!.GetPixel(1, 1).Alpha);
-        Assert.Contains(import.Conversions, c => c.LayerName == "x" && c.Message.Contains("couldn't be read"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "x" && c.Message.Contains("无法读取"));
     }
 
     [Fact]
@@ -356,10 +356,10 @@ public class XcfTests
     {
         var big = Writer(1, 2, 2).Build();
         big[14] = 0; big[15] = 6; big[16] = 0x1A; big[17] = 0x80;   // 400,000 wide
-        Assert.Contains("larger than Composa can hold", Assert.Throws<XcfException>(() => XcfImport.Load(big)).Message);
+        Assert.Contains("容纳范围", Assert.Throws<XcfException>(() => XcfImport.Load(big)).Message);
         var type = Writer(1, 2, 2).Build();
         type[25] = 7;
-        Assert.Equal("This is not a GIMP file.", Assert.Throws<XcfException>(() => XcfImport.Load(type)).Message);
+        Assert.Equal("这不是 GIMP 文件。", Assert.Throws<XcfException>(() => XcfImport.Load(type)).Message);
     }
 
     [Fact]
@@ -378,7 +378,7 @@ public class XcfTests
         var cropped = Load(writer, 200);
         var cut = cropped.Layers[1];
         Assert.Equal((10, 10, 0d, 0d), (cut.Pixels!.Width, cut.Pixels.Height, cut.Transform.X, cut.Transform.Y));
-        Assert.Contains(cropped.Conversions, c => c.LayerName == "wide" && c.Message.Contains("Cropped"));
+        Assert.Contains(cropped.Conversions, c => c.LayerName == "wide" && c.Message.Contains("已裁剪"));
         var expected = wide.Rgba!;
         for (var y = 0; y < 10; y++)
             for (var x = 0; x < 10; x++)
@@ -387,7 +387,7 @@ public class XcfTests
                 AssertColor(new SKColor(expected[i], expected[i + 1], expected[i + 2], 255), cut.Pixels.GetPixel(x, y));
             }
         // No room even then.
-        Assert.Contains("larger than Composa can hold", Assert.Throws<XcfException>(() => Load(writer, 150)).Message);
+        Assert.Contains("容纳范围", Assert.Throws<XcfException>(() => Load(writer, 150)).Message);
     }
 
     // ── text ─────────────────────────────────────────────────────────────────
@@ -415,9 +415,9 @@ public class XcfTests
         Assert.Equal(0, style.Leading);
         Assert.Equal((30 - (double)Composa.Text.TextLayout.Padding, 40 - (double)Composa.Text.TextLayout.Padding), (title.Transform.X, title.Transform.Y));
         Assert.Equal((200 / 255.0, BlendMode.Multiply), (title.Opacity, title.Blend));
-        Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Title" && c.Message.Contains("pixels"));
+        Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Title" && c.Message.Contains("已按像素导入"));
         Assert.Null(import.Layers[1].Text);
-        Assert.Contains(import.Conversions, c => c.LayerName == "Fancy" && c.Message.Contains("mixes fonts or colors"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Fancy" && c.Message.Contains("混合了多种字体"));
         Assert.Null(import.Layers[0].Text);
         Assert.Contains(import.Conversions, c => c.LayerName == "Broken" && c.Message == XcfText.RasterizedNote);
     }
@@ -505,7 +505,7 @@ public class XcfTests
         // The two together span (0,0) to (20,20); centred on (50,50) that box starts at (40,40), so B at (10,10) lands at (50,50).
         Assert.Equal((50d, 50d), (folder.Children[0].Transform.X, folder.Children[0].Transform.Y));
         Assert.Equal((40d, 40d), (folder.Children[1].Transform.X, folder.Children[1].Transform.Y));
-        Assert.Equal("Import GIMP File", session.History.UndoName);
+        Assert.Equal("导入 GIMP 文件", session.History.UndoName);
         Assert.Empty(session.Document.Guides);                                                      // Placing leaves the file's guides behind.
         session.Undo();
         Assert.Single(session.Document.Layers);

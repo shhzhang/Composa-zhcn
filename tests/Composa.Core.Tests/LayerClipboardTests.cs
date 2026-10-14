@@ -29,11 +29,11 @@ public class LayerClipboardTests
         session.DuplicateSelectedLayers();
         var names = session.Document.Layers.Select(l => l.Name).ToList();
         // Background, A, B, C, then both copies above C in the originals' order.
-        Assert.Equal(["Background", "A", "B", "C", "A copy", "C copy"], names);
+        Assert.Equal(["背景", "A", "B", "C", "A 拷贝", "C 拷贝"], names);
         Assert.Equal(2, session.Document.SelectedLayerIds.Count);
-        Assert.Equal("C copy", session.ActiveLayer!.Name);                // C was the active original.
+        Assert.Equal("C 拷贝", session.ActiveLayer!.Name);                // C was the active original.
         Assert.DoesNotContain(a.Id, session.Document.SelectedLayerIds);
-        Assert.Equal("Duplicate Layers", session.History.UndoName);
+        Assert.Equal("复制多个图层", session.History.UndoName);
         session.Undo();
         Assert.Equal(4, session.Document.Layers.Count);
         _ = b;
@@ -53,7 +53,7 @@ public class LayerClipboardTests
         Assert.True(copy.IsGroup);
         Assert.Equal(2, copy.Children.Count);
         Assert.All(copy.Children, child => Assert.Null(session.Document.Find(folder.Id)!.Children.FirstOrDefault(o => o.Id == child.Id)));
-        Assert.Equal("Duplicate Layer", session.History.UndoName);
+        Assert.Equal("复制图层", session.History.UndoName);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class LayerClipboardTests
         Assert.Equal(3, pasted.Children[0].Effects!.Stroke!.Size);          // Effects travel with the layer.
         Assert.Equal(pasted.Id, session.Document.Layers[^1].Id);            // Above C, the active layer at paste time.
         Assert.Equal(a.Transform.X, pasted.Children[0].Transform.X);      // In its own project it keeps its place.
-        Assert.Equal("Paste Layer", session.History.UndoName);
+        Assert.Equal("粘贴图层", session.History.UndoName);
         Assert.Equal(pasted.Id, session.Document.ActiveLayerId);
     }
 
@@ -95,7 +95,7 @@ public class LayerClipboardTests
         Assert.Equal(200, bounds.MidX, 0.5);
         Assert.Equal(100, bounds.MidY, 0.5);
         Assert.Equal(70, bounds.Width, 0.5);
-        Assert.Equal("Paste Layers", target.History.UndoName);
+        Assert.Equal("粘贴多个图层", target.History.UndoName);
         _ = pasted;
     }
 

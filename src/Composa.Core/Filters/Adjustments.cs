@@ -129,7 +129,7 @@ internal static class Lut
 public sealed record InvertAdjustment : Adjustment
 {
     public override AdjustmentKind Kind => AdjustmentKind.Invert;
-    public override string DisplayName => "Invert";
+    public override string DisplayName => "反相";
     internal override PixelOp CreateOp() => (ref int r, ref int g, ref int b, int _, int _) => { r = 255 - r; g = 255 - g; b = 255 - b; };
 }
 
@@ -140,7 +140,7 @@ public sealed record BrightnessContrastAdjustment : Adjustment
     /// <summary>-100…100.</summary>
     public double Contrast { get; init; }
     public override AdjustmentKind Kind => AdjustmentKind.BrightnessContrast;
-    public override string DisplayName => "Brightness/Contrast";
+    public override string DisplayName => "亮度/对比度";
     public override bool IsIdentity => Brightness == 0 && Contrast == 0;
     internal override PixelOp CreateOp()
     {
@@ -179,7 +179,7 @@ public sealed record LevelsAdjustment : Adjustment
     /// <summary>Composite RGB, then red, green and blue.</summary>
     public LevelsRange[] Ranges { get; init; } = [new(), new(), new(), new()];
     public override AdjustmentKind Kind => AdjustmentKind.Levels;
-    public override string DisplayName => "Levels";
+    public override string DisplayName => "色阶";
     public override bool IsIdentity => Ranges.All(r => r.IsIdentity);
 
     public LevelsAdjustment WithRange(int channel, LevelsRange range)
@@ -227,7 +227,7 @@ public sealed record CurvesAdjustment : Adjustment
     /// <summary>Composite RGB, then red, green and blue; each sorted by X from 0 to 255.</summary>
     public CurvePoint[][] Channels { get; init; } = [Line(), Line(), Line(), Line()];
     public override AdjustmentKind Kind => AdjustmentKind.Curves;
-    public override string DisplayName => "Curves";
+    public override string DisplayName => "曲线";
     public override bool IsIdentity => Channels.All(c => c.All(p => p.X == p.Y));
 
     private static CurvePoint[] Line() => [new(0, 0), new(255, 255)];
@@ -290,7 +290,7 @@ public sealed record ExposureAdjustment : Adjustment
     public double Offset { get; init; }
     public double Gamma { get; init; } = 1;
     public override AdjustmentKind Kind => AdjustmentKind.Exposure;
-    public override string DisplayName => "Exposure";
+    public override string DisplayName => "曝光度";
     public override bool IsIdentity => Exposure == 0 && Offset == 0 && Gamma == 1;
 
     internal override PixelOp CreateOp()
@@ -316,7 +316,7 @@ public sealed record GradientMapAdjustment : Adjustment
     public uint Highlights { get; init; } = 0xFFFFFFFF;
     public bool Reversed { get; init; }
     public override AdjustmentKind Kind => AdjustmentKind.GradientMap;
-    public override string DisplayName => "Gradient Map";
+    public override string DisplayName => "渐变映射";
 
     internal override PixelOp CreateOp()
     {
@@ -346,7 +346,7 @@ public sealed record GrainAdjustment : Adjustment
     public double Roughness { get; init; } = 50;
     public uint Seed { get; init; }
     public override AdjustmentKind Kind => AdjustmentKind.Grain;
-    public override string DisplayName => "Grain";
+    public override string DisplayName => "颗粒";
     public override bool IsIdentity => Amount <= 0;
     public override bool DependsOnPosition => true;
 
@@ -407,7 +407,7 @@ public sealed record GaussianBlurAdjustment : Adjustment
     public const double MinRadius = 0.1, MaxRadius = 250;
     public double Radius { get; init; } = 10;
     public override AdjustmentKind Kind => AdjustmentKind.GaussianBlur;
-    public override string DisplayName => "Gaussian Blur";
+    public override string DisplayName => "高斯模糊";
     public override bool IsIdentity => Radius <= 0;
     public override double SamplingMargin => Math.Clamp(Radius, 0, MaxRadius) * 3 + 2;
     internal override PixelOp CreateOp() => (ref int _, ref int _, ref int _, int _, int _) => { };
@@ -428,7 +428,7 @@ public sealed record MotionBlurAdjustment : Adjustment
     /// <summary>Length of the smear in document pixels.</summary>
     public double Distance { get; init; } = 10;
     public override AdjustmentKind Kind => AdjustmentKind.MotionBlur;
-    public override string DisplayName => "Motion Blur";
+    public override string DisplayName => "动感模糊";
     public override bool IsIdentity => Distance <= 0;
     public override double SamplingMargin => Math.Clamp(Distance, 0, MaxDistance) / 2 + 2;
     internal override PixelOp CreateOp() => (ref int _, ref int _, ref int _, int _, int _) => { };
@@ -458,7 +458,7 @@ public sealed record AddNoiseAdjustment : Adjustment
     public bool Monochromatic { get; init; }
     public uint Seed { get; init; }
     public override AdjustmentKind Kind => AdjustmentKind.AddNoise;
-    public override string DisplayName => "Add Noise";
+    public override string DisplayName => "添加杂色";
     public override bool IsIdentity => Amount <= 0;
     public override bool DependsOnPosition => true;
 
@@ -508,7 +508,7 @@ public sealed record BlackAndWhiteAdjustment : Adjustment
     /// <summary>0…100.</summary>
     public double TintSaturation { get; init; } = 20;
     public override AdjustmentKind Kind => AdjustmentKind.BlackAndWhite;
-    public override string DisplayName => "Black & White";
+    public override string DisplayName => "黑白";
 
     /// <summary>The weights in the order red, yellow, green, cyan, blue, magenta.</summary>
     [JsonIgnore] public double[] Weights => [Reds, Yellows, Greens, Cyans, Blues, Magentas];
@@ -562,7 +562,7 @@ public sealed record ColorBalanceAdjustment : Adjustment
     public double[] Highlights { get; init; } = new double[3];
     public bool PreserveLuminosity { get; init; } = true;
     public override AdjustmentKind Kind => AdjustmentKind.ColorBalance;
-    public override string DisplayName => "Color Balance";
+    public override string DisplayName => "色彩平衡";
     public override bool IsIdentity => Shadows.All(v => v == 0) && Midtones.All(v => v == 0) && Highlights.All(v => v == 0);
 
     /// <summary>Range 0 shadows, 1 midtones, 2 highlights; channel 0 cyan/red, 1 magenta/green, 2 yellow/blue.</summary>
@@ -617,6 +617,21 @@ public sealed record ColorBalanceAdjustment : Adjustment
 
 public enum HueRange { Master, Reds, Yellows, Greens, Cyans, Blues, Magentas }
 
+public static class HueRangeExtensions
+{
+    /// <summary>The range's name as Photoshop's Hue/Saturation dialog calls it.</summary>
+    public static string DisplayName(this HueRange range) => range switch
+    {
+        HueRange.Reds => "红色",
+        HueRange.Yellows => "黄色",
+        HueRange.Greens => "绿色",
+        HueRange.Cyans => "青色",
+        HueRange.Blues => "蓝色",
+        HueRange.Magentas => "洋红",
+        _ => "全图"
+    };
+}
+
 public readonly record struct HslShift(double Hue, double Saturation, double Lightness)
 {
     [JsonIgnore] public bool IsZero => Hue == 0 && Saturation == 0 && Lightness == 0;
@@ -628,7 +643,7 @@ public sealed record HueSaturationAdjustment : Adjustment
     public HslShift[] Shifts { get; init; } = new HslShift[7];
     public bool Colorize { get; init; }
     public override AdjustmentKind Kind => AdjustmentKind.HueSaturation;
-    public override string DisplayName => "Hue/Saturation";
+    public override string DisplayName => "色相/饱和度";
     public override bool IsIdentity => !Colorize && Shifts.All(s => s.IsZero);
 
     public HueSaturationAdjustment WithShift(HueRange range, HslShift shift)

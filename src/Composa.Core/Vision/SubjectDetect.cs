@@ -30,9 +30,9 @@ public static class SubjectFinder
 
     public static string DisplayName(SubjectDetect detect) => detect switch
     {
-        SubjectDetect.Any => "Any subject",
-        SubjectDetect.Person => "Person",
-        _ => "Plain backdrop"
+        SubjectDetect.Any => "任何主体",
+        SubjectDetect.Person => "人物",
+        _ => "纯色背景"
     };
 
     /// <summary>Whether the choice can be honoured here. The backdrop method always can.</summary>
@@ -46,8 +46,8 @@ public static class SubjectFinder
     {
         if (ModelFor(detect) is not { } model || ModelRunner.CanRun(model)) return null;
         return !ModelRunner.IsAvailable
-            ? "The subject detection runtime did not load on this machine, so the plain backdrop was used instead."
-            : $"The {model.Name} model is not installed ({model.Path}), so the plain backdrop was used instead.";
+            ? "主体检测运行时未能在此计算机上加载，因此改用了纯色背景。"
+            : $"未安装 {model.Name} 模型（{model.Path}），因此改用了纯色背景。";
     }
 
     /// <summary>

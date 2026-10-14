@@ -11,10 +11,20 @@
 
   <PropertyGroup>
     <Product>Composa</Product>
-    <Authors>Dennis van der Stelt</Authors>
-    <Company>Dennis van der Stelt</Company>
-    <Copyright>Copyright (c) 2026 Dennis van der Stelt</Copyright>
+    <!--
+      This tree builds the Chinese trial edition: it is translated by Vibing Coding and answered for by
+      Shhzhang, so the publisher signed into the installer and the file properties is not the original
+      author. The original work stays attributed in Copyright, as the MIT licence requires.
+    -->
+    <Authors>Shhzhang</Authors>
+    <Company>Shhzhang</Company>
+    <Copyright>Copyright (c) 2026 Dennis van der Stelt · 中文试用版（翻译：Vibing Coding，责任作者：Shhzhang）</Copyright>
     <RepositoryUrl>https://github.com/dvdstelt/Composa</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- 中文版对外显示的版本号在原版号后加这个后缀：1.4.0 变 1.4.0-CN。 -->
+    <ChineseEditionSuffix>-CN</ChineseEditionSuffix>
   </PropertyGroup>
 
   <!--
@@ -29,4 +39,16 @@
   <ItemGroup>
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
   </ItemGroup>
+
+  <!--
+    MinVer answers with a plain number, 1.4.0. The Chinese edition shows 1.4.0-CN: only the
+    informational version carries the suffix, so AssemblyVersion stays numeric and nothing has to
+    re-bind. ReleaseVersion reads "-CN" as a pre-release identifier, so the update check still parses
+    it rather than refusing.
+  -->
+  <Target Name="StampChineseEdition" AfterTargets="MinVer" BeforeTargets="CoreGenerateAssemblyInfo">
+    <PropertyGroup>
+      <InformationalVersion Condition="!$(InformationalVersion.EndsWith('$(ChineseEditionSuffix)'))">$(InformationalVersion)$(ChineseEditionSuffix)</InformationalVersion>
+    </PropertyGroup>
+  </Target>
 </Project>

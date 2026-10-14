@@ -71,7 +71,7 @@ public class EdgeTracerTests
         AssertColor(SKColors.Red, session.Composite().GetPixel(50, 20));
         AssertColor(SKColors.Blue, session.Composite().GetPixel(50, 50));
         AssertColor(SKColors.Lime, session.Composite().GetPixel(10, 80));
-        Assert.Equal("Brush Strokes", session.History.UndoName);
+        Assert.Equal("画笔笔触", session.History.UndoName);
         session.Undo();
         AssertColor(SKColors.White, session.Composite().GetPixel(50, 20));
         AssertColor(SKColors.White, session.Composite().GetPixel(50, 50));
@@ -80,6 +80,6 @@ public class EdgeTracerTests
         session.AddText(new SKPoint(10, 10), session.TextDefaults with { Text = "Live" });
         var (before, refused) = session.PaintStrokes([new PlannedStroke([new SKPoint(10, 20)], brush, SKColors.Red)]);
         Assert.Equal(0, before);
-        Assert.Contains("live text", refused);
+        Assert.Contains("文字", refused);
     }
 }

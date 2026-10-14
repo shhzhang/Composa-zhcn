@@ -40,12 +40,12 @@ public class PsdImportUiTests
             var opening = window.OpenPaths([path]);
             await Pump(() => window.OwnedWindows.Count > 0);
             var dialog = Assert.Single(window.OwnedWindows);
-            Assert.Equal("Open " + Path.GetFileName(path) + "?", dialog.Title);
+            Assert.Equal("打开 " + Path.GetFileName(path) + "？", dialog.Title);
             var text = string.Join("\n", dialog.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text));
             Assert.Contains("Headline", text);
-            Assert.Contains("retyped", text);
+            Assert.Contains("重新键入", text);
             Assert.Contains("diss", text);
-            Assert.Contains("effects", text);
+            Assert.Contains("图层效果已被舍弃", text);
             Screenshots.Save(dialog, "40-psd-conversions");
 
             // Cancel: nothing opens.
@@ -73,7 +73,7 @@ public class PsdImportUiTests
             Assert.True(folder.IsGroup);
             Assert.Equal(Path.GetFileNameWithoutExtension(path), folder.Name);
             Assert.Equal(3, folder.Children.Count);
-            Assert.Equal("Import Photoshop File", session.History.UndoName);
+            Assert.Equal("导入 Photoshop 文件", session.History.UndoName);
         }
         finally { TempFiles.Delete(path); }
     }
@@ -101,7 +101,7 @@ public class PsdImportUiTests
             Assert.Equal(2, session.Document.Layers.Count);
             Assert.Equal((100d, 50d), (placed.Transform.Width, placed.Transform.Height));
             Assert.Equal((100, 50), (placed.Pixels!.Width, placed.Pixels.Height));
-            Assert.Equal("Add Image", session.History.UndoName);
+            Assert.Equal("添加图像", session.History.UndoName);
 
             // On a larger canvas the placed copy is drawn at the fitted size, not enlarged from 100 x 50 pixels.
             var large = Composa.Editing.EditorSession.NewCanvas(800, 600, SKColors.White);

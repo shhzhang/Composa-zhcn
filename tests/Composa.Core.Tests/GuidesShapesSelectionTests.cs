@@ -19,7 +19,7 @@ public class GuideTests
         Assert.True(session.CanClearGuides);
         session.MoveGuide(vertical.Id, 70);
         Assert.Equal(70, session.Guides.Single(g => g.Id == vertical.Id).Position);
-        Assert.Equal("Move Guide", session.History.UndoName);
+        Assert.Equal("移动参考线", session.History.UndoName);
         session.Undo();
         Assert.Equal(40, session.Guides.Single(g => g.Id == vertical.Id).Position);
         session.RemoveGuide(horizontal.Id);
@@ -170,7 +170,7 @@ public class GuideTests
         Assert.Equal(GridAppearance.MaxOpacity, custom.Normalized().Opacity);
         Assert.Equal(new SKColor(0, 255, 255), (custom with { Preset = GridColorPreset.Cyan }).Color);
         Assert.Empty(GridAppearance.Dashes(GridStyle.Lines));
-        Assert.Equal("Dashed Lines", GridAppearance.DisplayName(GridStyle.DashedLines));
+        Assert.Equal("虚线", GridAppearance.DisplayName(GridStyle.DashedLines));
     }
 
     [Fact]
@@ -196,7 +196,7 @@ public class LineShapeTests
         session.ShapeLineWidth = 6;
         var layer = session.AddLine(new SKPoint(20, 100), new SKPoint(180, 100))!;
         Assert.Equal(ShapeKind.Line, layer.Shape!.Kind);
-        Assert.StartsWith("Line", layer.Name);
+        Assert.StartsWith("直线", layer.Name);
         Assert.Equal((17d, 97d), (layer.Transform.X, layer.Transform.Y));
         Assert.Equal((166d, 6d), (layer.Transform.Width, layer.Transform.Height));
         AssertColor(SKColors.Red, session.Composite().GetPixel(100, 100));
@@ -252,7 +252,7 @@ public class ObjectSelectionTests
         session.SelectObject(40, 40);
         Assert.NotNull(session.Selection);
         Assert.Equal(new SKRectI(25, 30, 55, 50), SelectionMask.Bounds(session.Selection!, 128));
-        Assert.Equal("Object Selection", session.History.UndoName);
+        Assert.Equal("对象选择", session.History.UndoName);
         session.ObjectEdgeOffset = -3;
         session.SelectObject(100, 20, SelectionMode.Add);
         Assert.True(session.Selection!.GetPixel(100, 20).Alpha > 200);

@@ -99,7 +99,7 @@ public class PainterlyTests
     {
         var session = EditorSession.NewCanvas(60, 40, new SKColor(10, 200, 10));
         session.ApplyFilter(new FilterSettings { Kind = FilterKind.Painterly, Painterly = new PainterlySettings { BrushSize = 8 } });
-        Assert.Equal("Painterly", session.History.UndoName);
+        Assert.Equal("绘画", session.History.UndoName);
         var (coverage, mean) = Sample(session.ActiveLayer!.Pixels!, new SKRectI(6, 6, 54, 34));
         Assert.True(coverage > 0.95);
         AssertColor(new SKColor(10, 200, 10), mean, 4);

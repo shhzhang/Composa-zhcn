@@ -25,7 +25,13 @@ public sealed record PainterlySettings
         BrushSize = double.IsFinite(BrushSize) ? Math.Clamp(BrushSize, 0, 500) : 0, Passes = Math.Clamp(Passes, 1, 4), Detail = double.IsFinite(Detail) ? Math.Clamp(Detail, 0, 100) : 50
     };
 
-    public static string DisplayName(PainterlyStyle style) => style == PainterlyStyle.ColoristWash ? "Colorist Wash" : style.ToString();
+    public static string DisplayName(PainterlyStyle style) => style switch
+    {
+        PainterlyStyle.Impressionist => "印象派",
+        PainterlyStyle.Expressionist => "表现派",
+        PainterlyStyle.ColoristWash => "色彩晕染",
+        _ => "点彩派"
+    };
 }
 
 /// <summary>

@@ -30,7 +30,7 @@ public class RecoveryTests
             var info = Directory.GetFiles(folder, "*.json")[0];
             File.WriteAllText(info, File.ReadAllText(info).Replace($"\"ProcessId\":{Environment.ProcessId}", "\"ProcessId\":2147483600"));
             var abandoned = Assert.Single(new Recovery(folder).FindAbandoned());
-            Assert.Equal("Untitled", abandoned.Title);
+            Assert.Equal("未标题", abandoned.Title);
             var restored = Composa.IO.ProjectFile.Load(abandoned.ProjectPath);
             Assert.Equal(SKColors.Red, restored.Layers[0].Pixels!.GetPixel(3, 3));
 

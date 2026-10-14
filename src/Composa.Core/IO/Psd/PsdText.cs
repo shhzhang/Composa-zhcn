@@ -18,11 +18,11 @@ internal static class PsdText
     /// <summary>What the block held, before it is drawn: the style, where its anchor lands and how it is turned.</summary>
     public sealed record Source(TextStyle Style, List<string> Notes, SKPoint DocumentAnchor, double Rotation, bool FlipY, bool AnchorIsFrame);
 
-    public const string RasterizedNote = "Editable Photoshop text becomes pixels and can't be retyped.";
-    public const string FirstStyleNote = "Only the first text style was kept.";
-    public const string WarpNote = "The Photoshop text warp was omitted.";
-    public const string FauxNote = "Faux bold or faux italic was omitted.";
-    public const string JustifyNote = "Full justification was imported as left alignment.";
+    public const string RasterizedNote = "Photoshop 的可编辑文字已转为像素，无法重新键入。";
+    public const string FirstStyleNote = "仅保留了第一个文字样式。";
+    public const string WarpNote = "Photoshop 的文字变形已被省略。";
+    public const string FauxNote = "仿粗体或仿斜体已被省略。";
+    public const string JustifyNote = "全部对齐已按左对齐导入。";
 
     /// <summary>The type block read into a style, or null when it holds something this text model cannot carry.</summary>
     public static Source? Parse(Dictionary<string, byte[]> extra)
@@ -162,7 +162,7 @@ internal static class PsdText
             var (family, bold, italic) = Font(postScriptName);
             style = style with { FontFamily = family, Bold = bold, Italic = italic };
             if (!EditorSession.FontFamilies.Contains(family, StringComparer.OrdinalIgnoreCase))
-                notes.Add($"The font \"{family}\" isn't installed, so the text is drawn with the default font.");
+                notes.Add($"字体「{family}」未安装，文字将以默认字体绘制。");
         }
         var values = EngineData.List(EngineData.Walk(sheet, "FillColor", "Values")).Select(EngineData.Number).OfType<double>().ToList();
         if (values.Count > 0) style = style with { Color = Color(values) };

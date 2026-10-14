@@ -52,7 +52,7 @@ public class ColorRangeUiTests
 
     private ColorRangeWindow Open()
     {
-        window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "Color Range…").RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "色彩范围…").RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Dispatcher.UIThread.RunJobs();
         return window.OwnedWindows.OfType<ColorRangeWindow>().Single();
     }
@@ -98,15 +98,15 @@ public class ColorRangeUiTests
         panel.GetVisualDescendants().OfType<CheckBox>().Single().IsChecked = false;
         Dispatcher.UIThread.RunJobs();
         // OK keeps the selection as one undo step, and the panel goes away.
-        panel.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "OK").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        panel.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "确定").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Dispatcher.UIThread.RunJobs();
         Assert.Null(session.ColorRange);
         Assert.Empty(window.OwnedWindows.OfType<ColorRangeWindow>());
-        Assert.Equal("Color Range", session.History.UndoName);
+        Assert.Equal("色彩范围", session.History.UndoName);
         Assert.Equal(255, session.Selection!.GetPixel(400, 100).Alpha);
         // The Brush paints again.
         Click(100, 100);
-        Assert.Equal("Brush", session.History.UndoName);
+        Assert.Equal("画笔", session.History.UndoName);
     }
 
     [AvaloniaFact]
@@ -130,7 +130,7 @@ public class ColorRangeUiTests
         Assert.Null(session.ColorRange);
         Assert.Empty(window.OwnedWindows.OfType<ColorRangeWindow>());
         session.Undo();
-        Assert.Equal("Color Range", session.History.UndoName);
+        Assert.Equal("色彩范围", session.History.UndoName);
         Assert.Equal(0, session.Selection!.GetPixel(100, 100).Alpha);
         _ = panel;
     }

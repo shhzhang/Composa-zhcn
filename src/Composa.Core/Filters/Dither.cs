@@ -83,27 +83,31 @@ public sealed record DitherSettings
 
     public static string DisplayName(DitherStyle style) => style switch
     {
-        DitherStyle.Atkinson => "Atkinson (Classic Mac)",
+        DitherStyle.Atkinson => "Atkinson（经典 Mac）",
         DitherStyle.FloydSteinberg => "Floyd-Steinberg",
         DitherStyle.Bayer2 => "Bayer 2 × 2",
         DitherStyle.Bayer4 => "Bayer 4 × 4",
         DitherStyle.Bayer8 => "Bayer 8 × 8",
-        DitherStyle.HalftoneDots => "Halftone Dots",
-        DitherStyle.HalftoneLines => "Halftone Lines",
-        DitherStyle.HalftoneDiamonds => "Halftone Diamonds",
-        DitherStyle.MacPatterns => "Mac Patterns",
+        DitherStyle.HalftoneDots => "半调圆点",
+        DitherStyle.HalftoneLines => "半调线条",
+        DitherStyle.HalftoneDiamonds => "半调菱形",
+        DitherStyle.MacPatterns => "Mac 图案",
         DitherStyle.Ascii => "ASCII",
         _ => style.ToString()
     };
 
     public static string DisplayName(DitherColors colors) => colors switch
     {
-        DitherColors.BlackWhite => "Black & White",
-        DitherColors.TwoColors => "Two Colors",
-        _ => "Original"
+        DitherColors.BlackWhite => "黑白",
+        DitherColors.TwoColors => "双色",
+        _ => "原色"
     };
 
-    public static string DisplayName(DitherPixelShape shape) => shape.ToString();
+    public static string DisplayName(DitherPixelShape shape) => shape switch
+    {
+        DitherPixelShape.Dot => "圆点",
+        _ => "方形"
+    };
 
     /// <summary>A style by its display name or enum name, ignoring case, spaces, punctuation and the Mac note.</summary>
     public static bool TryParseStyle(string text, out DitherStyle style)

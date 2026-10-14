@@ -120,9 +120,9 @@ public sealed partial class MainWindow
     {
         if (UpdateCheck.Channel == UpdateChannel.Managed)
         {
-            await Prompts.Alert(this, "Check for Updates",
-                $"Composa {AppInfo.Version} was installed through your package manager, which is where updates come from. " +
-                "Use it to upgrade, rather than downloading a build that it does not know about.");
+            await Prompts.Alert(this, "检查更新",
+                $"Composa {AppInfo.Version} 是通过软件包管理器安装的，更新也来自那里。" +
+                "请用它升级，而不要下载一个它并不知晓的版本。");
             return;
         }
 
@@ -135,11 +135,11 @@ public sealed partial class MainWindow
                 break;
             case UpdateOutcome.Failed:
                 // Someone who asked deserves an answer, even when the answer is that it did not work.
-                await Prompts.Alert(this, "Check for Updates",
-                    "Could not reach the release page to check for a newer version. Please try again later.");
+                await Prompts.Alert(this, "检查更新",
+                    "无法访问发布页面以检查新版本。请稍后重试。");
                 break;
             default:
-                await Prompts.Alert(this, "Check for Updates", $"Composa {AppInfo.Version} is the latest version.");
+                await Prompts.Alert(this, "检查更新", $"Composa {AppInfo.Version} 已是最新版本。");
                 break;
         }
     }
@@ -165,7 +165,7 @@ public sealed partial class MainWindow
             // mistaken for either. It still has to leave the strip, which would otherwise stay in
             // Downloading with nothing to cancel.
             Console.Error.WriteLine(error);
-            result = new DownloadResult(DownloadOutcome.Failed, Problem: $"The download failed: {error.GetType().Name}: {error.Message}");
+            result = new DownloadResult(DownloadOutcome.Failed, Problem: $"下载失败：{error.GetType().Name}：{error.Message}");
         }
         finally
         {
@@ -184,7 +184,7 @@ public sealed partial class MainWindow
                 updateNotice.Show(version, canDownload: true);
                 break;
             default:
-                updateNotice.ShowFailed(result.Problem ?? "The download failed.");
+                updateNotice.ShowFailed(result.Problem ?? "下载失败。");
                 break;
         }
     }
@@ -194,8 +194,8 @@ public sealed partial class MainWindow
         if (downloadedPath is not { } path || pendingUpdateVersion is not { } version) return;
         var kind = pendingKind;
         string? hint = !Installer.HasOne(kind) ? null
-            : Installer.QuitsFirst(kind) ? "Quit Composa, asking about unsaved work as Quit does, and start the setup, which upgrades it in place"
-            : "Open the package in your software installer";
+            : Installer.QuitsFirst(kind) ? "退出 Composa（会像「退出」一样询问未保存的工作），然后启动安装程序，就地升级"
+            : "在软件安装程序中打开该软件包";
         updateNotice.ShowReady(version, path, hint, Installer.TerminalCommand(kind, path));
     }
 
@@ -203,7 +203,7 @@ public sealed partial class MainWindow
     {
         if (downloadedPath is not { } path) return;
         var reveal = Updates.Reveal ?? (file => FileReveal.Show(file, Launcher));
-        if (!await reveal(path)) ShowProblem("Couldn't open the folder " + Path.GetDirectoryName(path) + ".");
+        if (!await reveal(path)) ShowProblem("无法打开文件夹 " + Path.GetDirectoryName(path) + "。");
     }
 
     private Task<bool> OpenFile(string path) => Updates.Open?.Invoke(path) ?? Launcher.LaunchFileInfoAsync(new FileInfo(path));
@@ -219,7 +219,7 @@ public sealed partial class MainWindow
         var kind = pendingKind;
         if (!File.Exists(path))
         {
-            updateNotice.ShowFailed($"{Path.GetFileName(path)} is no longer in {Path.GetDirectoryName(path)}.");
+            updateNotice.ShowFailed($"{Path.GetFileName(path)} 已不在 {Path.GetDirectoryName(path)} 中。");
             downloadedPath = null;
             return;
         }
@@ -228,7 +228,7 @@ public sealed partial class MainWindow
             if (!await ConfirmQuit()) return;
             if (!await Installer.Start(kind, path, Updates.Run, OpenFile))
             {
-                ShowProblem("Couldn't start " + Path.GetFileName(path) + ".");
+                ShowProblem("无法启动 " + Path.GetFileName(path) + "。");
                 return;
             }
             closingConfirmed = true;
@@ -236,7 +236,7 @@ public sealed partial class MainWindow
             return;
         }
         if (!await Installer.Start(kind, path, Updates.Run, OpenFile))
-            ShowProblem($"No software installer opened {Path.GetFileName(path)}. Install it from a terminal with the command in the update strip.");
+            ShowProblem($"没有软件安装程序打开 {Path.GetFileName(path)}。请使用更新栏中的命令从终端安装。");
     }
 
     /// <summary>Cancels a download under way and waits until its partial file is gone.</summary>

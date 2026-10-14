@@ -80,7 +80,7 @@ public sealed class LayersPanel : UserControl
         {
             opacityText.Text = $"{Math.Round(e.NewValue)}%";
             if (updating || session?.ActiveLayer is not { } layer) return;
-            if (!opacityDragging) { opacityDragging = true; opacityStart = layer.Opacity; session.Begin("Opacity"); }
+            if (!opacityDragging) { opacityDragging = true; opacityStart = layer.Opacity; session.Begin("不透明度"); }
             session.SetOpacity(layer, Math.Round(e.NewValue) / 100);
         };
         opacity.AddHandler(PointerReleasedEvent, (_, _) => EndOpacityDrag(), Avalonia.Interactivity.RoutingStrategies.Tunnel | Avalonia.Interactivity.RoutingStrategies.Bubble, true);
@@ -88,12 +88,12 @@ public sealed class LayersPanel : UserControl
         opacity.KeyUp += (_, _) => EndOpacityDrag();
 
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"), RowDefinitions = new RowDefinitions("Auto,Auto"), Margin = new Thickness(10, 8, 10, 6) };
-        var title = Ui.Label("Layers", weight: FontWeight.SemiBold);
+        var title = Ui.Label("图层", weight: FontWeight.SemiBold);
         title.Margin = new Thickness(0, 0, 0, 6);
         Grid.SetColumnSpan(title, 3);
         var blendRow = new Grid { ColumnDefinitions = new ColumnDefinitions("112,10,Auto,*,Auto") };
         blendRow.Children.Add(blend);
-        var opacityLabel = Ui.Label("Opacity", Palette.Secondary);
+        var opacityLabel = Ui.Label("不透明度", Palette.Secondary);
         Grid.SetColumn(opacityLabel, 2);
         blendRow.Children.Add(opacityLabel);
         Grid.SetColumn(opacity, 3);
@@ -113,7 +113,7 @@ public sealed class LayersPanel : UserControl
             item.Click += (_, _) => NewAdjustmentRequested?.Invoke(kind);
             adjustmentMenu.Items.Add(item);
         }
-        var adjustButton = Ui.IconButton(Icons.Adjust, "New adjustment layer", () => { });
+        var adjustButton = Ui.IconButton(Icons.Adjust, "新建调整图层", () => { });
         adjustButton.Click += (_, _) => adjustmentMenu.Open(adjustButton);
         var effectsMenu = new ContextMenu();
         foreach (var kind in Enum.GetValues<LayerEffectKind>())
@@ -122,16 +122,16 @@ public sealed class LayersPanel : UserControl
             item.Click += (_, _) => NewEffectRequested?.Invoke(kind);
             effectsMenu.Items.Add(item);
         }
-        var effectsButton = Ui.IconButton(Icons.Effects, "Layer effects: stroke, drop shadow, color overlay, inner shadow, outer glow, inner glow", () => { });
+        var effectsButton = Ui.IconButton(Icons.Effects, "图层效果：描边、投影、颜色叠加、内阴影、外发光、内发光", () => { });
         effectsButton.Click += (_, _) => { if (session?.ActiveLayer is { Pixels: not null }) effectsMenu.Open(effectsButton); };
 
         var footer = Ui.Row(2,
-            Ui.IconButton(Icons.Plus, "New layer (Ctrl+Shift+N)", () => session?.AddBlankLayer()),
-            Ui.IconButton(Icons.Folder, "Group selected layers (Ctrl+G)", () => session?.GroupSelectedLayers()),
-            Ui.IconButton(Icons.Mask, "Add layer mask (Alt: hide all)", () => { if (session?.ActiveLayer is { } layer) session.AddMask(layer); }),
+            Ui.IconButton(Icons.Plus, "新建图层 (Ctrl+Shift+N)", () => session?.AddBlankLayer()),
+            Ui.IconButton(Icons.Folder, "编组所选图层 (Ctrl+G)", () => session?.GroupSelectedLayers()),
+            Ui.IconButton(Icons.Mask, "添加图层蒙版 (Alt：全部隐藏)", () => { if (session?.ActiveLayer is { } layer) session.AddMask(layer); }),
             effectsButton,
             adjustButton,
-            Ui.IconButton(Icons.Trash, "Delete layer, mask or effect", () => DeleteLayerOrMask()));
+            Ui.IconButton(Icons.Trash, "删除图层、蒙版或效果", () => DeleteLayerOrMask()));
         footer.HorizontalAlignment = HorizontalAlignment.Center;
         footer.Margin = new Thickness(0, 4);
 
@@ -245,7 +245,7 @@ public sealed class LayersPanel : UserControl
         var dim = !layer.Visible || !parentVisible;
 
         var eye = new Button { Classes = { "flat" }, Width = 28, Height = 28, Padding = new Thickness(0), Content = Icons.Create(Icons.Eye, 15, layer.Visible ? null : new SolidColorBrush(Color.Parse("#555555"))) };
-        ToolTip.SetTip(eye, "Show or hide (drag down the column to swipe, Alt-click to show only this layer)");
+        ToolTip.SetTip(eye, "显示或隐藏（在眼睛列上下拖动可连续切换，Alt+单击仅显示此图层）");
         eye.AddHandler(PointerPressedEvent, (_, e) =>
         {
             if (e.KeyModifiers.HasFlag(KeyModifiers.Alt))
@@ -285,7 +285,7 @@ public sealed class LayersPanel : UserControl
             var maskThumb = Thumb(new Image { Source = Thumbnail(layer.Mask), Stretch = Stretch.Uniform, Opacity = layer.MaskEnabled ? 1 : 0.35 },
                 layer.Id == current.ActiveLayer?.Id && current.IsEditingMask);
             maskThumb.PointerPressed += (_, _) => thumbnailTarget = true;
-            ToolTip.SetTip(maskThumb, "Layer mask: click to paint on it, Shift-click to disable, Ctrl-click to load as selection");
+            ToolTip.SetTip(maskThumb, "图层蒙版：单击可在其上绘制，Shift+单击停用，Ctrl+单击载入为选区");
             maskThumb.AddHandler(PointerPressedEvent, (_, e) =>
             {
                 if (e.KeyModifiers.HasFlag(KeyModifiers.Shift)) { current.SetMaskEnabled(layer, !layer.MaskEnabled); e.Handled = true; }
@@ -345,7 +345,7 @@ public sealed class LayersPanel : UserControl
         var enabled = layer.Effects!.IsEnabled(kind);
         var selected = current.SelectedEffect is { } s && s.LayerId == layer.Id && s.Kind == kind;
         var eye = new Button { Classes = { "flat" }, Width = 24, Height = 22, Padding = new Thickness(0), Content = Icons.Create(enabled ? Icons.Eye : Icons.EyeOff, 12, enabled ? Palette.Secondary : new SolidColorBrush(Color.Parse("#555555"))) };
-        ToolTip.SetTip(eye, enabled ? "Hide " + LayerEffects.DisplayName(kind).ToLowerInvariant() : "Show " + LayerEffects.DisplayName(kind).ToLowerInvariant());
+        ToolTip.SetTip(eye, enabled ? "隐藏 " + LayerEffects.DisplayName(kind).ToLowerInvariant() : "显示 " + LayerEffects.DisplayName(kind).ToLowerInvariant());
         eye.Click += (_, _) => current.ToggleEffect(layer, kind);
         var name = Ui.Label(LayerEffects.DisplayName(kind), enabled ? Palette.Foreground : Palette.Secondary);
         name.FontSize = 11.5;
@@ -355,7 +355,7 @@ public sealed class LayersPanel : UserControl
             Child = content, Background = selected ? Palette.Selected : Brushes.Transparent, Padding = new Thickness(4, 1), Height = 24,
             BorderBrush = Palette.Divider, BorderThickness = new Thickness(0, 0, 0, 1), Tag = (layer, kind)
         };
-        ToolTip.SetTip(row, "Click to select, double-click to edit, Alt-drag onto another layer to copy the " + LayerEffects.DisplayName(kind).ToLowerInvariant());
+        ToolTip.SetTip(row, "单击选中，双击编辑，按住 Alt 拖到其他图层可复制 " + LayerEffects.DisplayName(kind).ToLowerInvariant());
         row.PointerPressed += (_, e) =>
         {
             if (e.Source == eye || (e.Source as Control)?.FindAncestorOfType<Button>() == eye) return;
@@ -383,9 +383,9 @@ public sealed class LayersPanel : UserControl
             item.Click += (_, _) => action();
             menu.Items.Add(item);
         }
-        Add("Edit " + LayerEffects.DisplayName(kind) + "…", () => EditEffectRequested?.Invoke(layer, kind));
-        Add(enabled ? "Hide" : "Show", () => current.ToggleEffect(layer, kind));
-        Add("Delete", () => current.RemoveEffect(layer, kind));
+        Add("编辑 " + LayerEffects.DisplayName(kind) + "…", () => EditEffectRequested?.Invoke(layer, kind));
+        Add(enabled ? "隐藏" : "显示", () => current.ToggleEffect(layer, kind));
+        Add("删除", () => current.RemoveEffect(layer, kind));
         row.ContextMenu = menu;
         return row;
     }
@@ -484,33 +484,33 @@ public sealed class LayersPanel : UserControl
         var several = current.Document.SelectedLayerIds.Count > 1 && current.Document.SelectedLayerIds.Contains(layer.Id);
         var targetsMask = current.IsEditingMask && layer.Id == current.ActiveLayer?.Id && layer.Mask != null;
 
-        Add(several ? "Duplicate Layers" : "Duplicate Layer", () => current.DuplicateSelectedLayers());
-        Add("Rename…", () => { renaming = layer.Id; Rebuild(); }, !several);
-        Add(targetsMask ? "Delete Mask" : several ? "Delete Selected Layers" : "Delete Layer", () => { if (targetsMask) current.DeleteMask(layer); else current.DeleteSelectedLayers(); });
-        if (layer.IsAdjustment) Add("Edit Adjustment…", () => EditAdjustmentRequested?.Invoke(layer));
-        if (layer.Text != null) Add("Edit Text…", () => EditTextRequested?.Invoke(layer));
-        if (layer.IsLive) Add("Rasterize Layer", () => current.RasterizeShape(layer));
+        Add(several ? "复制所选图层" : "复制图层", () => current.DuplicateSelectedLayers());
+        Add("重命名…", () => { renaming = layer.Id; Rebuild(); }, !several);
+        Add(targetsMask ? "删除蒙版" : several ? "删除所选图层" : "删除图层", () => { if (targetsMask) current.DeleteMask(layer); else current.DeleteSelectedLayers(); });
+        if (layer.IsAdjustment) Add("编辑调整…", () => EditAdjustmentRequested?.Invoke(layer));
+        if (layer.Text != null) Add("编辑文字…", () => EditTextRequested?.Invoke(layer));
+        if (layer.IsLive) Add("栅格化图层", () => current.RasterizeShape(layer));
         menu.Items.Add(new Separator());
 
-        Add(layer.Clipped ? "Release Clipping Mask" : "Create Clipping Mask", () => current.ToggleClippingMask(layer), current.CanClip(layer));
-        Add("Group Selected Layers", current.GroupSelectedLayers);
-        if (layer.IsGroup) Add("Ungroup", () => current.Ungroup(layer));
-        Add("Move Out of Folder", () => current.MoveOutOfFolder(layer), current.Document.ParentOf(layer.Id) != null);
+        Add(layer.Clipped ? "释放剪贴蒙版" : "创建剪贴蒙版", () => current.ToggleClippingMask(layer), current.CanClip(layer));
+        Add("编组所选图层", current.GroupSelectedLayers);
+        if (layer.IsGroup) Add("取消编组", () => current.Ungroup(layer));
+        Add("移出文件夹", () => current.MoveOutOfFolder(layer), current.Document.ParentOf(layer.Id) != null);
         Add(current.MergeTitle, current.MergeLayers, current.CanMerge);
         menu.Items.Add(new Separator());
 
-        var addMask = new MenuItem { Header = "Add Mask", IsEnabled = layer.Mask == null };
-        Add("Reveal All (White)", () => current.AddMask(layer), parent: addMask);
-        Add("Hide All (Black)", () => current.AddMask(layer, hideAll: true), parent: addMask);
+        var addMask = new MenuItem { Header = "添加蒙版", IsEnabled = layer.Mask == null };
+        Add("显示全部 (白色)", () => current.AddMask(layer), parent: addMask);
+        Add("隐藏全部 (黑色)", () => current.AddMask(layer, hideAll: true), parent: addMask);
         menu.Items.Add(addMask);
-        Add(layer.Mask is { } && !layer.MaskEnabled ? "Enable Mask" : "Disable Mask", () => current.SetMaskEnabled(layer, !layer.MaskEnabled), layer.Mask != null);
-        Add("Delete Mask", () => current.DeleteMask(layer), layer.Mask != null);
-        Add("Apply Mask", () => current.ApplyMask(layer), layer.Mask != null && layer.Pixels != null);
-        Add("Select Mask", () => current.SelectLayerMask(layer), layer.Mask != null);
-        if (layer.Pixels != null) Add("Select Pixels", () => current.SelectLayerPixels(layer));
+        Add(layer.Mask is { } && !layer.MaskEnabled ? "启用蒙版" : "停用蒙版", () => current.SetMaskEnabled(layer, !layer.MaskEnabled), layer.Mask != null);
+        Add("删除蒙版", () => current.DeleteMask(layer), layer.Mask != null);
+        Add("应用蒙版", () => current.ApplyMask(layer), layer.Mask != null && layer.Pixels != null);
+        Add("选择蒙版", () => current.SelectLayerMask(layer), layer.Mask != null);
+        if (layer.Pixels != null) Add("选择像素", () => current.SelectLayerPixels(layer));
         menu.Items.Add(new Separator());
 
-        Add(layer.Visible ? "Hide Layer" : "Show Layer", () => current.SetVisible(layer, !layer.Visible));
+        Add(layer.Visible ? "隐藏图层" : "显示图层", () => current.SetVisible(layer, !layer.Visible));
         return menu;
     }
 

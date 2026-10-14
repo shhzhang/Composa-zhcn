@@ -132,9 +132,9 @@ public class SubjectModelTests
     {
         var swapped = SubjectModels.U2NetP with { Id = "swapped", Sha256 = new string('f', 64) };
         var error = Assert.Throws<InvalidDataException>(() => ModelRunner.Run(swapped, new float[3 * 320 * 320], 320));
-        Assert.Contains("is not the Any subject model", error.Message);
+        Assert.Contains("不是 Composa 构建时所用的", error.Message);
         var missing = SubjectModels.U2NetP with { Id = "missing", File = "absent.onnx" };
-        Assert.Contains("is not installed", Assert.Throws<InvalidDataException>(() => ModelRunner.Run(missing, new float[3 * 320 * 320], 320)).Message);
+        Assert.Contains("未安装", Assert.Throws<InvalidDataException>(() => ModelRunner.Run(missing, new float[3 * 320 * 320], 320)).Message);
     }
 
     [Fact]

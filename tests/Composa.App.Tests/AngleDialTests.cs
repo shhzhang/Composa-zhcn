@@ -41,7 +41,7 @@ public class AngleDialTests
         Dispatcher.UIThread.RunJobs();
         dialog = window.OwnedWindows.Last();
         dial = dialog.GetVisualDescendants().OfType<AngleDial>().Single();
-        field = dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == "Angle");
+        field = dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == "角度");
     }
 
     private Point OnDial(double degrees, double radius = 15)
@@ -133,7 +133,7 @@ public class LineDialTests
         Dispatcher.UIThread.RunJobs();
         dialog = window.OwnedWindows.Last();
         dial = dialog.GetVisualDescendants().OfType<AngleDial>().Single();
-        field = dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == "Angle");
+        field = dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == "角度");
     }
 
     private Point OnDial(double degrees, double radius = 15)
@@ -190,7 +190,7 @@ public class LineDialTests
         Assert.Equal(-60, await Angle());
         field.BeginEdit();
         Dispatcher.UIThread.RunJobs();
-        var reset = field.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == "Reset");
+        var reset = field.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == "重置");
         var at = ((Control)reset.Parent!).TranslatePoint(new Point(10, 8), dialog)!.Value;
         dialog.MouseDown(at, MouseButton.Left);
         dialog.MouseUp(at, MouseButton.Left);

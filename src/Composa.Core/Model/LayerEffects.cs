@@ -229,11 +229,11 @@ public sealed record LayerEffects
 
     public static string DisplayName(LayerEffectKind kind) => kind switch
     {
-        LayerEffectKind.DropShadow => "Drop Shadow",
-        LayerEffectKind.ColorOverlay => "Color Overlay",
-        LayerEffectKind.InnerShadow => "Inner Shadow",
-        LayerEffectKind.OuterGlow => "Outer Glow",
-        LayerEffectKind.InnerGlow => "Inner Glow",
-        _ => "Stroke"
+        LayerEffectKind.DropShadow => "投影",
+        LayerEffectKind.ColorOverlay => "颜色叠加",
+        LayerEffectKind.InnerShadow => "内阴影",
+        LayerEffectKind.OuterGlow => "外发光",
+        LayerEffectKind.InnerGlow => "内发光",
+        _ => "描边"
     };
 }

@@ -51,7 +51,7 @@ public sealed partial class MainWindow
         {
             var gesture = key == Key.None ? null : new KeyGesture(key, modifiers);
             var guard = needsDocument ? () => HasDocument && (enabled?.Invoke() ?? true) : enabled;
-            var command = new Shortcut(id ?? name.TrimEnd('…'), name.TrimEnd('…'), "Menus", gesture, run, guard);
+            var command = new Shortcut(id ?? name.TrimEnd('…'), name.TrimEnd('…'), "菜单", gesture, run, guard);
             commands.Add(command);
             var item = new MenuItem { Header = name, InputGesture = gesture };
             item.Click += (_, _) => Execute(command);
@@ -67,124 +67,124 @@ public sealed partial class MainWindow
         }
         Separator Line() => new();
 
-        Top("_File",
-            Item("New Canvas…", () => _ = NewCanvas(), Key.N, ctrl, needsDocument: false),
-            Item("Open…", () => _ = Open(), Key.O, ctrl, needsDocument: false),
-            recentMenu = Sub("Open Recent"),
-            Item("Place Images as Layers…", () => _ = PlaceImages()),
+        Top("文件(_F)",
+            Item("新建画布…", () => _ = NewCanvas(), Key.N, ctrl, needsDocument: false),
+            Item("打开…", () => _ = Open(), Key.O, ctrl, needsDocument: false),
+            recentMenu = Sub("最近打开的文件"),
+            Item("置入图像为图层…", () => _ = PlaceImages()),
             Line(),
-            Item("Save", () => _ = Save(session!, false), Key.S, ctrl),
-            Item("Save As…", () => _ = Save(session!, true), Key.S, ctrl | shift),
+            Item("保存", () => _ = Save(session!, false), Key.S, ctrl),
+            Item("另存为…", () => _ = Save(session!, true), Key.S, ctrl | shift),
             Line(),
-            Item("Export PNG…", () => _ = Export(ExportFormat.Png), Key.E, ctrl | shift),
-            Item("Export JPEG…", () => _ = Export(ExportFormat.Jpeg), Key.S, ctrl | shift | alt),
-            Item("Export WebP…", () => _ = Export(ExportFormat.Webp)),
-            Item("Export Look as .cube…", () => _ = ExportLook()),
+            Item("导出 PNG…", () => _ = Export(ExportFormat.Png), Key.E, ctrl | shift),
+            Item("导出 JPEG…", () => _ = Export(ExportFormat.Jpeg), Key.S, ctrl | shift | alt),
+            Item("导出 WebP…", () => _ = Export(ExportFormat.Webp)),
+            Item("导出 Look 为 .cube…", () => _ = ExportLook()),
             Line(),
-            Item("Close Project", () => _ = CloseSession(session!), Key.W, ctrl),
-            Item("Quit", Close, Key.Q, ctrl, needsDocument: false));
+            Item("关闭项目", () => _ = CloseSession(session!), Key.W, ctrl),
+            Item("退出", Close, Key.Q, ctrl, needsDocument: false));
 
-        undoItem = Item("Undo", () => session!.Undo(), Key.Z, ctrl, () => session!.CanUndo);
-        redoItem = Item("Redo", () => session!.Redo(), Key.Z, ctrl | shift, () => session!.CanRedo);
-        commands.Add(new Shortcut("Redo (Ctrl+Y)", "Redo", "Menus", new KeyGesture(Key.Y, ctrl), () => session!.Redo(), () => HasDocument && session!.CanRedo, hidden: true));
-        Top("_Edit", undoItem, redoItem, Line(),
-            Item("Cut", () => _ = Cut(), Key.X, ctrl, () => session!.CanCopy),
-            Item("Copy", () => _ = Copy(merged: false), Key.C, ctrl, () => session!.CanCopy),
-            Item("Copy Merged", () => _ = Copy(merged: true), Key.C, ctrl | shift),
-            Item("Paste", () => _ = Paste(), Key.V, ctrl),
-            Sub("Paste Special",
-                Item("Paste in Place", () => _ = Paste(PasteKind.InPlace), Key.V, ctrl | shift),
-                Item("Paste Into", () => _ = Paste(PasteKind.Into), Key.V, ctrl | alt | shift, () => session!.Selection != null)),
+        undoItem = Item("撤销", () => session!.Undo(), Key.Z, ctrl, () => session!.CanUndo);
+        redoItem = Item("重做", () => session!.Redo(), Key.Z, ctrl | shift, () => session!.CanRedo);
+        commands.Add(new Shortcut("Redo (Ctrl+Y)", "重做", "菜单", new KeyGesture(Key.Y, ctrl), () => session!.Redo(), () => HasDocument && session!.CanRedo, hidden: true));
+        Top("编辑(_E)", undoItem, redoItem, Line(),
+            Item("剪切", () => _ = Cut(), Key.X, ctrl, () => session!.CanCopy),
+            Item("拷贝", () => _ = Copy(merged: false), Key.C, ctrl, () => session!.CanCopy),
+            Item("合并拷贝", () => _ = Copy(merged: true), Key.C, ctrl | shift),
+            Item("粘贴", () => _ = Paste(), Key.V, ctrl),
+            Sub("特殊粘贴",
+                Item("原位粘贴", () => _ = Paste(PasteKind.InPlace), Key.V, ctrl | shift),
+                Item("贴入", () => _ = Paste(PasteKind.Into), Key.V, ctrl | alt | shift, () => session!.Selection != null)),
             Line(),
-            Item("Fill with Foreground Color", () => session!.Fill(session.Foreground, "Fill"), Key.Back, alt, () => session!.CanFill),
-            Item("Fill with Background Color", () => session!.Fill(session.Background, "Fill"), Key.Back, ctrl, () => session!.CanFill),
-            Item("Clear", DeletePressed, Key.Delete),
-            Item("Content-Aware Fill", () => Busy(() => session!.ContentAwareFill()), Key.Back, shift, () => session!.Selection != null && session.CanEditPixels && !session.IsEditingMask),
+            Item("填充前景色", () => session!.Fill(session.Foreground, "填充"), Key.Back, alt, () => session!.CanFill),
+            Item("填充背景色", () => session!.Fill(session.Background, "填充"), Key.Back, ctrl, () => session!.CanFill),
+            Item("清除", DeletePressed, Key.Delete),
+            Item("内容识别填充", () => Busy(() => session!.ContentAwareFill()), Key.Back, shift, () => session!.Selection != null && session.CanEditPixels && !session.IsEditingMask),
             Line(),
-            Item("Keyboard Shortcuts…", () => _ = ShowShortcuts(), needsDocument: false, id: "Keyboard Shortcuts (Edit menu)"));
+            Item("键盘快捷键…", () => _ = ShowShortcuts(), needsDocument: false, id: "Keyboard Shortcuts (Edit menu)"));
 
-        Top("_Select",
-            Item("All", () => session!.SelectAll(), Key.A, ctrl),
-            Item("Deselect", () => session!.Deselect(), Key.D, ctrl, () => session!.Selection != null),
-            Item("Inverse", () => session!.InvertSelection(), Key.I, ctrl | shift),
+        Top("选择(_S)",
+            Item("全部", () => session!.SelectAll(), Key.A, ctrl),
+            Item("取消选择", () => session!.Deselect(), Key.D, ctrl, () => session!.Selection != null),
+            Item("反选", () => session!.InvertSelection(), Key.I, ctrl | shift),
             Line(),
-            Item("Layer's Pixels", () => session!.SelectLayerPixels(session.ActiveLayer!), enabled: () => session!.ActiveLayer?.Pixels != null),
-            Item("Layer's Mask", () => session!.SelectLayerMask(session.ActiveLayer!), enabled: () => session!.ActiveLayer?.Mask != null),
-            Item("Subject", SelectSubject, Key.A, ctrl | alt),
-            Item("Color Range…", ShowColorRange, enabled: () => session!.CanSelectColorRange),
+            Item("图层的像素", () => session!.SelectLayerPixels(session.ActiveLayer!), enabled: () => session!.ActiveLayer?.Pixels != null),
+            Item("图层蒙版", () => session!.SelectLayerMask(session.ActiveLayer!), enabled: () => session!.ActiveLayer?.Mask != null),
+            Item("主体", SelectSubject, Key.A, ctrl | alt),
+            Item("色彩范围…", ShowColorRange, enabled: () => session!.CanSelectColorRange),
             Line(),
-            Item("Expand…", () => _ = ModifySelection("Expand Selection", "Expand by", () => session!.SelectionExpandAmount, 500, v => { session!.SelectionExpandAmount = v; session.ExpandSelection(v); }), enabled: () => session!.Selection != null),
-            Item("Contract…", () => _ = ModifySelection("Contract Selection", "Contract by", () => session!.SelectionContractAmount, 500, v => { session!.SelectionContractAmount = v; session.ContractSelection(v); }), enabled: () => session!.Selection != null),
-            Item("Feather…", () => _ = ModifySelection("Feather Selection", "Feather radius", () => session!.SelectionFeatherAmount, 250, v => { session!.SelectionFeatherAmount = v; session.FeatherSelection(v); }), Key.F6, shift, () => session!.Selection != null));
+            Item("扩展…", () => _ = ModifySelection("扩展选区", "扩展量", () => session!.SelectionExpandAmount, 500, v => { session!.SelectionExpandAmount = v; session.ExpandSelection(v); }), enabled: () => session!.Selection != null),
+            Item("收缩…", () => _ = ModifySelection("收缩选区", "收缩量", () => session!.SelectionContractAmount, 500, v => { session!.SelectionContractAmount = v; session.ContractSelection(v); }), enabled: () => session!.Selection != null),
+            Item("羽化…", () => _ = ModifySelection("羽化选区", "羽化半径", () => session!.SelectionFeatherAmount, 250, v => { session!.SelectionFeatherAmount = v; session.FeatherSelection(v); }), Key.F6, shift, () => session!.Selection != null));
 
-        Top("_Image",
-            Item("Curves…", () => _ = Adjust(AdjustmentKind.Curves), Key.M, ctrl, () => session!.CanEditPixels),
-            Item("Levels…", () => _ = Adjust(AdjustmentKind.Levels), Key.L, ctrl, () => session!.CanEditPixels),
-            Item("Hue/Saturation…", () => _ = Adjust(AdjustmentKind.HueSaturation), Key.U, ctrl, () => session!.CanEditPixels),
-            Item("Brightness/Contrast…", () => _ = Adjust(AdjustmentKind.BrightnessContrast), enabled: () => session!.CanEditPixels),
-            Item("Exposure…", () => _ = Adjust(AdjustmentKind.Exposure), enabled: () => session!.CanEditPixels),
-            Item("Black & White…", () => _ = Adjust(AdjustmentKind.BlackAndWhite), enabled: () => session!.CanEditPixels),
-            Item("Color Balance…", () => _ = Adjust(AdjustmentKind.ColorBalance), enabled: () => session!.CanEditPixels),
-            Item("Gradient Map…", () => _ = Adjust(AdjustmentKind.GradientMap), enabled: () => session!.CanEditPixels),
-            Item("Color Lookup…", () => _ = Adjust(AdjustmentKind.ColorLookup), enabled: () => session!.CanEditPixels),
-            Item("Grain…", () => _ = Adjust(AdjustmentKind.Grain), enabled: () => session!.CanEditPixels),
-            Item("Invert", () => session!.Adjust(new InvertAdjustment()), Key.I, ctrl, () => session!.CanEditPixels),
-            Item("Auto Levels", AutoLevels, Key.L, ctrl | shift, () => session!.CanEditPixels),
+        Top("图像(_I)",
+            Item("曲线…", () => _ = Adjust(AdjustmentKind.Curves), Key.M, ctrl, () => session!.CanEditPixels),
+            Item("色阶…", () => _ = Adjust(AdjustmentKind.Levels), Key.L, ctrl, () => session!.CanEditPixels),
+            Item("色相/饱和度…", () => _ = Adjust(AdjustmentKind.HueSaturation), Key.U, ctrl, () => session!.CanEditPixels),
+            Item("亮度/对比度…", () => _ = Adjust(AdjustmentKind.BrightnessContrast), enabled: () => session!.CanEditPixels),
+            Item("曝光度…", () => _ = Adjust(AdjustmentKind.Exposure), enabled: () => session!.CanEditPixels),
+            Item("黑白…", () => _ = Adjust(AdjustmentKind.BlackAndWhite), enabled: () => session!.CanEditPixels),
+            Item("色彩平衡…", () => _ = Adjust(AdjustmentKind.ColorBalance), enabled: () => session!.CanEditPixels),
+            Item("渐变映射…", () => _ = Adjust(AdjustmentKind.GradientMap), enabled: () => session!.CanEditPixels),
+            Item("颜色查找…", () => _ = Adjust(AdjustmentKind.ColorLookup), enabled: () => session!.CanEditPixels),
+            Item("颗粒…", () => _ = Adjust(AdjustmentKind.Grain), enabled: () => session!.CanEditPixels),
+            Item("反相", () => session!.Adjust(new InvertAdjustment()), Key.I, ctrl, () => session!.CanEditPixels),
+            Item("自动色阶", AutoLevels, Key.L, ctrl | shift, () => session!.CanEditPixels),
             Line(),
             // Beside the adjustments rather than among the filters: it changes what the layer shows, not how its pixels look.
-            Item("Remove Background…", () => _ = Filter(FilterKind.RemoveBackground), enabled: () => session!.CanEditPixels),
+            Item("移除背景…", () => _ = Filter(FilterKind.RemoveBackground), enabled: () => session!.CanEditPixels),
             Line(),
-            Item("Canvas Size…", () => _ = CanvasSize(), Key.C, ctrl | alt),
-            Item("Image Size…", () => _ = ImageSize(), Key.I, ctrl | alt),
-            Item("Trim…", () => _ = Trim()),
-            Item("Reveal All", () => { if (session!.RevealAll()) canvas.Fit(); }, enabled: () => session!.CanRevealAll),
-            Item("Duplicate", () => AddSession(session!.Duplicate())),
+            Item("画布大小…", () => _ = CanvasSize(), Key.C, ctrl | alt),
+            Item("图像大小…", () => _ = ImageSize(), Key.I, ctrl | alt),
+            Item("修边…", () => _ = Trim()),
+            Item("显示全部", () => { if (session!.RevealAll()) canvas.Fit(); }, enabled: () => session!.CanRevealAll),
+            Item("复制", () => AddSession(session!.Duplicate())),
             Line(),
-            Item("Rotate Canvas 90° Clockwise", () => { session!.RotateCanvas(true); canvas.Fit(); }),
-            Item("Rotate Canvas 90° Counterclockwise", () => { session!.RotateCanvas(false); canvas.Fit(); }),
-            Item("Flip Canvas Horizontal", () => session!.FlipCanvas(true)),
-            Item("Flip Canvas Vertical", () => session!.FlipCanvas(false)));
+            Item("顺时针旋转画布 90°", () => { session!.RotateCanvas(true); canvas.Fit(); }),
+            Item("逆时针旋转画布 90°", () => { session!.RotateCanvas(false); canvas.Fit(); }),
+            Item("水平翻转画布", () => session!.FlipCanvas(true)),
+            Item("垂直翻转画布", () => session!.FlipCanvas(false)));
 
-        Top("F_ilter", Enum.GetValues<FilterKind>().Where(kind => kind != FilterKind.RemoveBackground).Select(kind => (object)Item(FilterSettings.DisplayName(kind) + "…", () => _ = Filter(kind), enabled: () => session!.CanEditPixels)).ToArray());
+        Top("滤镜(_I)", Enum.GetValues<FilterKind>().Where(kind => kind != FilterKind.RemoveBackground).Select(kind => (object)Item(FilterSettings.DisplayName(kind) + "…", () => _ = Filter(kind), enabled: () => session!.CanEditPixels)).ToArray());
 
-        mergeItem = Item("Merge Down", () => session!.MergeLayers(), Key.E, ctrl, () => session!.CanMerge);
-        clipItem = Item("Create Clipping Mask", () => session!.ToggleClippingMask(session.ActiveLayer!), Key.G, ctrl | alt, () => session!.ActiveLayer is { } l && session.CanClip(l));
-        Top("_Layer",
-            Item("New Layer", () => session!.AddBlankLayer(), Key.N, ctrl | shift),
-            Sub("New Adjustment Layer", Enum.GetValues<AdjustmentKind>().Select(kind => (object)Item(Adjustment.Create(kind).DisplayName + "…", () => _ = NewAdjustmentLayer(kind), id: "New " + Adjustment.Create(kind).DisplayName + " Layer")).ToArray()),
-            Item("Edit Adjustment…", () => _ = EditAdjustmentLayer(session!.ActiveLayer!, false), enabled: () => session!.ActiveLayer?.IsAdjustment == true),
+        mergeItem = Item("向下合并", () => session!.MergeLayers(), Key.E, ctrl, () => session!.CanMerge);
+        clipItem = Item("创建剪贴蒙版", () => session!.ToggleClippingMask(session.ActiveLayer!), Key.G, ctrl | alt, () => session!.ActiveLayer is { } l && session.CanClip(l));
+        Top("图层(_L)",
+            Item("新建图层", () => session!.AddBlankLayer(), Key.N, ctrl | shift),
+            Sub("新建调整图层", Enum.GetValues<AdjustmentKind>().Select(kind => (object)Item(Adjustment.Create(kind).DisplayName + "…", () => _ = NewAdjustmentLayer(kind), id: "New " + Adjustment.Create(kind).DisplayName + " Layer")).ToArray()),
+            Item("编辑调整…", () => _ = EditAdjustmentLayer(session!.ActiveLayer!, false), enabled: () => session!.ActiveLayer?.IsAdjustment == true),
             Line(),
-            Item("Transform Layer", () => { canvas.ShowTransformControls = true; SelectTool(Tool.Move); }, Key.T, ctrl),
-            Item("Duplicate Layer / Layer via Copy", () => session!.LayerViaCopy(), Key.J, ctrl, () => session!.ActiveLayer != null),
-            Item("Rename Layer…", layers.BeginRename, Key.F2, enabled: () => session!.ActiveLayer != null),
-            Item("Delete Layer", layers.DeleteLayerOrMask, enabled: () => session!.ActiveLayer != null),
+            Item("变换图层", () => { canvas.ShowTransformControls = true; SelectTool(Tool.Move); }, Key.T, ctrl),
+            Item("复制图层 / 通过拷贝的图层", () => session!.LayerViaCopy(), Key.J, ctrl, () => session!.ActiveLayer != null),
+            Item("重命名图层…", layers.BeginRename, Key.F2, enabled: () => session!.ActiveLayer != null),
+            Item("删除图层", layers.DeleteLayerOrMask, enabled: () => session!.ActiveLayer != null),
             Line(),
-            Item("Add Layer Mask", () => session!.AddMask(session.ActiveLayer!), enabled: () => session!.ActiveLayer is { Mask: null }),
-            Item("Invert Layer Mask", () => { session!.EditingMask = true; session.Adjust(new InvertAdjustment()); }, enabled: () => session!.ActiveLayer?.Mask != null),
-            Item("Apply Layer Mask", () => session!.ApplyMask(session.ActiveLayer!), enabled: () => session!.ActiveLayer is { Mask: not null, Pixels: not null }),
+            Item("添加图层蒙版", () => session!.AddMask(session.ActiveLayer!), enabled: () => session!.ActiveLayer is { Mask: null }),
+            Item("反相图层蒙版", () => { session!.EditingMask = true; session.Adjust(new InvertAdjustment()); }, enabled: () => session!.ActiveLayer?.Mask != null),
+            Item("应用图层蒙版", () => session!.ApplyMask(session.ActiveLayer!), enabled: () => session!.ActiveLayer is { Mask: not null, Pixels: not null }),
             clipItem,
             Line(),
-            Item("Group Selected Layers", () => session!.GroupSelectedLayers(), Key.G, ctrl),
-            Item("Ungroup", () => session!.Ungroup(session.ActiveLayer!), Key.G, ctrl | shift, () => session!.ActiveLayer?.IsGroup == true),
-            Item("Move Layer Up", () => session!.MoveActiveLayer(1), Key.OemCloseBrackets, ctrl),
-            Item("Move Layer Down", () => session!.MoveActiveLayer(-1), Key.OemOpenBrackets, ctrl),
+            Item("编组所选图层", () => session!.GroupSelectedLayers(), Key.G, ctrl),
+            Item("取消编组", () => session!.Ungroup(session.ActiveLayer!), Key.G, ctrl | shift, () => session!.ActiveLayer?.IsGroup == true),
+            Item("上移图层", () => session!.MoveActiveLayer(1), Key.OemCloseBrackets, ctrl),
+            Item("下移图层", () => session!.MoveActiveLayer(-1), Key.OemOpenBrackets, ctrl),
             mergeItem,
-            Item("Merge Visible", () => session!.MergeVisible(), enabled: () => session!.CanMergeVisible),
-            Item("Stamp Visible", () => session!.StampVisible(), Key.E, ctrl | alt | shift),
-            Item("Flatten Image", () => session!.FlattenImage()),
+            Item("合并可见图层", () => session!.MergeVisible(), enabled: () => session!.CanMergeVisible),
+            Item("盖印可见图层", () => session!.StampVisible(), Key.E, ctrl | alt | shift),
+            Item("拼合图像", () => session!.FlattenImage()),
             Line(),
-            Sub("Layer Effects", Enum.GetValues<LayerEffectKind>().Select(kind => (object)Item(LayerEffects.DisplayName(kind) + "…", () => _ = NewEffect(kind), enabled: () => session!.ActiveLayer?.Pixels != null, id: "Add " + LayerEffects.DisplayName(kind)))
-                .Append(Line()).Append(Item("Delete Effect", () => session!.RemoveSelectedEffect(), enabled: () => session!.SelectedEffect != null)).ToArray()),
-            Item("Edit Text…", () => BeginTextEdit(session!.ActiveLayer!), enabled: () => session!.ActiveLayer?.Text != null),
-            Item("Rasterize Layer", () => session!.RasterizeShape(session.ActiveLayer!), enabled: () => session!.ActiveLayer?.IsLive == true),
-            Item("Enhance Resolution", () => _ = EnhanceResolution(), enabled: () => session!.CanEnhanceResolution(session.ActiveLayer)),
-            Item("Rotate Layer 90° Clockwise", () => session!.RotateLayers(90)),
-            Item("Rotate Layer 90° Counterclockwise", () => session!.RotateLayers(-90)),
-            Item("Rotate Layer 180°", () => session!.RotateLayers(180)),
-            Item("Flip Layer Horizontal", () => session!.FlipLayers(true)),
-            Item("Flip Layer Vertical", () => session!.FlipLayers(false)));
+            Sub("图层效果", Enum.GetValues<LayerEffectKind>().Select(kind => (object)Item(LayerEffects.DisplayName(kind) + "…", () => _ = NewEffect(kind), enabled: () => session!.ActiveLayer?.Pixels != null, id: "Add " + LayerEffects.DisplayName(kind)))
+                .Append(Line()).Append(Item("删除效果", () => session!.RemoveSelectedEffect(), enabled: () => session!.SelectedEffect != null)).ToArray()),
+            Item("编辑文字…", () => BeginTextEdit(session!.ActiveLayer!), enabled: () => session!.ActiveLayer?.Text != null),
+            Item("栅格化图层", () => session!.RasterizeShape(session.ActiveLayer!), enabled: () => session!.ActiveLayer?.IsLive == true),
+            Item("增强分辨率", () => _ = EnhanceResolution(), enabled: () => session!.CanEnhanceResolution(session.ActiveLayer)),
+            Item("顺时针旋转图层 90°", () => session!.RotateLayers(90)),
+            Item("逆时针旋转图层 90°", () => session!.RotateLayers(-90)),
+            Item("旋转图层 180°", () => session!.RotateLayers(180)),
+            Item("水平翻转图层", () => session!.FlipLayers(true)),
+            Item("垂直翻转图层", () => session!.FlipLayers(false)));
 
-        var grid = new MenuItem { Header = "Pixel Grid (800% and above)", ToggleType = MenuItemToggleType.CheckBox, IsChecked = canvas.ShowPixelGrid };
+        var grid = new MenuItem { Header = "像素网格（800% 及以上）", ToggleType = MenuItemToggleType.CheckBox, IsChecked = canvas.ShowPixelGrid };
         grid.Click += (_, _) => { canvas.ShowPixelGrid = !canvas.ShowPixelGrid; grid.IsChecked = canvas.ShowPixelGrid; canvas.InvalidateVisual(); RememberToolSettings(); };
         // View options are flags on the session, so a checkmark follows the current tab.
         MenuItem ViewToggle(string name, Func<ViewOptions, bool> get, Func<ViewOptions, ViewOptions> flip, Key key = Key.None, KeyModifiers modifiers = KeyModifiers.None, string? id = null)
@@ -200,38 +200,38 @@ public sealed partial class MainWindow
             viewToggles.Add((item, get));
             return item;
         }
-        Top("_View",
-            Item("Fit Canvas", canvas.Fit, Key.D0, ctrl),
-            Item("Actual Pixels", () => canvas.ZoomTo(1), Key.D1, ctrl),
-            Item("Zoom In", canvas.ZoomIn, Key.OemPlus, ctrl),
-            Item("Zoom Out", canvas.ZoomOut, Key.OemMinus, ctrl),
+        Top("视图(_V)",
+            Item("适合屏幕", canvas.Fit, Key.D0, ctrl),
+            Item("实际像素", () => canvas.ZoomTo(1), Key.D1, ctrl),
+            Item("放大", canvas.ZoomIn, Key.OemPlus, ctrl),
+            Item("缩小", canvas.ZoomOut, Key.OemMinus, ctrl),
             Line(), grid,
-            Item("Show Transform Controls", () => { canvas.ShowTransformControls = !canvas.ShowTransformControls; canvas.InvalidateVisual(); RebuildOptions(); RememberToolSettings(); }, Key.H, ctrl),
+            Item("显示变换控件", () => { canvas.ShowTransformControls = !canvas.ShowTransformControls; canvas.InvalidateVisual(); RebuildOptions(); RememberToolSettings(); }, Key.H, ctrl),
             Line(),
-            ViewToggle("Rulers", v => v.ShowRulers, v => v with { ShowRulers = !v.ShowRulers }, Key.R, ctrl),
-            Sub("Show",
-                ViewToggle("Grid", v => v.ShowGrid, v => v with { ShowGrid = !v.ShowGrid }, Key.OemQuotes, ctrl, "Show Grid"),
-                ViewToggle("Guides", v => v.ShowGuides, v => v with { ShowGuides = !v.ShowGuides }, Key.OemSemicolon, ctrl, "Show Guides")),
-            Item("Grid Settings…", () => _ = ShowGridSettings()),
+            ViewToggle("标尺", v => v.ShowRulers, v => v with { ShowRulers = !v.ShowRulers }, Key.R, ctrl),
+            Sub("显示",
+                ViewToggle("网格", v => v.ShowGrid, v => v with { ShowGrid = !v.ShowGrid }, Key.OemQuotes, ctrl, "Show Grid"),
+                ViewToggle("参考线", v => v.ShowGuides, v => v with { ShowGuides = !v.ShowGuides }, Key.OemSemicolon, ctrl, "Show Guides")),
+            Item("网格设置…", () => _ = ShowGridSettings()),
             Line(),
-            ViewToggle("Snap", v => v.Snap, v => v with { Snap = !v.Snap }, Key.OemSemicolon, ctrl | shift),
-            Sub("Snap To",
-                ViewToggle("Guides", v => v.SnapToGuides, v => v with { SnapToGuides = !v.SnapToGuides }, id: "Snap To Guides"),
-                ViewToggle("Grid", v => v.SnapToGrid, v => v with { SnapToGrid = !v.SnapToGrid }, id: "Snap To Grid"),
-                ViewToggle("Layers", v => v.SnapToLayers, v => v with { SnapToLayers = !v.SnapToLayers }, id: "Snap To Layers"),
-                ViewToggle("Document Bounds", v => v.SnapToDocumentBounds, v => v with { SnapToDocumentBounds = !v.SnapToDocumentBounds }, id: "Snap To Document Bounds")),
+            ViewToggle("对齐", v => v.Snap, v => v with { Snap = !v.Snap }, Key.OemSemicolon, ctrl | shift),
+            Sub("对齐到",
+                ViewToggle("参考线", v => v.SnapToGuides, v => v with { SnapToGuides = !v.SnapToGuides }, id: "Snap To Guides"),
+                ViewToggle("网格", v => v.SnapToGrid, v => v with { SnapToGrid = !v.SnapToGrid }, id: "Snap To Grid"),
+                ViewToggle("图层", v => v.SnapToLayers, v => v with { SnapToLayers = !v.SnapToLayers }, id: "Snap To Layers"),
+                ViewToggle("文档边界", v => v.SnapToDocumentBounds, v => v with { SnapToDocumentBounds = !v.SnapToDocumentBounds }, id: "Snap To Document Bounds")),
             Line(),
-            ViewToggle("Lock Guides", v => v.LockGuides, v => v with { LockGuides = !v.LockGuides }, Key.OemSemicolon, ctrl | alt),
-            Item("Clear Guides", () => session!.ClearGuides(), enabled: () => session!.CanClearGuides));
+            ViewToggle("锁定参考线", v => v.LockGuides, v => v with { LockGuides = !v.LockGuides }, Key.OemSemicolon, ctrl | alt),
+            Item("清除参考线", () => session!.ClearGuides(), enabled: () => session!.CanClearGuides));
         // '+' is Shift and '=' on most keyboards, so Zoom In answers with Shift held too.
-        commands.Add(new Shortcut("Zoom In (with Shift)", "Zoom In", "Menus", new KeyGesture(Key.OemPlus, ctrl | shift), canvas.ZoomIn, () => HasDocument, hidden: true));
-        commands.Add(new Shortcut("Zoom In (keypad)", "Zoom In", "Menus", new KeyGesture(Key.Add, ctrl), canvas.ZoomIn, () => HasDocument, hidden: true));
-        commands.Add(new Shortcut("Zoom Out (keypad)", "Zoom Out", "Menus", new KeyGesture(Key.Subtract, ctrl), canvas.ZoomOut, () => HasDocument, hidden: true));
+        commands.Add(new Shortcut("Zoom In (with Shift)", "放大", "菜单", new KeyGesture(Key.OemPlus, ctrl | shift), canvas.ZoomIn, () => HasDocument, hidden: true));
+        commands.Add(new Shortcut("Zoom In (keypad)", "放大", "菜单", new KeyGesture(Key.Add, ctrl), canvas.ZoomIn, () => HasDocument, hidden: true));
+        commands.Add(new Shortcut("Zoom Out (keypad)", "缩小", "菜单", new KeyGesture(Key.Subtract, ctrl), canvas.ZoomOut, () => HasDocument, hidden: true));
 
         // A build from a repository leaves updates to its package manager, so there is nothing to switch on there.
         var autoUpdates = new MenuItem
         {
-            Header = "Check for Updates Automatically",
+            Header = "自动检查更新",
             ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = settings.CheckForUpdates,
             IsEnabled = UpdateCheck.Channel == UpdateChannel.GitHub
@@ -244,27 +244,27 @@ public sealed partial class MainWindow
         };
 
         // The MCP server, through which an AI agent drives the editor. Off until switched on, and remembered.
-        var aiControl = new MenuItem { Header = "Allow AI Control", ToggleType = MenuItemToggleType.CheckBox, IsChecked = settings.AllowAiControl };
+        var aiControl = new MenuItem { Header = "允许 AI 控制", ToggleType = MenuItemToggleType.CheckBox, IsChecked = settings.AllowAiControl };
         aiControl.Click += async (_, _) => { await SetAiControl(!AiControl); aiControl.IsChecked = settings.AllowAiControl; };
 
-        MenuItem PanelToggle(string title)
+        MenuItem PanelToggle(string title, string label)
         {
-            var item = Item(title, () => dock.SetVisible(dock.Section(title), !dock.Section(title).State.Visible), needsDocument: false);
+            var item = Item(label, () => dock.SetVisible(dock.Section(title), !dock.Section(title).State.Visible), needsDocument: false);
             item.ToggleType = MenuItemToggleType.CheckBox;
             panelToggles.Add((item, title));
             return item;
         }
-        Top("_Window", PanelToggle("History"));
+        Top("窗口(_W)", PanelToggle("History", "历史记录"));
 
-        Top("_Help", Item("Keyboard Shortcuts…", () => _ = ShowShortcuts(), Key.F1, needsDocument: false),
-            Item("Check for Updates…", () => _ = CheckForUpdatesNow(), needsDocument: false),
+        Top("帮助(_H)", Item("键盘快捷键…", () => _ = ShowShortcuts(), Key.F1, needsDocument: false),
+            Item("检查更新…", () => _ = CheckForUpdatesNow(), needsDocument: false),
             autoUpdates,
             Line(),
             aiControl,
             Line(),
-            Item("About Composa", () => _ = Prompts.Alert(this, "About Composa",
-            $"Composa {AppInfo.Version}\n\nA layer-based image editor for compositing and retouching, built with .NET, Avalonia and Skia. " +
-            "It is a from-scratch implementation of the open-source macOS app Compositor by Robbie Tilton (MIT license)."), needsDocument: false));
+            Item("关于 Composa", () => _ = Prompts.Alert(this, "关于 Composa",
+            $"Composa {AppInfo.Version}\n\n一款基于图层的图像编辑器，用于合成与修饰，使用 .NET、Avalonia 和 Skia 构建。" +
+            "它是 Robbie Tilton 的开源 macOS 应用 Compositor 的从零实现（MIT 许可证）。"), needsDocument: false));
         BuildToolKeys();
         ApplyShortcutOverrides();
         return menu;
@@ -278,47 +278,47 @@ public sealed partial class MainWindow
     /// <summary>The keys that pick tools and act on the canvas, kept as a table so the shortcuts window can rebind them.</summary>
     private void BuildToolKeys()
     {
-        void Key(string title, Avalonia.Input.Key key, Action run, KeyModifiers modifiers = KeyModifiers.None, bool hidden = false) =>
-            toolKeys.Add(new Shortcut(title, title, "Tools and Canvas", new KeyGesture(key, modifiers), run, hidden: hidden));
-        Key("Move tool", Avalonia.Input.Key.V, () => SelectTool(Tool.Move));
+        void Key(string id, Avalonia.Input.Key key, Action run, KeyModifiers modifiers = KeyModifiers.None, bool hidden = false, string? title = null) =>
+            toolKeys.Add(new Shortcut(id, title ?? id, "工具与画布", new KeyGesture(key, modifiers), run, hidden: hidden));
+        Key("Move tool", Avalonia.Input.Key.V, () => SelectTool(Tool.Move), title: "移动工具");
         Key(MarqueeKey, Avalonia.Input.Key.M, () =>
         {
             if (session!.Tool == Tool.Marquee) session.MarqueeKind = session.MarqueeKind == MarqueeKind.Rectangle ? MarqueeKind.Ellipse : MarqueeKind.Rectangle;
             SelectTool(Tool.Marquee);
-        });
+        }, title: "选框工具（再按一次在矩形与椭圆间切换）");
         Key(LassoKey, Avalonia.Input.Key.L, () =>
         {
             if (session!.Tool == Tool.Lasso) session.LassoKind = session.LassoKind == LassoKind.Freehand ? LassoKind.Polygonal : LassoKind.Freehand;
             SelectTool(Tool.Lasso);
-        });
-        Key(MagicKey, Avalonia.Input.Key.W, () => SelectTool(Tool.Wand));
-        Key("Crop tool", Avalonia.Input.Key.C, () => SelectTool(Tool.Crop));
-        Key(BrushKey, Avalonia.Input.Key.B, () => { session!.EraserMode = false; SelectTool(Tool.Brush); });
-        Key(EraserKey, Avalonia.Input.Key.E, () => { session!.EraserMode = true; SelectTool(Tool.Brush); });
-        Key("Spot Healing Brush", Avalonia.Input.Key.J, () => SelectTool(Tool.SpotHealing));
-        Key("Clone Stamp", Avalonia.Input.Key.S, () => SelectTool(Tool.CloneStamp));
+        }, title: "套索工具（再按一次在自由套索与多边形套索间切换）");
+        Key(MagicKey, Avalonia.Input.Key.W, () => SelectTool(Tool.Wand), title: "魔棒工具");
+        Key("Crop tool", Avalonia.Input.Key.C, () => SelectTool(Tool.Crop), title: "裁剪工具");
+        Key(BrushKey, Avalonia.Input.Key.B, () => { session!.EraserMode = false; SelectTool(Tool.Brush); }, title: "画笔工具");
+        Key(EraserKey, Avalonia.Input.Key.E, () => { session!.EraserMode = true; SelectTool(Tool.Brush); }, title: "橡皮擦");
+        Key("Spot Healing Brush", Avalonia.Input.Key.J, () => SelectTool(Tool.SpotHealing), title: "污点修复画笔");
+        Key("Clone Stamp", Avalonia.Input.Key.S, () => SelectTool(Tool.CloneStamp), title: "仿制图章");
         Key(SmearKey, Avalonia.Input.Key.R, () =>
         {
             if (session!.Tool == Tool.Smear) session.SmearMode = (SmearMode)(((int)session.SmearMode + 1) % 5);
             SelectTool(Tool.Smear);
-        });
-        Key("Gradient tool", Avalonia.Input.Key.G, () => SelectTool(Tool.Gradient));
+        }, title: "涂抹工具（再按一次切换模式）");
+        Key("Gradient tool", Avalonia.Input.Key.G, () => SelectTool(Tool.Gradient), title: "渐变工具");
         Key(ShapeKey, Avalonia.Input.Key.U, () =>
         {
             if (session!.Tool == Tool.Shape) session.ShapeKind = (ShapeKind)(((int)session.ShapeKind + 1) % Enum.GetValues<ShapeKind>().Length);
             SelectTool(Tool.Shape);
-        });
-        Key("Next shape", Avalonia.Input.Key.U, () => { session!.ShapeKind = (ShapeKind)(((int)session.ShapeKind + 1) % Enum.GetValues<ShapeKind>().Length); SelectTool(Tool.Shape); }, KeyModifiers.Shift);
-        Key("Type tool", Avalonia.Input.Key.T, () => SelectTool(Tool.Text));
-        Key("Eyedropper tool", Avalonia.Input.Key.I, () => SelectTool(Tool.Eyedropper));
-        Key("Hand tool", Avalonia.Input.Key.H, () => SelectTool(Tool.Hand));
-        Key("Zoom tool", Avalonia.Input.Key.Z, () => SelectTool(Tool.Zoom));
-        Key("Cycle tool mode", Avalonia.Input.Key.Tab, () => { session!.CycleToolMode(); SelectTool(session.Tool); });
-        Key("Swap foreground and background", Avalonia.Input.Key.X, () => { session!.SwapColors(); UpdateColors(); });
-        Key("Reset colors to black and white", Avalonia.Input.Key.D, () => { session!.ResetColors(); UpdateColors(); });
-        Key("Delete selection, layer or effect", Avalonia.Input.Key.Back, DeletePressed);
-        Key("Toggle painting on the mask", Avalonia.Input.Key.OemBackslash, ToggleMaskEditing);
-        Key("Toggle painting on the mask (pipe)", Avalonia.Input.Key.OemPipe, ToggleMaskEditing, hidden: true);
+        }, title: "形状工具（再按一次切换形状）");
+        Key("Next shape", Avalonia.Input.Key.U, () => { session!.ShapeKind = (ShapeKind)(((int)session.ShapeKind + 1) % Enum.GetValues<ShapeKind>().Length); SelectTool(Tool.Shape); }, KeyModifiers.Shift, title: "下一个形状");
+        Key("Type tool", Avalonia.Input.Key.T, () => SelectTool(Tool.Text), title: "文字工具");
+        Key("Eyedropper tool", Avalonia.Input.Key.I, () => SelectTool(Tool.Eyedropper), title: "吸管工具");
+        Key("Hand tool", Avalonia.Input.Key.H, () => SelectTool(Tool.Hand), title: "抓手工具");
+        Key("Zoom tool", Avalonia.Input.Key.Z, () => SelectTool(Tool.Zoom), title: "缩放工具");
+        Key("Cycle tool mode", Avalonia.Input.Key.Tab, () => { session!.CycleToolMode(); SelectTool(session.Tool); }, title: "循环切换工具模式");
+        Key("Swap foreground and background", Avalonia.Input.Key.X, () => { session!.SwapColors(); UpdateColors(); }, title: "交换前景色和背景色");
+        Key("Reset colors to black and white", Avalonia.Input.Key.D, () => { session!.ResetColors(); UpdateColors(); }, title: "将颜色重置为黑白色");
+        Key("Delete selection, layer or effect", Avalonia.Input.Key.Back, DeletePressed, title: "删除选区、图层或效果");
+        Key("Toggle painting on the mask", Avalonia.Input.Key.OemBackslash, ToggleMaskEditing, title: "切换在蒙版上绘制");
+        Key("Toggle painting on the mask (pipe)", Avalonia.Input.Key.OemPipe, ToggleMaskEditing, hidden: true, title: "切换在蒙版上绘制（竖线键）");
     }
 
     private void ToggleMaskEditing()
@@ -379,10 +379,10 @@ public sealed partial class MainWindow
         foreach (var (item, isChecked) in viewToggles) item.IsChecked = session != null && isChecked(session.View);
         foreach (var (item, section) in panelToggles) item.IsChecked = dock.Section(section).State.Visible;
         if (session == null) return;
-        undoItem!.Header = session.History.CanUndo ? $"Undo {session.History.UndoName}" : "Undo";
-        redoItem!.Header = session.History.CanRedo ? $"Redo {session.History.RedoName}" : "Redo";
+        undoItem!.Header = session.History.CanUndo ? $"撤销 {session.History.UndoName}" : "撤销";
+        redoItem!.Header = session.History.CanRedo ? $"重做 {session.History.RedoName}" : "重做";
         mergeItem!.Header = session.MergeTitle;
-        clipItem!.Header = session.ActiveLayer?.Clipped == true ? "Release Clipping Mask" : "Create Clipping Mask";
+        clipItem!.Header = session.ActiveLayer?.Clipped == true ? "释放剪贴蒙版" : "创建剪贴蒙版";
     }
 
     private void Execute(Shortcut command)
@@ -477,12 +477,12 @@ public sealed partial class MainWindow
 
     // ---- Files --------------------------------------------------------------------------------------------------
 
-    private static readonly FilePickerFileType ProjectType = new("Composa project") { Patterns = ["*" + ProjectFile.Extension] };
+    private static readonly FilePickerFileType ProjectType = new("Composa 项目") { Patterns = ["*" + ProjectFile.Extension] };
     private static readonly string[] ImageExtensions = [.. ImageFiles.ImportExtensions, .. RawImporter.Extensions];
-    private static readonly FilePickerFileType ImageType = new("Images") { Patterns = ImageExtensions.Select(e => "*" + e).ToArray() };
-    private static readonly FilePickerFileType RawType = new("Camera RAW") { Patterns = RawImporter.Extensions.Select(e => "*" + e).ToArray() };
-    private static readonly FilePickerFileType LookupType = new("Color lookup tables") { Patterns = ["*.cube", "*.3dl"] };
-    private static readonly FilePickerFileType AnyOpenable = new("Projects and images") { Patterns = ImageExtensions.Select(e => "*" + e).Append("*" + ProjectFile.Extension).ToArray() };
+    private static readonly FilePickerFileType ImageType = new("图像") { Patterns = ImageExtensions.Select(e => "*" + e).ToArray() };
+    private static readonly FilePickerFileType RawType = new("相机 RAW 文件") { Patterns = RawImporter.Extensions.Select(e => "*" + e).ToArray() };
+    private static readonly FilePickerFileType LookupType = new("颜色查找表") { Patterns = ["*.cube", "*.3dl"] };
+    private static readonly FilePickerFileType AnyOpenable = new("项目与图像") { Patterns = ImageExtensions.Select(e => "*" + e).Append("*" + ProjectFile.Extension).ToArray() };
 
     private async Task NewCanvas()
     {
@@ -492,7 +492,7 @@ public sealed partial class MainWindow
 
     private async Task Open()
     {
-        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Open", AllowMultiple = true, FileTypeFilter = [AnyOpenable, ProjectType, ImageType, RawType] });
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "打开", AllowMultiple = true, FileTypeFilter = [AnyOpenable, ProjectType, ImageType, RawType] });
         await OpenPaths(files.Select(f => f.TryGetLocalPath()).OfType<string>());
     }
 
@@ -502,7 +502,7 @@ public sealed partial class MainWindow
         foreach (var path in paths)
         {
             try { await OpenPath(path); }
-            catch (Exception error) { _ = Prompts.Alert(this, "Couldn't open " + Path.GetFileName(path), error.Message); }
+            catch (Exception error) { _ = Prompts.Alert(this, "无法打开 " + Path.GetFileName(path), error.Message); }
         }
     }
 
@@ -550,7 +550,7 @@ public sealed partial class MainWindow
 
     private async Task PlaceImages()
     {
-        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Place Images as Layers", AllowMultiple = true, FileTypeFilter = [ImageType] });
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "置入图像为图层", AllowMultiple = true, FileTypeFilter = [ImageType] });
         await PlacePaths(files.Select(f => f.TryGetLocalPath()).OfType<string>(), null);
     }
 
@@ -598,7 +598,7 @@ public sealed partial class MainWindow
                 }
                 else session.AddImageLayer(name, ImageFiles.Load(path), at);
             }
-            catch (Exception error) { _ = Prompts.Alert(this, "Import couldn't finish", error.Message); }
+            catch (Exception error) { _ = Prompts.Alert(this, "导入未能完成", error.Message); }
         }
         SelectTool(Tool.Move);
     }
@@ -655,14 +655,14 @@ public sealed partial class MainWindow
         {
             var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title = "Save Project", SuggestedFileName = target.Title + ProjectFile.Extension, DefaultExtension = ProjectFile.Extension.TrimStart('.'), FileTypeChoices = [ProjectType]
+                Title = "保存项目", SuggestedFileName = target.Title + ProjectFile.Extension, DefaultExtension = ProjectFile.Extension.TrimStart('.'), FileTypeChoices = [ProjectType]
             });
             path = file?.TryGetLocalPath();
             if (path == null) return false;
             if (!path.EndsWith(ProjectFile.Extension, StringComparison.OrdinalIgnoreCase)) path += ProjectFile.Extension;
         }
         if (await SaveTo(target, path) is not { } error) return true;
-        await Prompts.Alert(this, "Couldn't save", error.Message);
+        await Prompts.Alert(this, "无法保存", error.Message);
         return false;
     }
 
@@ -719,8 +719,8 @@ public sealed partial class MainWindow
         var extension = format switch { ExportFormat.Jpeg => "jpg", ExportFormat.Webp => "webp", _ => "png" };
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Export " + extension.ToUpperInvariant(), SuggestedFileName = session.Title + "." + extension, DefaultExtension = extension,
-            FileTypeChoices = [new FilePickerFileType(extension.ToUpperInvariant() + " image") { Patterns = ["*." + extension] }]
+            Title = "导出 " + extension.ToUpperInvariant(), SuggestedFileName = session.Title + "." + extension, DefaultExtension = extension,
+            FileTypeChoices = [new FilePickerFileType(extension.ToUpperInvariant() + " 图像") { Patterns = ["*." + extension] }]
         });
         if (file?.TryGetLocalPath() is not { } path) return;
         try
@@ -731,7 +731,7 @@ public sealed partial class MainWindow
                 ImageFiles.Save(flat, path, format, format == ExportFormat.Png ? 100 : jpegQuality);
             });
         }
-        catch (Exception error) { await Prompts.Alert(this, "Couldn't export", error.Message); }
+        catch (Exception error) { await Prompts.Alert(this, "无法导出", error.Message); }
     }
 
     /// <summary>The size of the last look exported, so the dialog opens on it.</summary>
@@ -744,16 +744,16 @@ public sealed partial class MainWindow
         var (baked, leftOut) = LookBake.Survey(session.Document);
         if (baked.Count == 0)
         {
-            ShowProblem(leftOut.Count > 0 ? "None of the adjustment layers can be baked into a look: " + string.Join("; ", leftOut.Select(l => $"{l.Layer.Name} {l.Why}")) + "."
-                : "There is no adjustment layer to bake into a look.");
+            ShowProblem(leftOut.Count > 0 ? "没有调整图层可以烘焙成 Look：" + string.Join("；", leftOut.Select(l => $"{l.Layer.Name} {l.Why}")) + "。"
+                : "没有可烘焙成 Look 的调整图层。");
             return;
         }
         if (await LookDialogs.ExportLook(this, baked.Select(l => l.Name).ToList(), leftOut.Select(l => (l.Layer.Name, l.Why)).ToList(), lookSize) is not { } size) return;
         lookSize = size;
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Export Look", SuggestedFileName = session.Title + ".cube", DefaultExtension = "cube",
-            FileTypeChoices = [new FilePickerFileType("Color lookup table") { Patterns = ["*.cube"] }]
+            Title = "导出 Look", SuggestedFileName = session.Title + ".cube", DefaultExtension = "cube",
+            FileTypeChoices = [new FilePickerFileType("颜色查找表") { Patterns = ["*.cube"] }]
         });
         if (file?.TryGetLocalPath() is not { } path) return;
         try
@@ -762,14 +762,14 @@ public sealed partial class MainWindow
             var names = string.Join(", ", baked.Select(l => l.Name));
             Busy(() => File.WriteAllText(path, LookBake.Bake(baked, size, title).ToCube(title, $"Exported from Composa: {names}")));
         }
-        catch (Exception error) { await Prompts.Alert(this, "Couldn't export", error.Message); }
+        catch (Exception error) { await Prompts.Alert(this, "无法导出", error.Message); }
     }
 
     // ---- Clipboard ----------------------------------------------------------------------------------------------
 
     private async Task Copy(bool merged)
     {
-        if (session == null || !(merged ? session.CopyMerged() : session.Copy())) { ShowProblem("There is nothing to copy here."); return; }
+        if (session == null || !(merged ? session.CopyMerged() : session.Copy())) { ShowProblem("这里没有可拷贝的内容。"); return; }
         ShowCopied();
         if (EditorSession.Clipboard == null) { await ClearExternalClipboard(); return; }
         await PublishClipboard();
@@ -795,8 +795,8 @@ public sealed partial class MainWindow
     /// <summary>Says what went to the clipboard, because a copy is otherwise silent and the first thing anyone doubts.</summary>
     private void ShowCopied()
     {
-        if (EditorSession.CopiedLayers is { Layers.Count: var count }) ShowNote(count == 1 ? "Copied 1 layer" : $"Copied {count} layers");
-        else if (EditorSession.Clipboard is { } image) ShowNote($"Copied {image.Pixels.Width} × {image.Pixels.Height} px");
+        if (EditorSession.CopiedLayers is { Layers.Count: var count }) ShowNote(count == 1 ? "已拷贝 1 个图层" : $"已拷贝 {count} 个图层");
+        else if (EditorSession.Clipboard is { } image) ShowNote($"已拷贝 {image.Pixels.Width} × {image.Pixels.Height} 像素");
     }
 
     /// <summary>Shares the copied pixels with other apps.</summary>
@@ -847,7 +847,7 @@ public sealed partial class MainWindow
             PasteKind.Into => session.PasteInto(external),
             _ => session.Paste(external)
         };
-        if (pasted == null) ShowProblem("The clipboard has no image.");
+        if (pasted == null) ShowProblem("剪贴板中没有图像。");
         else SelectTool(Tool.Move);
     }
 
@@ -908,11 +908,11 @@ public sealed partial class MainWindow
             if (SubjectFinder.Resolve(target.Detect) == SubjectDetect.Backdrop)
             {
                 NoteFallback(target.Detect);
-                if (!target.SelectSubject()) ShowProblem("No subject found: the picture has no plain backdrop to tell it apart from.");
+                if (!target.SelectSubject()) ShowProblem("未找到主体：画面没有可将其区分出来的纯色背景。");
                 return;
             }
-            var found = await ProgressWindow.Run(this, "Finding the subject…", ct => target.SelectSubjectAsync(Composa.Selections.SelectionMode.Replace, ct));
-            if (found == false) ShowProblem("No subject found in the picture.");
+            var found = await ProgressWindow.Run(this, "正在查找主体…", ct => target.SelectSubjectAsync(Composa.Selections.SelectionMode.Replace, ct));
+            if (found == false) ShowProblem("画面中未找到主体。");
         }
         catch (Exception e) { ReportFailure(e); }
     }
@@ -925,7 +925,7 @@ public sealed partial class MainWindow
         try
         {
             if (SubjectFinder.Resolve(target.Detect) == SubjectDetect.Backdrop) { NoteFallback(target.Detect); target.SelectObject(x, y, mode); return; }
-            await ProgressWindow.Run(this, "Finding the subject…", async ct => { await target.SelectObjectAsync(x, y, mode, ct); return true; });
+            await ProgressWindow.Run(this, "正在查找主体…", async ct => { await target.SelectObjectAsync(x, y, mode, ct); return true; });
         }
         catch (Exception e) { ReportFailure(e); }
     }
@@ -938,7 +938,7 @@ public sealed partial class MainWindow
         try
         {
             NoteFallback(target.Detect);
-            await ProgressWindow.Run(this, "Finding the object…", async ct => { await target.SelectObjectInBoxAsync(box, mode, ct); return true; });
+            await ProgressWindow.Run(this, "正在查找对象…", async ct => { await target.SelectObjectInBoxAsync(box, mode, ct); return true; });
         }
         catch (Exception e) { ReportFailure(e); }
     }
@@ -966,7 +966,7 @@ public sealed partial class MainWindow
         if (session == null) return;
         var target = session;
         var histogram = HistogramOfActive();
-        if (!target.BeginPreview(Adjustment.Create(kind).DisplayName)) { ShowProblem("Select a pixel layer or a mask first."); return; }
+        if (!target.BeginPreview(Adjustment.Create(kind).DisplayName)) { ShowProblem("请先选择一个像素图层或蒙版。"); return; }
         var result = await AdjustmentDialogs.Edit(this, Adjustment.Create(kind), target.PreviewAdjustment, histogram, target.Foreground, target.Background, () => target.PreviewOriginal, PickLookupFile);
         if (result == null || result.IsIdentity) target.CancelPreview();
         else { target.PreviewAdjustment(result); target.CommitPreview(); }
@@ -979,7 +979,7 @@ public sealed partial class MainWindow
     {
         if (session == null) return;
         var target = session;
-        if (!target.BeginFilter(kind)) { ShowProblem("Select a pixel layer or a mask first."); return; }
+        if (!target.BeginFilter(kind)) { ShowProblem("请先选择一个像素图层或蒙版。"); return; }
         if (kind == FilterKind.CameraRaw)
         {
             var original = target.PreviewOriginal!;
@@ -1027,7 +1027,7 @@ public sealed partial class MainWindow
             var matte = await Busy(() => target.FindLayerSubjectAsync(settings.Detect, mine.Token));
             if (mine.IsCancellationRequested || !target.IsPreviewing) return;
             target.PreviewRemoveBackground(matte);
-            if (matte == null) ShowProblem("No subject found in this layer.");
+            if (matte == null) ShowProblem("此图层中未找到主体。");
         }
         async void PreviewSafely(FilterSettings settings)
         {
@@ -1071,8 +1071,8 @@ public sealed partial class MainWindow
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Save Look", SuggestedFileName = title + ".cube", DefaultExtension = "cube",
-            FileTypeChoices = [new FilePickerFileType("Color lookup table") { Patterns = ["*.cube"] }]
+            Title = "保存外观", SuggestedFileName = title + ".cube", DefaultExtension = "cube",
+            FileTypeChoices = [new FilePickerFileType("颜色查找表") { Patterns = ["*.cube"] }]
         });
         return file?.TryGetLocalPath();
     }
@@ -1080,7 +1080,7 @@ public sealed partial class MainWindow
     /// <summary>Asks for a .cube or .3dl for the Color Lookup dialog; null when none was chosen.</summary>
     private async Task<string?> PickLookupFile()
     {
-        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Load Color Lookup Table", FileTypeFilter = [LookupType] });
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "载入颜色查找表", FileTypeFilter = [LookupType] });
         return files.Count > 0 ? files[0].TryGetLocalPath() : null;
     }
 
@@ -1091,7 +1091,7 @@ public sealed partial class MainWindow
         var original = layer.Adjustment;
         if (original is InvertAdjustment) return;
         var histogram = Histogram.Of(target.Composite());
-        target.Begin("Edit Adjustment");
+        target.Begin("编辑调整");
         var result = await AdjustmentDialogs.Edit(this, original, a => target.SetAdjustment(layer, a), histogram, target.Foreground, target.Background, target.Composite, PickLookupFile);
         if (result != null && !result.ContentEquals(original))
         {
@@ -1117,7 +1117,7 @@ public sealed partial class MainWindow
     {
         if (session == null) return;
         var target = session;
-        if (target.ActiveLayer is not { Pixels: not null } layer) { ShowProblem("Select a layer with pixels to add an effect to."); return; }
+        if (target.ActiveLayer is not { Pixels: not null } layer) { ShowProblem("请选择要添加效果的像素图层。"); return; }
         if (layer.Effects?.Contains(kind) == true) { await EditEffect(layer, kind); return; }
         target.AddEffect(layer, kind, commit: false);
         if (await EffectsDialog.Edit(this, target, layer, kind)) target.Commit();
@@ -1132,7 +1132,7 @@ public sealed partial class MainWindow
         var target = session;
         var original = layer.Effects;
         target.SelectedEffect = (layer.Id, kind);
-        target.Begin("Edit " + LayerEffects.DisplayName(kind));
+        target.Begin("编辑 " + LayerEffects.DisplayName(kind));
         if (await EffectsDialog.Edit(this, target, layer, kind) && layer.Effects != original) target.Commit();
         else target.Cancel();
         target.NotifyLayersChanged();
@@ -1155,7 +1155,7 @@ public sealed partial class MainWindow
         var target = session;
         if (await TrimDialog.Show(this, trimOptions) is not { } options) return;
         trimOptions = options;
-        if (!target.Trim(options)) { ShowProblem("Nothing to trim: no edge is empty in that sense."); return; }
+        if (!target.Trim(options)) { ShowProblem("没有可修除的内容：这些方向上没有空白边缘。"); return; }
         canvas.Fit();
     }
 
@@ -1186,7 +1186,7 @@ public sealed partial class MainWindow
             status.Report($"Enhancing… tile {p.Done} of {p.Total}{left}");
         }), ct));
         if (enhanced == null) return; // Cancelled.
-        try { if (!target.EnhanceResolution(layer, enhanced)) ShowProblem("The layer changed while the model ran, so nothing was changed."); }
+        try { if (!target.EnhanceResolution(layer, enhanced)) ShowProblem("模型运行期间图层发生了变化，因此未做任何更改。"); }
         finally { enhanced.DisposeUnused(target.Document); }
     }
 

@@ -93,7 +93,7 @@ public class WindowTests
         window.MouseUp(center + new Vector(60, 10), MouseButton.Left);
         Screenshots.Save(window, "06-pointer-stroke");
         Assert.True(session.CanUndo);
-        Assert.Equal("Brush", session.History.UndoName);
+        Assert.Equal("画笔", session.History.UndoName);
         var painted = session.Composite().GetPixel(200, 150);
         Assert.True(painted.Red < 40, $"expected black paint at the center, found {painted}");
 
@@ -132,7 +132,7 @@ public class KeyboardTests
         window.KeyPressQwerty(PhysicalKey.A, RawInputModifiers.Control);
         Assert.NotNull(session.Selection);
         window.KeyPressQwerty(PhysicalKey.I, RawInputModifiers.Control);
-        Assert.Equal("Invert", session.History.UndoName);
+        Assert.Equal("反相", session.History.UndoName);
         window.KeyPressQwerty(PhysicalKey.D, RawInputModifiers.Control);
         Assert.Null(session.Selection);
         window.KeyPressQwerty(PhysicalKey.N, RawInputModifiers.Control | RawInputModifiers.Shift);

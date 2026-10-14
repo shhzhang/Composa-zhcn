@@ -16,7 +16,7 @@ public class DialogWindow : Window
     private readonly Button ok;
     protected readonly StackPanel Buttons;
 
-    public DialogWindow(string title, Control body, string okText = "OK", bool cancellable = true)
+    public DialogWindow(string title, Control body, string okText = "确定", bool cancellable = true)
     {
         Title = title;
         SizeToContent = SizeToContent.WidthAndHeight;
@@ -28,7 +28,7 @@ public class DialogWindow : Window
         Buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
         if (cancellable)
         {
-            var cancel = Ui.TextButton("Cancel", Reject);
+            var cancel = Ui.TextButton("取消", Reject);
             cancel.IsCancel = true;
             Buttons.Children.Add(cancel);
         }
@@ -55,7 +55,7 @@ public class DialogWindow : Window
 
 public static class Prompts
 {
-    public static Task<bool> Confirm(Window owner, string title, string message, string okText = "OK") =>
+    public static Task<bool> Confirm(Window owner, string title, string message, string okText = "确定") =>
         new DialogWindow(title, new TextBlock { Text = message, MaxWidth = 420, TextWrapping = TextWrapping.Wrap }, okText).Ask(owner);
 
     public static Task Alert(Window owner, string title, string message) =>
@@ -64,15 +64,15 @@ public static class Prompts
     /// <summary>Save / Don't Save / Cancel. Returns null for cancel.</summary>
     public static async Task<bool?> SaveChanges(Window owner, string name)
     {
-        var dialog = new DialogWindow("Unsaved Changes", new TextBlock { Text = $"Save changes to \"{name}\" before closing?", MaxWidth = 420, TextWrapping = TextWrapping.Wrap }, "Save");
+        var dialog = new DialogWindow("未保存的更改", new TextBlock { Text = $"关闭前要保存对「{name}」的更改吗？", MaxWidth = 420, TextWrapping = TextWrapping.Wrap }, "保存");
         bool? result = null;
-        var discard = Ui.TextButton("Don't Save", () => { result = false; dialog.Close(false); });
+        var discard = Ui.TextButton("不保存", () => { result = false; dialog.Close(false); });
         ((StackPanel)((StackPanel)dialog.Content!).Children[1]).Children.Insert(0, discard);
         if (await dialog.Ask(owner)) return true;
         return result;
     }
 
-    public static async Task<double?> Number(Window owner, string title, string label, double value, double min, double max, string unit = "px")
+    public static async Task<double?> Number(Window owner, string title, string label, double value, double min, double max, string unit = "像素")
     {
         var result = value;
         var box = Ui.Number(value, min, max, v => result = v, width: 120);
@@ -96,7 +96,7 @@ public static class Prompts
         var swatches = Ui.Row(0,
             new Border { Width = 60, Height = 28, Background = new SolidColorBrush(initial.ToAvalonia()) },
             new Border { Width = 60, Height = 28, [!Border.BackgroundProperty] = view.GetObservable(ColorView.ColorProperty).Select(c => (IBrush)new SolidColorBrush(c)).ToBinding() });
-        var body = Ui.Column(10, view, Ui.Row(10, Ui.Label("Before / After", Palette.Secondary), swatches));
+        var body = Ui.Column(10, view, Ui.Row(10, Ui.Label("调整前 / 调整后", Palette.Secondary), swatches));
         return await new DialogWindow(title, body).Ask(owner) ? view.Color.ToSkia().WithAlpha(255) : null;
     }
 
@@ -125,11 +125,11 @@ public static class CanvasDialogs
     /// </summary>
     public static readonly (string Name, int W, int H)[] Presets =
     [
-        ("Custom", 0, 0),
+        ("自定义", 0, 0),
         ("4K", 3840, 2160), ("1440p", 2560, 1440), ("1080p", 1920, 1080),
         ("iPhone 18 Pro", 1206, 2622), ("iPhone 18 Pro Max", 1320, 2868), ("MacBook Pro 14\"", 3024, 1964), ("MacBook Pro 16\"", 3456, 2234), ("Studio Display", 5120, 2880),
-        ("Instagram Square", 1080, 1080), ("Instagram Portrait", 1080, 1350), ("Instagram Story", 1080, 1920), ("YouTube Thumb", 1080, 608),
-        ("A4 at 300 ppi", 2480, 3508), ("Photo 6000 × 4000", 6000, 4000)
+        ("Instagram 正方形", 1080, 1080), ("Instagram 竖版", 1080, 1350), ("Instagram 故事", 1080, 1920), ("YouTube 缩略图", 1080, 608),
+        ("A4 300 ppi", 2480, 3508), ("照片 6000 × 4000", 6000, 4000)
     ];
 
     private static string PresetLabel((string Name, int W, int H) preset) => preset.W == 0 || preset.Name.Contains('×') ? preset.Name : $"{preset.Name}  {preset.W} × {preset.H}";
@@ -142,7 +142,7 @@ public static class CanvasDialogs
     public static async Task<NewCanvasResult?> NewCanvas(Window owner, SKColor backgroundColor, (int W, int H)? clipboardSize = null)
     {
         if (clipboardSize is { } clip && !DocumentLimits.FitsSurface(clip.W, clip.H)) clipboardSize = null;
-        var presets = clipboardSize is { } size ? Presets.Prepend(("Clipboard", size.W, size.H)).ToArray() : Presets;
+        var presets = clipboardSize is { } size ? Presets.Prepend(("剪贴板", size.W, size.H)).ToArray() : Presets;
         var custom = Array.FindIndex(presets, p => p.W == 0);
         int width = clipboardSize?.W ?? 1920, height = clipboardSize?.H ?? 1080;
         var fill = 0;
@@ -168,9 +168,9 @@ public static class CanvasDialogs
         }
         widthBox.ValueChanged += FollowSize;
         heightBox.ValueChanged += FollowSize;
-        var background = Ui.Combo(new[] { "Transparent", "White", "Background color" }, "Transparent", s => s, s => fill = s == "White" ? 1 : s == "Transparent" ? 0 : 2, 220);
-        var grid = Form(("Preset", preset), ("Width", Ui.Row(6, widthBox, Ui.Label("px", Palette.Secondary))), ("Height", Ui.Row(6, heightBox, Ui.Label("px", Palette.Secondary))), ("Background", background));
-        if (!await new DialogWindow("New Canvas", grid, "Create").Ask(owner)) return null;
+        var background = Ui.Combo(new[] { "透明", "白色", "背景色" }, "透明", s => s, s => fill = s == "白色" ? 1 : s == "透明" ? 0 : 2, 220);
+        var grid = Form(("预设", preset), ("宽度", Ui.Row(6, widthBox, Ui.Label("像素", Palette.Secondary))), ("高度", Ui.Row(6, heightBox, Ui.Label("像素", Palette.Secondary))), ("背景", background));
+        if (!await new DialogWindow("新建画布", grid, "创建").Ask(owner)) return null;
         return new NewCanvasResult(width, height, fill == 0 ? null : fill == 1 ? SKColors.White : backgroundColor);
     }
 
@@ -181,7 +181,7 @@ public static class CanvasDialogs
         var relative = false;
         var widthBox = Ui.Number(width, -DocumentLimits.MaxSide, DocumentLimits.MaxSide, v => width = (int)v, width: 120);
         var heightBox = Ui.Number(height, -DocumentLimits.MaxSide, DocumentLimits.MaxSide, v => height = (int)v, width: 120);
-        var relativeBox = Ui.Check("Relative", false, v =>
+        var relativeBox = Ui.Check("相对", false, v =>
         {
             relative = v;
             widthBox.Value = v ? 0 : currentWidth;
@@ -201,9 +201,9 @@ public static class CanvasDialogs
             anchors.Children.Add(button);
         }
         var body = Ui.Column(12,
-            Ui.Label($"Current size: {currentWidth} × {currentHeight} px", Palette.Secondary),
-            Form(("Width", Ui.Row(6, widthBox, Ui.Label("px", Palette.Secondary))), ("Height", Ui.Row(6, heightBox, Ui.Label("px", Palette.Secondary))), ("", relativeBox), ("Anchor", anchors)));
-        if (!await new DialogWindow("Canvas Size", body).Ask(owner)) return null;
+            Ui.Label($"当前尺寸：{currentWidth} × {currentHeight} 像素", Palette.Secondary),
+            Form(("宽度", Ui.Row(6, widthBox, Ui.Label("像素", Palette.Secondary))), ("高度", Ui.Row(6, heightBox, Ui.Label("像素", Palette.Secondary))), ("", relativeBox), ("锚点", anchors)));
+        if (!await new DialogWindow("画布大小", body).Ask(owner)) return null;
         if (relative) { width += currentWidth; height += currentHeight; }
         return (Math.Clamp(width, 1, DocumentLimits.MaxSide), Math.Clamp(height, 1, DocumentLimits.MaxSide), anchor);
     }
@@ -212,9 +212,9 @@ public static class CanvasDialogs
 
     public static string ResampleName(ResampleMode mode) => mode switch
     {
-        ResampleMode.Nearest => "Nearest Neighbor",
-        ResampleMode.Enhance => "Enhance",
-        _ => "Automatic"
+        ResampleMode.Nearest => "邻近（最邻近）",
+        ResampleMode.Enhance => "增强",
+        _ => "自动"
     };
 
     /// <param name="resample">The last Resample choice, which the dialog opens on; Enhance applies only when enlarging and the model is available.</param>
@@ -231,11 +231,11 @@ public static class CanvasDialogs
             var enlarging = width > currentWidth || height > currentHeight;
             note.Text = mode switch
             {
-                ResampleMode.Nearest => "Every pixel becomes a hard-edged block, which keeps pixel art crisp.",
-                ResampleMode.Enhance when !Composa.Vision.UpscaleModels.IsAvailable => Composa.Vision.UpscaleModels.UnavailableReason + " The picture is resampled as Automatic does.",
-                ResampleMode.Enhance when !enlarging => "Enhance only applies when enlarging; at this size the picture is resampled as Automatic does.",
-                ResampleMode.Enhance => "A model run on this machine enlarges each photo layer four times, inventing fine detail that was not there, then fits it to the new size. It takes about a second per 65,000 pixels of each layer; text and shapes are redrawn instead, and masks are resampled.",
-                _ => "Smooth when shrinking, sharp cubic when enlarging."
+                ResampleMode.Nearest => "每个像素变成一个硬边方块，像素画依然锐利。",
+                ResampleMode.Enhance when !Composa.Vision.UpscaleModels.IsAvailable => Composa.Vision.UpscaleModels.UnavailableReason + " 图像将按「自动」的方式重新取样。",
+                ResampleMode.Enhance when !enlarging => "「增强」仅在放大时生效；当前尺寸下将按「自动」的方式重新取样。",
+                ResampleMode.Enhance => "在本机运行模型，把每个照片图层放大四倍并补出原本不存在的细节，再适配到新尺寸。每个图层每 65,000 像素约需一秒；文字和形状改为重绘，蒙版则重新取样。",
+                _ => "缩小时平滑，放大时使用锐利的三次插值。"
             };
         }
         widthBox = Ui.Number(width, 1, DocumentLimits.MaxSide, v =>
@@ -252,15 +252,15 @@ public static class CanvasDialogs
         }, width: 120);
         var resolutionBox = Ui.Number(resolution, 1, 9600, v => resolution = v, width: 120);
         var modes = Ui.Combo(ResampleModes, mode, ResampleName, v => { mode = v; Describe(); }, 160);
-        ToolTip.SetTip(modes, "How the pixels are resampled: Automatic for most pictures, Nearest Neighbor for pixel art, Enhance to invent detail with a model while enlarging");
+        ToolTip.SetTip(modes, "像素如何重新取样：多数图片用「自动」，像素画用「邻近」，放大时用「增强」让模型补出细节");
         Describe();
         var body = Ui.Column(12,
-            Ui.Label($"Current size: {currentWidth} × {currentHeight} px", Palette.Secondary),
-            Form(("Width", Ui.Row(6, widthBox, Ui.Label("px", Palette.Secondary))), ("Height", Ui.Row(6, heightBox, Ui.Label("px", Palette.Secondary))),
-                ("", Ui.Check("Constrain proportions", true, v => constrain = v)), ("Resolution", Ui.Row(6, resolutionBox, Ui.Label("pixels/inch", Palette.Secondary))),
-                ("Resample", modes)),
+            Ui.Label($"当前尺寸：{currentWidth} × {currentHeight} 像素", Palette.Secondary),
+            Form(("宽度", Ui.Row(6, widthBox, Ui.Label("像素", Palette.Secondary))), ("高度", Ui.Row(6, heightBox, Ui.Label("像素", Palette.Secondary))),
+                ("", Ui.Check("保持长宽比", true, v => constrain = v)), ("分辨率", Ui.Row(6, resolutionBox, Ui.Label("像素/英寸", Palette.Secondary))),
+                ("重新取样", modes)),
             note);
-        if (!await new DialogWindow("Image Size", body).Ask(owner)) return null;
+        if (!await new DialogWindow("图像大小", body).Ask(owner)) return null;
         return (width, height, resolution, mode);
     }
 
@@ -269,7 +269,7 @@ public static class CanvasDialogs
     {
         var quality = initial;
         var preview = new Image { Width = 520, Height = 340, Stretch = Stretch.Uniform };
-        var info = Ui.Label("Measuring…", Palette.Secondary);
+        var info = Ui.Label("正在计算…", Palette.Secondary);
         var generation = 0;
         var closed = false;
         Task inFlight = Task.CompletedTask;
@@ -280,7 +280,7 @@ public static class CanvasDialogs
             timer.Stop();
             var mine = ++generation;
             var q = quality;
-            info.Text = "Measuring…";
+            info.Text = "正在计算…";
             // Encoding a large photo takes a moment, so it runs off the UI thread; a newer request supersedes this one.
             var work = Task.Run(() =>
             {
@@ -292,13 +292,13 @@ public static class CanvasDialogs
             var (bytes, shown) = await work;
             if (closed || mine != generation) return;
             if (shown != null) preview.Source = shown;
-            info.Text = $"{flattened.Width} × {flattened.Height} px · {(bytes >= 1024 * 1024 ? $"{bytes / 1048576.0:0.0} MB" : $"{bytes / 1024.0:0} KB")}";
+            info.Text = $"{flattened.Width} × {flattened.Height} 像素 · {(bytes >= 1024 * 1024 ? $"{bytes / 1048576.0:0.0} MB" : $"{bytes / 1024.0:0} KB")}";
         }
 
         timer.Tick += (_, _) => Refresh();
-        var row = Ui.SliderField("Quality", initial, 1, 100, v => { quality = (int)v; timer.Stop(); timer.Start(); }, width: 380);
+        var row = Ui.SliderField("品质", initial, 1, 100, v => { quality = (int)v; timer.Stop(); timer.Start(); }, width: 380);
         var frame = new Border { Child = preview, Background = new SolidColorBrush(Color.Parse("#1A1A1A")), Padding = new Thickness(1) };
-        var dialog = new DialogWindow("Export JPEG", Ui.Column(12, frame, row, info), "Export…");
+        var dialog = new DialogWindow("导出 JPEG", Ui.Column(12, frame, row, info), "导出…");
         dialog.Opened += (_, _) => Refresh();
         var accepted = await dialog.Ask(owner);
         closed = true;

@@ -22,7 +22,7 @@ public static class SvgImporter
     public static SKBitmap Render(string path, SKSizeI? fitting = null, long remainingPixels = long.MaxValue)
     {
         var name = Path.GetFileName(path);
-        var magick = ImageMagick.Current ?? throw new InvalidDataException($"{name} is an SVG file. Opening one needs ImageMagick, which is not installed.");
+        var magick = ImageMagick.Current ?? throw new InvalidDataException($"{name} 是 SVG 文件。打开它需要安装 ImageMagick，而当前未安装。");
         // Drawn at its declared size first: that is what the file says it is, and it is the answer when there is nothing to fit.
         var declared = ImageFiles.Load(new MemoryStream(magick.Rasterize(path, 1)), name);
         try
@@ -30,7 +30,7 @@ public static class SvgImporter
             var scale = fitting is { } fit ? Math.Min((double)fit.Width / declared.Width, (double)fit.Height / declared.Height) : 1;
             int width = Math.Max(1, (int)Math.Round(declared.Width * scale)), height = Math.Max(1, (int)Math.Round(declared.Height * scale));
             if (!DocumentLimits.FitsSurface(width, height) || (long)width * height > remainingPixels)
-                throw new InvalidDataException($"{name} would be larger than the supported {DocumentLimits.MaxSide:N0} pixels a side and {DocumentLimits.MaxSurfaceMegapixels} megapixels, or than the document has room for.");
+                throw new InvalidDataException($"{name} 将超出支持的每边 {DocumentLimits.MaxSide:N0} 像素、{DocumentLimits.MaxSurfaceMegapixels} 百万像素上限，或超出文档可容纳的大小。");
             if (Math.Abs(scale - 1) < 0.005) return declared;
             var fitted = ImageFiles.Load(new MemoryStream(magick.Rasterize(path, scale)), name);
             declared.Dispose();

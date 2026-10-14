@@ -50,7 +50,7 @@ public class LabelScrubTests
 
         Drag(window, label, 40);
         Assert.Equal(x + 40, session.Document.Find(layer.Id)!.Transform.X);
-        Assert.Equal("Transform", session.History.UndoName);
+        Assert.Equal("变换", session.History.UndoName);
         session.Undo();
         Assert.Equal(x, session.Document.Find(layer.Id)!.Transform.X);
 
@@ -80,7 +80,7 @@ public class LabelScrubTests
         Dispatcher.UIThread.RunJobs();
         var dialog = window.OwnedWindows.Last();
         var width = dialog.GetVisualDescendants().OfType<NumericUpDown>().First(n => n.Value == 1920);
-        Drag(dialog, Label(dialog, "Width"), -20);
+        Drag(dialog, Label(dialog, "宽度"), -20);
         Assert.Equal(1900, width.Value);
         Assert.Equal(1080, dialog.GetVisualDescendants().OfType<NumericUpDown>().First(n => n.Value == 1080).Value);
         dialog.Close();

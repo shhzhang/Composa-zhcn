@@ -103,7 +103,7 @@ public class PsdTests
         Assert.True(masked.MaskEnabled);
         var off = import.Layers[1];
         Assert.False(off.MaskEnabled);
-        Assert.Contains(import.Conversions, c => c.LayerName == "Off" && c.Message.Contains("unlinked"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Off" && c.Message.Contains("未与图层链接"));
         var folder = import.Layers[2];
         Assert.Equal((100, 80), (folder.Mask!.Width, folder.Mask.Height));  // Folder masks share the document's grid.
         Assert.Equal(0, folder.Mask.GetPixel(10, 10).Alpha);
@@ -127,7 +127,7 @@ public class PsdTests
         Assert.True(import.Layers[1].Clipped);
         Assert.True(import.Layers[2].Clipped);
         Assert.False(import.Layers[4].Clipped);
-        Assert.Contains(import.Conversions, c => c.LayerName == "Over folder" && c.Message.Contains("clipping was skipped"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Over folder" && c.Message.Contains("已跳过剪贴"));
         using var flat = DocumentRenderer.Flatten(import.ToDocument());
         AssertColor(SKColors.Green, flat.GetPixel(10, 10));                 // Clipped to the base.
         Assert.Equal(0, flat.GetPixel(40, 40).Alpha);                       // Nothing outside it.
@@ -145,11 +145,11 @@ public class PsdTests
         Assert.Equal(4, import.Layers.Count);
         Assert.Null(import.Layers[0].Text);
         AssertColor(SKColors.Black, import.Layers[0].Pixels!.GetPixel(0, 0));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Headline" && c.Message.Contains("retyped"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Logo" && c.Message.Contains("smart object"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Glowing" && c.Message.Contains("effects"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Headline" && c.Message.Contains("已转为像素"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Logo" && c.Message.Contains("智能对象"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Glowing" && c.Message.Contains("图层效果"));
         Assert.Equal(1, import.Layers[2].Opacity);                          // Fill opacity belongs to the effects that were dropped.
-        Assert.Contains(import.Conversions, c => c.LayerName == "Pattern" && c.Message.Contains("imported empty"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Pattern" && c.Message.Contains("已按空导入"));
         Assert.Equal((50, 50), (import.Layers[3].Pixels!.Width, import.Layers[3].Pixels.Height));
     }
 
@@ -180,7 +180,7 @@ public class PsdTests
         Assert.Equal(TextAlignment.Right, text.Alignment);
         Assert.Equal(2.4, text.Tracking, 3);                               // 100/1000 em at 24 px.
         Assert.Equal(30, text.Leading);
-        Assert.DoesNotContain(import.Conversions, c => c.Message.Contains("retyped") || c.Message.Contains("installed"));
+        Assert.DoesNotContain(import.Conversions, c => c.Message.Contains("已转为像素") || c.Message.Contains("未安装"));
         // Right-aligned point text hangs from its first baseline at (tx, ty): the first line ends there.
         var layout = new Composa.Text.TextLayout(text);
         var first = layout.Lines[0];
@@ -201,7 +201,7 @@ public class PsdTests
             var layer = Assert.Single(import.Layers);
             Assert.Null(layer.Text);
             AssertColor(SKColors.Black, layer.Pixels!.GetPixel(0, 0));
-            Assert.Contains(import.Conversions, c => c.Message.Contains("retyped"));
+            Assert.Contains(import.Conversions, c => c.Message.Contains("已转为像素"));
         }
         var noted = LoadText(new PsdWriter.TypeTool { Warp = true, FauxBold = true, Justification = 3, SecondSize = 40, Font = "NoSuchFace-Regular" });
         Assert.NotNull(Assert.Single(noted.Layers).Text);
@@ -210,7 +210,7 @@ public class PsdTests
         Assert.Contains(PsdText.FauxNote, messages);
         Assert.Contains(PsdText.JustifyNote, messages);
         Assert.Contains(PsdText.FirstStyleNote, messages);
-        Assert.Contains(messages, m => m.Contains("NoSuchFace") && m.Contains("installed"));
+        Assert.Contains(messages, m => m.Contains("NoSuchFace") && m.Contains("未安装"));
         Assert.Equal(TextAlignment.Left, noted.Layers[0].Text!.Alignment);
         // Without engine data the words still come across, at 12 points.
         var bare = LoadText(new PsdWriter.TypeTool { Text = "Plain", NoEngine = true });
@@ -268,7 +268,7 @@ public class PsdTests
         Assert.Equal(ShapeKind.Ellipse, ellipse.Shape!.Kind);
         Assert.Equal(0xFF0000FFu, ellipse.Shape.Fill);
         Assert.Equal(0, ellipse.Pixels!.GetPixel(0, 0).Alpha);              // An ellipse leaves its corners clear.
-        Assert.Contains(import.Conversions, c => c.LayerName == "Ellipse" && c.Message.Contains("stroke"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Ellipse" && c.Message.Contains("描边"));
         var rounded = import.Layers[2];
         Assert.Equal(ShapeKind.RoundedRectangle, rounded.Shape!.Kind);
         Assert.Equal(6, rounded.Shape.CornerRadius);
@@ -294,7 +294,7 @@ public class PsdTests
         var import = Load(writer);
         var triangle = import.Layers[0];
         Assert.Null(triangle.Shape);
-        Assert.Contains(import.Conversions, c => c.LayerName == "Triangle" && c.Message.Contains("rasterized"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Triangle" && c.Message.Contains("已栅格化"));
         var pixels = triangle.Pixels!;
         Assert.Equal((10d, 10d), (triangle.Transform.X, triangle.Transform.Y));
         AssertColor(SKColors.Green, pixels.GetPixel(40, 70));               // Inside the triangle.
@@ -353,9 +353,9 @@ public class PsdTests
         Assert.Equal(30, sepia.TintHue, 0);
         Assert.Equal(100, sepia.TintSaturation);
         Assert.DoesNotContain(import.Conversions, c => c.LayerName is "Balance" or "Mono");
-        Assert.Contains(import.Conversions, c => c.LayerName == "Sepia" && c.Message.Contains("may not match"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Threshold" && c.Message.Contains("skipped"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Levels" && c.Message.Contains("may not match"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Sepia" && c.Message.Contains("不完全一致"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Threshold" && c.Message.Contains("已跳过"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Levels" && c.Message.Contains("不完全一致"));
         Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Invert");
     }
 
@@ -367,7 +367,7 @@ public class PsdTests
         writer.Layers.Add(new PsdWriterLayer { Name = "Small", Image = Solid(4, 4, SKColors.Red), Left = 3, Top = 3 });
         var import = PsdImport.Load(writer.Build(), pixelBudget: 16);
         Assert.Equal("Small", Assert.Single(import.Layers).Name);
-        Assert.Contains("larger", Assert.Throws<PsdException>(() => PsdImport.Load(writer.Build(), pixelBudget: 15)).Message);
+        Assert.Contains("容纳范围", Assert.Throws<PsdException>(() => PsdImport.Load(writer.Build(), pixelBudget: 15)).Message);
 
         // Two layers share the budget, so together they can need more than either does alone.
         writer.Layers.Add(new PsdWriterLayer { Name = "Second", Image = Solid(4, 4, SKColors.Blue) });
@@ -457,7 +457,7 @@ public class PsdTests
         var ramp = Assert.IsType<ColorLookupAdjustment>(import.Layers[2].Adjustment);
         Assert.Equal(("ramp.3dl", 4), (ramp.Source, ramp.Lattice!.Size));
         Assert.Equal(1, ramp.Lattice.Cube[189]);
-        Assert.Equal(["Profile", "Broken"], import.Conversions.Where(c => c.Message.Contains("isn't supported")).Select(c => c.LayerName));
+        Assert.Equal(["Profile", "Broken"], import.Conversions.Where(c => c.Message.Contains("不受支持")).Select(c => c.LayerName));
         Assert.DoesNotContain(import.Conversions, c => c.LayerName is "Cube" or "Autodesk");
     }
 
@@ -465,12 +465,12 @@ public class PsdTests
     public void Unsupported_and_damaged_files_are_refused_with_a_reason()
     {
         byte[] Plain() { var w = new PsdWriter { Width = 10, Height = 10 }; w.Layers.Add(new PsdWriterLayer { Image = Solid(10, 10, SKColors.Red) }); return w.Build(); }
-        Assert.Contains("format version", Assert.Throws<PsdException>(() => PsdImport.Load(new PsdWriter { Version = 3 }.Build())).Message);
-        Assert.Contains("8-bit RGB", Assert.Throws<PsdException>(() => PsdImport.Load(new PsdWriter { Mode = 4 }.Build())).Message);
-        Assert.Contains("8-bit RGB", Assert.Throws<PsdException>(() => PsdImport.Load(new PsdWriter { Depth = 16 }.Build())).Message);
-        Assert.Contains("larger", Assert.Throws<PsdException>(() => PsdImport.Load(new PsdWriter { Width = 40_000, Height = 10 }.Build())).Message);
-        Assert.Contains("larger", Assert.Throws<PsdException>(() => PsdImport.Load(Plain(), pixelBudget: 50)).Message);
-        Assert.Contains("not a Photoshop", Assert.Throws<PsdException>(() => PsdImport.Load("hello world, not a psd"u8.ToArray())).Message);
+        Assert.Contains("格式版本", Assert.Throws<PsdException>(() => PsdImport.Load(new PsdWriter { Version = 3 }.Build())).Message);
+        Assert.Contains("8 位 RGB", Assert.Throws<PsdException>(() => PsdImport.Load(new PsdWriter { Mode = 4 }.Build())).Message);
+        Assert.Contains("8 位 RGB", Assert.Throws<PsdException>(() => PsdImport.Load(new PsdWriter { Depth = 16 }.Build())).Message);
+        Assert.Contains("容纳范围", Assert.Throws<PsdException>(() => PsdImport.Load(new PsdWriter { Width = 40_000, Height = 10 }.Build())).Message);
+        Assert.Contains("容纳范围", Assert.Throws<PsdException>(() => PsdImport.Load(Plain(), pixelBudget: 50)).Message);
+        Assert.Contains("这不是 Photoshop 文件", Assert.Throws<PsdException>(() => PsdImport.Load("hello world, not a psd"u8.ToArray())).Message);
         Assert.Throws<PsdException>(() => PsdImport.Load(Plain()[..(Plain().Length / 2)]));      // Cut through the layer data.
         Assert.False(PsdImport.IsPsd("PNG\r\n"u8.ToArray()));
         Assert.True(PsdImport.IsPsd(Plain()));
@@ -514,7 +514,7 @@ public class PsdTests
             var writer = new PsdWriter { Width = 30, Height = 20, Composite = gradient, Compression = compression, Version = (ushort)version };
             var import = Load(writer);
             var layer = Assert.Single(import.Layers);
-            Assert.Equal("Background", layer.Name);
+            Assert.Equal("背景", layer.Name);
             Assert.Equal(gradient.Bytes, layer.Pixels!.Bytes);
             Assert.Empty(import.Conversions);
         }
@@ -536,7 +536,7 @@ public class PsdTests
 
         var session = EditorSession.NewCanvas(200, 200, SKColors.White);
         var folder = session.PlacePhotoshop(PsdImport.Load(bytes), "poster", new SKPoint(150, 150));
-        Assert.Equal("Import Photoshop File", session.History.UndoName);
+        Assert.Equal("导入 Photoshop 文件", session.History.UndoName);
         Assert.Equal(folder.Id, session.ActiveLayer!.Id);
         Assert.Equal(["Back", "Dot"], folder.Children.Select(l => l.Name));
         Assert.Equal((120d, 130d), (folder.Children[0].Transform.X, folder.Children[0].Transform.Y));   // Centered on the drop point.

@@ -87,17 +87,17 @@ public sealed class ImageMagickTool : IImageMagick
 
     private byte[] Run(string path, string[] arguments, int timeout)
     {
-        using var process = Start(arguments) ?? throw new InvalidDataException($"{Path.GetFileName(path)} could not be read: ImageMagick did not start.");
+        using var process = Start(arguments) ?? throw new InvalidDataException($"{Path.GetFileName(path)} 无法读取：ImageMagick 未能启动。");
         using var result = new MemoryStream();
         var errors = process.StandardError.ReadToEndAsync();
         process.StandardOutput.BaseStream.CopyTo(result);
         if (!process.WaitForExit(timeout))
         {
             try { process.Kill(entireProcessTree: true); } catch (Exception error) when (error is InvalidOperationException or System.ComponentModel.Win32Exception) { }
-            throw new InvalidDataException($"{Path.GetFileName(path)} took too long to decode.");
+            throw new InvalidDataException($"{Path.GetFileName(path)} 解码用时过长。");
         }
         if (process.ExitCode != 0 || result.Length == 0)
-            throw new InvalidDataException($"{Path.GetFileName(path)} could not be decoded. {FirstLine(errors.Result)}".Trim());
+            throw new InvalidDataException($"{Path.GetFileName(path)} 无法解码。{FirstLine(errors.Result)}".Trim());
         return result.ToArray();
     }
 

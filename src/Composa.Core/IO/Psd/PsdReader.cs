@@ -49,10 +49,10 @@ internal static class PsdReader
     public static PsdFile Read(ReadOnlySpan<byte> data, long pixelBudget)
     {
         var cursor = new PsdCursor(data);
-        if (!Matches(data)) throw new PsdException("This is not a Photoshop file.");
+        if (!Matches(data)) throw new PsdException("这不是 Photoshop 文件。");
         cursor.Skip(4);
         var version = cursor.U16();
-        if (version is not (1 or 2)) throw new PsdException("This Photoshop file uses a format version Composa can't read.");
+        if (version is not (1 or 2)) throw new PsdException("该 Photoshop 文件使用的格式版本 Composa 无法读取。");
         var largeDocument = version == 2;
         cursor.Skip(6);
         _ = cursor.U16(); // channels in the merged image; read again with the image data
@@ -63,7 +63,7 @@ internal static class PsdReader
         // The canvas is a size, not an allocation: only its layers count against the budget, and only when the
         // file is flattened is the merged image (one canvas-sized surface) read at all.
         if (!DocumentLimits.FitsSurface(width, height)) throw PsdException.TooLarge();
-        if (depth != 8 || mode != 3) throw new PsdException("Only 8-bit RGB Photoshop files can be imported.");
+        if (depth != 8 || mode != 3) throw new PsdException("只能导入 8 位 RGB 的 Photoshop 文件。");
         var file = new PsdFile { Width = width, Height = height, LargeDocument = largeDocument };
 
         // Color mode data: only indexed and duotone files have any.
@@ -297,7 +297,7 @@ internal static class PsdReader
     private static SKBitmap ReadComposite(ref PsdCursor cursor, ReadOnlySpan<byte> data, int width, int height, bool largeDocument)
     {
         var channels = (int)new PsdCursor(data) { Offset = 12 }.U16();
-        if (channels < 3) throw new PsdException("Only 8-bit RGB Photoshop files can be imported.");
+        if (channels < 3) throw new PsdException("只能导入 8 位 RGB 的 Photoshop 文件。");
         var compression = cursor.U16();
         var count = (long)width * height;
         var planes = new byte[Math.Min(channels, 4)][];
@@ -321,7 +321,7 @@ internal static class PsdReader
                 break;
             }
             default:
-                throw new PsdException("This Photoshop file uses an image compression method that isn't supported.");
+                throw new PsdException("该 Photoshop 文件使用的图像压缩方法不受支持。");
         }
         return PsdChannels.ColorImage(width, height, planes[0], planes[1], planes[2], planes.Length > 3 ? planes[3] : null);
     }

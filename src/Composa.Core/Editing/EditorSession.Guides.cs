@@ -17,7 +17,7 @@ public sealed partial class EditorSession
     {
         if (!CanEditGuides || !double.IsFinite(position) || document.Guides.Count >= 1000) return null;
         var guide = new Guide(Guid.NewGuid(), axis, position);
-        Apply("New Guide", () => document.Guides.Add(guide));
+        Apply("新建参考线", () => document.Guides.Add(guide));
         if (!View.ShowGuides) View = View with { ShowGuides = true };
         return guide;
     }
@@ -26,20 +26,20 @@ public sealed partial class EditorSession
     {
         var index = document.Guides.FindIndex(g => g.Id == id);
         if (!CanEditGuides || index < 0 || !double.IsFinite(position) || document.Guides[index].Position == position) return;
-        Apply("Move Guide", () => document.Guides[index] = document.Guides[index] with { Position = position });
+        Apply("移动参考线", () => document.Guides[index] = document.Guides[index] with { Position = position });
     }
 
     public void RemoveGuide(Guid id)
     {
         if (!CanEditGuides || document.Guides.All(g => g.Id != id)) return;
-        Apply("Delete Guide", () => document.Guides.RemoveAll(g => g.Id == id));
+        Apply("删除参考线", () => document.Guides.RemoveAll(g => g.Id == id));
     }
 
     /// <summary>Clear Guides works even while guides are locked, as in Photoshop.</summary>
     public void ClearGuides()
     {
         if (!CanClearGuides) return;
-        Apply("Clear Guides", () => document.Guides.Clear());
+        Apply("清除参考线", () => document.Guides.Clear());
     }
 
     /// <summary>

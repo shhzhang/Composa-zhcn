@@ -35,7 +35,7 @@ public class SliderFieldTests
     {
         window.SelectTool(Tool.Marquee);
         Dispatcher.UIThread.RunJobs();
-        var field = Field("Feather");
+        var field = Field("羽化");
         Assert.Equal(0, session.Feather);
         Assert.Equal(120, field.Bounds.Width);
         return field;
@@ -185,7 +185,7 @@ public class SliderFieldTests
     {
         window.SelectTool(Tool.Brush);
         Dispatcher.UIThread.RunJobs();
-        var size = Field("Size");
+        var size = Field("大小");
         Assert.Equal(session.Brush.Size, size.Value);
         window.KeyPressQwerty(PhysicalKey.BracketRight, RawInputModifiers.None);
         window.KeyPressQwerty(PhysicalKey.BracketRight, RawInputModifiers.None);
@@ -199,14 +199,14 @@ public class SliderFieldTests
     {
         window.SelectTool(Tool.Brush);
         Dispatcher.UIThread.RunJobs();
-        Field("Hardness").Value = 63;
+        Field("硬度").Value = 63;
         Screenshots.Save(window, "42-slider-fields-brush");
         window.SelectTool(Tool.Marquee);
         Dispatcher.UIThread.RunJobs();
         session.Feather = 22;
         window.SelectTool(Tool.Marquee);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(22, Field("Feather").Value);
+        Assert.Equal(22, Field("羽化").Value);
         Screenshots.Save(window, "43-slider-fields-marquee");
         session.AddText(new SKPoint(100, 100), session.TextDefaults with { Text = "Hello" });
         window.SelectTool(Tool.Text);
@@ -259,7 +259,7 @@ public class SliderFieldTrackTests
         DoubleClick(Center(field));
         Assert.True(field.IsEditing);
         Assert.True(field.IsResetVisible);
-        var reset = field.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == "Reset");
+        var reset = field.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == "重置");
         var button = (Border)reset.Parent!;
         Assert.True(button.Bounds.Left < 10);                                // On the left of the box.
         var editor = field.GetVisualDescendants().OfType<TextBox>().Single();

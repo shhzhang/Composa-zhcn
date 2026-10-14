@@ -12,10 +12,10 @@ public static class Looks
 {
     private static readonly (string Name, string File, string Description)[] Table =
     [
-        ("Fine Mono", "fine-mono", "Black and white with smooth, finely graded tones."),
-        ("Muted Chrome", "muted-chrome", "Softened color with restrained highlights and a cool cast."),
-        ("Standard Slide", "standard-slide", "Natural, balanced color with a little extra contrast."),
-        ("Vivid Slide", "vivid-slide", "Saturated color and strong contrast, as for landscapes.")
+        ("精致黑白", "fine-mono", "黑白影调，过渡平滑细腻。"),
+        ("柔和胶片", "muted-chrome", "柔化的色彩，高光克制，略带冷调。"),
+        ("标准反转片", "standard-slide", "自然均衡的色彩，对比度略高。"),
+        ("鲜艳反转片", "vivid-slide", "饱和的色彩与强烈对比，适合风景。")
     ];
 
     private static readonly Dictionary<string, Lazy<ColorLattice>> Loaded =
@@ -32,7 +32,7 @@ public static class Looks
 
     private static ColorLattice Read(string file)
     {
-        using var stream = typeof(Looks).Assembly.GetManifestResourceStream($"Looks/{file}.cube") ?? throw new InvalidOperationException($"The look {file} is not embedded.");
+        using var stream = typeof(Looks).Assembly.GetManifestResourceStream($"Looks/{file}.cube") ?? throw new InvalidOperationException($"外观 {file} 未嵌入资源。");
         using var reader = new StreamReader(stream);
         return ColorLattice.ParseCube(reader.ReadToEnd());
     }

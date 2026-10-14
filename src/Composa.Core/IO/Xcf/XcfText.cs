@@ -17,8 +17,8 @@ namespace Composa.IO.Xcf;
 /// </summary>
 internal static class XcfText
 {
-    public const string RasterizedNote = "The text was imported as pixels; it can't be retyped here.";
-    public const string MarkupNote = "The text mixes fonts or colors, so it was imported as pixels and can't be retyped here.";
+    public const string RasterizedNote = "文字已按像素导入，无法在此重新键入。";
+    public const string MarkupNote = "文字混合了多种字体或颜色，已按像素导入，无法在此重新键入。";
 
     public sealed record Source(TextStyle Style, List<string> Notes);
 
@@ -62,7 +62,7 @@ internal static class XcfText
         var pixels = Pixels(size, sizeUnit, resolution);
         var (family, bold, italic) = Face(font ?? "");
         var alignment = justify switch { "right" => TextAlignment.Right, "center" => TextAlignment.Center, _ => TextAlignment.Left };
-        if (justify == "fill") notes.Add("Justified text is set flush left here.");
+        if (justify == "fill") notes.Add("两端对齐的文字在此按左对齐排布。");
         var style = new TextStyle
         {
             Text = text.Length > TextStyle.MaxLength ? text[..TextStyle.MaxLength] : text,
@@ -73,7 +73,7 @@ internal static class XcfText
             BoxWidth = boxMode == "fixed" && boxWidth > 0 ? Pixels(boxWidth, boxUnit, resolution) : null,
             BoxHeight = boxMode == "fixed" && boxHeight > 0 ? Pixels(boxHeight, boxUnit, resolution) : null
         };
-        if (!EditorSession.FontFamilies.Contains(family, StringComparer.OrdinalIgnoreCase)) notes.Add($"The font \"{family}\" isn't installed; the text is shown in a fallback until it is.");
+        if (!EditorSession.FontFamilies.Contains(family, StringComparer.OrdinalIgnoreCase)) notes.Add($"字体「{family}」未安装；在安装之前，文字将以回退字体显示。");
         return new Source(style.Clamped(), notes);
     }
 

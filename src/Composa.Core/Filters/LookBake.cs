@@ -31,11 +31,11 @@ public static class LookBake
         {
             if (!layer.IsAdjustment || layer.Adjustment is not { } adjustment || !layer.Visible || layer.Opacity <= 0 || adjustment.IsIdentity) continue;
             if (!document.IsEffectivelyVisible(layer)) continue;
-            var why = layer.Mask != null && layer.MaskEnabled ? "has a layer mask"
-                : layer.Clipped ? "is clipped to the layer below"
-                : document.ParentOf(layer.Id) != null ? "is inside a group"
-                : adjustment.SamplingMargin > 0 ? "reads the pixels around each pixel"
-                : adjustment.DependsOnPosition ? "changes from place to place"
+            var why = layer.Mask != null && layer.MaskEnabled ? "带有图层蒙版"
+                : layer.Clipped ? "剪贴到下方图层"
+                : document.ParentOf(layer.Id) != null ? "位于图层组内"
+                : adjustment.SamplingMargin > 0 ? "读取每个像素周围的像素"
+                : adjustment.DependsOnPosition ? "随位置变化"
                 : null;
             if (why == null) baked.Add(layer); else leftOut.Add(new LeftOut(layer, why));
         }
@@ -95,7 +95,7 @@ public static class LookBake
         var result = apply(grid);
         try
         {
-            if (result.Width != grid.Width || result.Height != grid.Height || result.ColorType != SKColorType.Rgba8888) throw new InvalidOperationException("The bake changed the grid's shape.");
+            if (result.Width != grid.Width || result.Height != grid.Height || result.ColorType != SKColorType.Rgba8888) throw new InvalidOperationException("烘焙改变了网格的形状。");
             var read = (byte*)result.GetPixels();
             var data = new float[size * size * size * 3];
             var k = 0;

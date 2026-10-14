@@ -53,12 +53,12 @@ public class GuidesUiTests
         var horizontal = session.Guides.Single(g => g.Axis == GuideAxis.Horizontal);
         Assert.Equal(100, horizontal.Position);
         Assert.Equal(250, session.Guides.Single(g => g.Axis == GuideAxis.Vertical).Position);
-        Assert.Equal("New Guide", session.History.UndoName);
+        Assert.Equal("新建参考线", session.History.UndoName);
 
         // With the Move tool the guide itself drags.
         Drag(At(150, 100), At(150, 160));
         Assert.Equal(160, session.Guides.Single(g => g.Id == horizontal.Id).Position);
-        Assert.Equal("Move Guide", session.History.UndoName);
+        Assert.Equal("移动参考线", session.History.UndoName);
 
         // A layer moved near the vertical guide snaps its edge onto it.
         var box = Rendering.Pixels.NewColor(60, 40);
@@ -72,7 +72,7 @@ public class GuidesUiTests
         // Dropping a guide back onto a ruler deletes it.
         Drag(At(150, 160), OnCanvas(400, 5));
         Assert.Single(session.Guides);
-        Assert.Equal("Delete Guide", session.History.UndoName);
+        Assert.Equal("删除参考线", session.History.UndoName);
 
         // Locked guides stay put.
         session.View = session.View with { LockGuides = true };
@@ -101,7 +101,7 @@ public class GuidesUiTests
     {
         session.View = session.View with { ShowGrid = false };
         var original = session.View;
-        var item = window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "Grid Settings…");
+        var item = window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "网格设置…");
         Window Open()
         {
             item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
@@ -113,7 +113,7 @@ public class GuidesUiTests
         Assert.True(session.View.ShowGrid); // The grid shows while the dialog is open, whatever View > Show says.
         var boxes = dialog.GetVisualDescendants().OfType<NumericUpDown>().ToList();
         var combos = dialog.GetVisualDescendants().OfType<ComboBox>().ToList();
-        var ok = dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "OK");
+        var ok = dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "确定");
         boxes[0].Value = 100;
         combos[0].SelectedIndex = (int)GridColorPreset.Cyan;
         combos[1].SelectedIndex = (int)GridStyle.Dots;
@@ -127,7 +127,7 @@ public class GuidesUiTests
         Dispatcher.UIThread.RunJobs();
         Assert.False(ok.IsEnabled);
         Assert.Equal(100, session.View.Grid.Spacing);
-        dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Restore Defaults").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "恢复默认").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Dispatcher.UIThread.RunJobs();
         Assert.True(ok.IsEnabled);
         Assert.Equal(new LayoutGrid(), session.View.Grid);

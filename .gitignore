@@ -10,3 +10,10 @@ artifacts/
 
 # The MODNet model is fetched by scripts/models/fetch.sh, not kept in git; u2netp.onnx is.
 src/Composa.Core/Models/modnet.onnx
+
+# Build output. `build/msi` holds the published tree and the MSI itself, hundreds of megabytes of
+# files derived from the source; the installer definition that produces them is packaging/windows.
+build/
+
+# WorkBuddy's working data for this project: agent notes and daily logs, not source.
+.workbuddy/

@@ -47,7 +47,7 @@ public class UiRegressionTests
         Dispatcher.UIThread.RunJobs();
         Assert.False(session.IsEditingText);
         Assert.Equal("Goodbye", session.Document.Find(layer.Id)!.Text!.Text);
-        Assert.Equal("Edit Text", session.History.UndoName);
+        Assert.Equal("编辑文字", session.History.UndoName);
     }
 
     [AvaloniaFact]
@@ -127,7 +127,7 @@ public class UiRegressionTests
         window.MouseMove(At(window, 300, 100), RawInputModifiers.LeftMouseButton);
         window.MouseUp(At(window, 300, 100), MouseButton.Left);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal("Brush", session.History.UndoName);
+        Assert.Equal("画笔", session.History.UndoName);
         Assert.True(session.Composite().GetPixel(290, 100).Red < 60);
     }
 

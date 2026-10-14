@@ -49,11 +49,11 @@ public sealed class XcfImport
         if (info.Length > int.MaxValue) throw XcfException.TooLarge();
         foreach (var (suffix, name) in XcfReader.UnreadableCompression)
             if (path.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-                throw new XcfException($"The GIMP file is compressed with {name}, which Composa can't read. Save it from GIMP as .xcf or .xcf.gz.");
+                throw new XcfException($"该 GIMP 文件使用 {name} 压缩，Composa 无法读取。请从 GIMP 另存为 .xcf 或 .xcf.gz。");
         return Load(File.ReadAllBytes(path), pixelBudget, info.Name);
     }
 
-    public static XcfImport Load(byte[] data, long pixelBudget) => Load(data, pixelBudget, "The image");
+    public static XcfImport Load(byte[] data, long pixelBudget) => Load(data, pixelBudget, "图像");
 
     private static XcfImport Load(byte[] data, long pixelBudget, string fileName)
     {
@@ -98,13 +98,13 @@ public sealed class XcfImport
         // What text laid out afresh may still take, after the pixels the reader already holds.
         var remaining = pixelBudget - file.Layers.Sum(l => (long)(l.Image?.Width ?? 0) * (l.Image?.Height ?? 0) + (long)(l.MaskImage?.Width ?? 0) * (l.MaskImage?.Height ?? 0));
 
-        if (file.Version > XcfReader.KnownVersion) Note(fileName, $"The file was saved by a GIMP newer than this version of Composa knows (format {file.Version}), so anything added since may be missing.");
-        if (file.Precision.Deep) Note(fileName, $"The file keeps {file.Precision.Name} pixels; Composa holds 8 bits per channel, so some precision was lost.");
-        else if (file.Precision.Linear) Note(fileName, "The file keeps linear-light pixels; they were converted to sRGB.");
-        if (file.BaseType == 2) Note(fileName, "The indexed palette became RGB colors; the palette itself isn't kept.");
-        if (file.HasIccProfile) Note(fileName, "The file carries a color profile, which Composa doesn't apply yet; colors are taken as sRGB.");
-        if (file.ChannelCount > 0) Note(fileName, file.ChannelCount == 1 ? "A saved channel (selection or alpha channel) was left out." : $"{file.ChannelCount} saved channels (selections or alpha channels) were left out.");
-        if (file.PathCount > 0) Note(fileName, file.PathCount == 1 ? "A path was left out; Composa has no paths." : $"{file.PathCount} paths were left out; Composa has no paths.");
+        if (file.Version > XcfReader.KnownVersion) Note(fileName, $"该文件由比此版本 Composa 所知更新的 GIMP 保存（格式 {file.Version}），其后新增的内容可能缺失。");
+        if (file.Precision.Deep) Note(fileName, $"该文件以 {file.Precision.Name} 像素保存；Composa 每通道保留 8 位，因此损失了部分精度。");
+        else if (file.Precision.Linear) Note(fileName, "该文件以线性光像素保存；已转换为 sRGB。");
+        if (file.BaseType == 2) Note(fileName, "索引调色板已转换为 RGB 颜色；调色板本身不再保留。");
+        if (file.HasIccProfile) Note(fileName, "该文件带有颜色配置文件，Composa 暂不应用；颜色按 sRGB 处理。");
+        if (file.ChannelCount > 0) Note(fileName, file.ChannelCount == 1 ? "一个已保存的通道（选区或 Alpha 通道）被舍弃。" : $"{file.ChannelCount} 个已保存的通道（选区或 Alpha 通道）被舍弃。");
+        if (file.PathCount > 0) Note(fileName, file.PathCount == 1 ? "一个路径被舍弃；Composa 没有路径。" : $"{file.PathCount} 个路径被舍弃；Composa 没有路径。");
 
         // Groups by their item path: a member's path is its group's path with one more index. The file lists layers
         // top to bottom and so do the paths, so each group's children are gathered top first and reversed. A layer
@@ -116,7 +116,7 @@ public sealed class XcfImport
         var built = new List<(XcfLayer Record, Layer Layer)>();
         foreach (var record in records)
         {
-            var name = record.Name.Length == 0 ? (record.IsGroup ? "Folder" : "Layer") : record.Name;
+            var name = record.Name.Length == 0 ? (record.IsGroup ? "文件夹" : "图层") : record.Name;
             var layer = record.IsGroup ? BuildGroup(record, name, canvas, Note) : BuildLayer(record, name, canvas, file.Resolution, ref remaining, Note);
             built.Add((record, layer));
             var path = record.ItemPath is { Length: > 0 } own ? own : [roots.Count];
@@ -144,7 +144,7 @@ public sealed class XcfImport
         layer.Opacity = record.Opacity;
         var mode = XcfMode.Find(record.Mode);
         if (mode is { Blend: BlendMode.Normal, Supported: true } || record.Mode == XcfMode.PassThrough) layer.Blend = BlendMode.Normal;
-        else note(name, $"Folder blend mode \"{mode?.Name ?? record.Mode.ToString()}\" isn't supported. The folder will be pass-through.");
+        else note(name, $"文件夹混合模式「{mode?.Name ?? record.Mode.ToString()}」不受支持，该文件夹将按穿透处理。");
         ApplyMask(record, layer, canvas, note);
         return layer;
     }
@@ -152,7 +152,7 @@ public sealed class XcfImport
     private static Layer BuildLayer(XcfLayer record, string name, SKSizeI canvas, double resolution, ref long remaining, Action<string, string> note)
     {
         if (record.Cropped) note(name, PsdImport.CroppedNote);
-        if (record.DamagedTiles > 0) note(name, record.DamagedTiles == 1 ? "One tile of the layer couldn't be read and is transparent." : $"{record.DamagedTiles} tiles of the layer couldn't be read and are transparent.");
+        if (record.DamagedTiles > 0) note(name, record.DamagedTiles == 1 ? "该图层有一个分块无法读取，现为透明。" : $"该图层有 {record.DamagedTiles} 个分块无法读取，现为透明。");
         if (record.TextParasite != null)
         {
             // Text in one style is laid out afresh and can be retyped; text with markup keeps GIMP's pixels.
@@ -168,18 +168,18 @@ public sealed class XcfImport
             }
             note(name, why);
         }
-        if (record.EffectCount > 0) note(name, record.EffectCount == 1 ? "The layer's effect (a GIMP filter) can't be applied here and was dropped." : $"The layer's {record.EffectCount} effects (GIMP filters) can't be applied here and were dropped.");
-        if (record.IsVectorLayer) note(name, "The vector layer was imported as pixels; its shapes can't be edited here.");
-        if (record.IsLinkLayer) note(name, "The link layer was imported as pixels; it no longer follows its file.");
+        if (record.EffectCount > 0) note(name, record.EffectCount == 1 ? "该图层的效果（GIMP 滤镜）无法在此应用，已被舍弃。" : $"该图层的 {record.EffectCount} 个效果（GIMP 滤镜）无法在此应用，已被舍弃。");
+        if (record.IsVectorLayer) note(name, "矢量图层已按像素导入；其形状无法在此编辑。");
+        if (record.IsLinkLayer) note(name, "链接图层已按像素导入；不再跟随其源文件。");
 
         // No pixel area (an empty or wholly off-canvas layer): an empty layer over the canvas.
         var layer = record.Image is { } image ? Layer.Raster(name, image, record.Left, record.Top) : Layer.Raster(name, Pixels.NewColor(canvas.Width, canvas.Height));
         layer.Visible = record.Visible;
         layer.Opacity = record.Opacity;
         var mode = XcfMode.Find(record.Mode);
-        if (mode == null) note(name, $"Blend mode {record.Mode} isn't known and will be applied as Normal.");
-        else if (!mode.Supported) note(name, $"Blend mode \"{mode.Name}\" isn't supported and will be applied as Normal.");
-        else if (mode.Approximate) note(name, $"Blend mode \"{mode.Name}\" has no exact equivalent; \"{mode.Blend.DisplayName()}\" is the closest.");
+        if (mode == null) note(name, $"混合模式 {record.Mode} 无法识别，将按「正常」应用。");
+        else if (!mode.Supported) note(name, $"混合模式「{mode.Name}」不受支持，将按「正常」应用。");
+        else if (mode.Approximate) note(name, $"混合模式「{mode.Name}」没有完全对应的模式；「{mode.Blend.DisplayName()}」最为接近。");
         layer.Blend = mode is { Supported: true } ? mode.Blend : BlendMode.Normal;
 
         // GIMP composites in linear light unless told otherwise; Composa composites in sRGB. A Normal layer at full
@@ -187,11 +187,11 @@ public sealed class XcfImport
         var blendSpace = Math.Abs(record.BlendSpace);
         var compositeSpace = Math.Abs(record.CompositeSpace);
         var changesColor = layer.Blend != BlendMode.Normal || layer.Opacity < 1 || (record.HasMask && record.ApplyMask);
-        if (changesColor && (blendSpace == 1 || compositeSpace == 1)) note(name, "GIMP blends this layer in linear light; here it's blended in sRGB, so the result may differ a little.");
-        else if (changesColor && (blendSpace == 3 || compositeSpace == 3)) note(name, "GIMP blends this layer in LAB; here it's blended in sRGB, so the result may differ.");
+        if (changesColor && (blendSpace == 1 || compositeSpace == 1)) note(name, "GIMP 以线性光混合此图层；此处以 sRGB 混合，结果可能略有差异。");
+        else if (changesColor && (blendSpace == 3 || compositeSpace == 3)) note(name, "GIMP 以 LAB 混合此图层；此处以 sRGB 混合，结果可能有所差异。");
         // GIMP picks Clip to backdrop itself for most modes (the value is then negative), which differs from Union only
         // where the backdrop is transparent; only a compositing the person chose is worth a line.
-        if (record.CompositeMode is 2 or 3 or 4) note(name, $"The \"{XcfMode.CompositeModeName(record.CompositeMode)}\" compositing isn't supported; the layer composites as GIMP's Union does.");
+        if (record.CompositeMode is 2 or 3 or 4) note(name, $"「{XcfMode.CompositeModeName(record.CompositeMode)}」合成方式不受支持；图层将按 GIMP 的「联合」方式合成。");
 
         ApplyMask(record, layer, canvas, note);
         return layer;
@@ -234,71 +234,71 @@ internal sealed record XcfMode(string Name, BlendMode Blend, bool Approximate = 
 
     private static readonly Dictionary<int, XcfMode> Table = new()
     {
-        [0] = new("Normal (legacy)", BlendMode.Normal),
-        [1] = new("Dissolve", BlendMode.Normal, Supported: false),
-        [2] = new("Behind", BlendMode.Normal, Supported: false),
-        [3] = new("Multiply (legacy)", BlendMode.Multiply),
-        [4] = new("Screen (legacy)", BlendMode.Screen),
-        [5] = new("Overlay (legacy)", BlendMode.SoftLight, true),      // GIMP's old Overlay was soft light's math
-        [6] = new("Difference (legacy)", BlendMode.Difference),
-        [7] = new("Addition (legacy)", BlendMode.LinearDodge),
-        [8] = new("Subtract (legacy)", BlendMode.Subtract),
-        [9] = new("Darken only (legacy)", BlendMode.Darken),
-        [10] = new("Lighten only (legacy)", BlendMode.Lighten),
-        [11] = new("HSV Hue (legacy)", BlendMode.Hue, true),
-        [12] = new("HSV Saturation (legacy)", BlendMode.Saturation, true),
-        [13] = new("HSL Color (legacy)", BlendMode.Color, true),
-        [14] = new("HSV Value (legacy)", BlendMode.Luminosity, true),
-        [15] = new("Divide (legacy)", BlendMode.Divide),
-        [16] = new("Dodge (legacy)", BlendMode.ColorDodge),
-        [17] = new("Burn (legacy)", BlendMode.ColorBurn),
-        [18] = new("Hard light (legacy)", BlendMode.HardLight),
-        [19] = new("Soft light (legacy)", BlendMode.SoftLight, true),
-        [20] = new("Grain extract (legacy)", BlendMode.GrainExtract),
-        [21] = new("Grain merge (legacy)", BlendMode.GrainMerge),
-        [22] = new("Color erase (legacy)", BlendMode.Normal, Supported: false),
-        [23] = new("Overlay", BlendMode.Overlay),
-        [24] = new("LCH Hue", BlendMode.Hue, true),
-        [25] = new("LCH Chroma", BlendMode.Saturation, true),
-        [26] = new("LCH Color", BlendMode.Color, true),
-        [27] = new("LCH Lightness", BlendMode.Luminosity, true),
-        [28] = new("Normal", BlendMode.Normal),
-        [29] = new("Behind", BlendMode.Normal, Supported: false),
-        [30] = new("Multiply", BlendMode.Multiply),
-        [31] = new("Screen", BlendMode.Screen),
-        [32] = new("Difference", BlendMode.Difference),
-        [33] = new("Addition", BlendMode.LinearDodge),
-        [34] = new("Subtract", BlendMode.Subtract),
-        [35] = new("Darken only", BlendMode.Darken),
-        [36] = new("Lighten only", BlendMode.Lighten),
-        [37] = new("HSV Hue", BlendMode.Hue, true),
-        [38] = new("HSV Saturation", BlendMode.Saturation, true),
-        [39] = new("HSL Color", BlendMode.Color, true),
-        [40] = new("HSV Value", BlendMode.Luminosity, true),
-        [41] = new("Divide", BlendMode.Divide),
-        [42] = new("Dodge", BlendMode.ColorDodge),
-        [43] = new("Burn", BlendMode.ColorBurn),
-        [44] = new("Hard light", BlendMode.HardLight),
-        [45] = new("Soft light", BlendMode.SoftLight, true),
-        [46] = new("Grain extract", BlendMode.GrainExtract),
-        [47] = new("Grain merge", BlendMode.GrainMerge),
-        [48] = new("Vivid light", BlendMode.VividLight),
-        [49] = new("Pin light", BlendMode.PinLight),
-        [50] = new("Linear light", BlendMode.LinearLight),
-        [51] = new("Hard mix", BlendMode.HardMix),
-        [52] = new("Exclusion", BlendMode.Exclusion),
-        [53] = new("Linear burn", BlendMode.LinearBurn),
-        [54] = new("Luma darken only", BlendMode.Darken, true),
-        [55] = new("Luma lighten only", BlendMode.Lighten, true),
-        [56] = new("Luminance", BlendMode.Luminosity, true),
-        [57] = new("Color erase", BlendMode.Normal, Supported: false),
-        [58] = new("Erase", BlendMode.Normal, Supported: false),
-        [59] = new("Merge", BlendMode.Normal, Supported: false),
-        [60] = new("Split", BlendMode.Normal, Supported: false),
-        [61] = new("Pass through", BlendMode.Normal)
+        [0] = new("正常（旧版）", BlendMode.Normal),
+        [1] = new("溶解", BlendMode.Normal, Supported: false),
+        [2] = new("后方", BlendMode.Normal, Supported: false),
+        [3] = new("正片叠底（旧版）", BlendMode.Multiply),
+        [4] = new("滤色（旧版）", BlendMode.Screen),
+        [5] = new("叠加（旧版）", BlendMode.SoftLight, true),      // GIMP's old Overlay was soft light's math
+        [6] = new("差值（旧版）", BlendMode.Difference),
+        [7] = new("相加（旧版）", BlendMode.LinearDodge),
+        [8] = new("减去（旧版）", BlendMode.Subtract),
+        [9] = new("只变暗（旧版）", BlendMode.Darken),
+        [10] = new("只变亮（旧版）", BlendMode.Lighten),
+        [11] = new("HSV 色相（旧版）", BlendMode.Hue, true),
+        [12] = new("HSV 饱和度（旧版）", BlendMode.Saturation, true),
+        [13] = new("HSL 颜色（旧版）", BlendMode.Color, true),
+        [14] = new("HSV 亮度（旧版）", BlendMode.Luminosity, true),
+        [15] = new("划分（旧版）", BlendMode.Divide),
+        [16] = new("减淡（旧版）", BlendMode.ColorDodge),
+        [17] = new("加深（旧版）", BlendMode.ColorBurn),
+        [18] = new("强光（旧版）", BlendMode.HardLight),
+        [19] = new("柔光（旧版）", BlendMode.SoftLight, true),
+        [20] = new("颗粒提取（旧版）", BlendMode.GrainExtract),
+        [21] = new("颗粒合并（旧版）", BlendMode.GrainMerge),
+        [22] = new("颜色擦除（旧版）", BlendMode.Normal, Supported: false),
+        [23] = new("叠加", BlendMode.Overlay),
+        [24] = new("LCH 色相", BlendMode.Hue, true),
+        [25] = new("LCH 色度", BlendMode.Saturation, true),
+        [26] = new("LCH 颜色", BlendMode.Color, true),
+        [27] = new("LCH 亮度", BlendMode.Luminosity, true),
+        [28] = new("正常", BlendMode.Normal),
+        [29] = new("后方", BlendMode.Normal, Supported: false),
+        [30] = new("正片叠底", BlendMode.Multiply),
+        [31] = new("滤色", BlendMode.Screen),
+        [32] = new("差值", BlendMode.Difference),
+        [33] = new("相加", BlendMode.LinearDodge),
+        [34] = new("减去", BlendMode.Subtract),
+        [35] = new("只变暗", BlendMode.Darken),
+        [36] = new("只变亮", BlendMode.Lighten),
+        [37] = new("HSV 色相", BlendMode.Hue, true),
+        [38] = new("HSV 饱和度", BlendMode.Saturation, true),
+        [39] = new("HSL 颜色", BlendMode.Color, true),
+        [40] = new("HSV 亮度", BlendMode.Luminosity, true),
+        [41] = new("划分", BlendMode.Divide),
+        [42] = new("减淡", BlendMode.ColorDodge),
+        [43] = new("加深", BlendMode.ColorBurn),
+        [44] = new("强光", BlendMode.HardLight),
+        [45] = new("柔光", BlendMode.SoftLight, true),
+        [46] = new("颗粒提取", BlendMode.GrainExtract),
+        [47] = new("颗粒合并", BlendMode.GrainMerge),
+        [48] = new("亮光", BlendMode.VividLight),
+        [49] = new("点光", BlendMode.PinLight),
+        [50] = new("线性光", BlendMode.LinearLight),
+        [51] = new("实色混合", BlendMode.HardMix),
+        [52] = new("排除", BlendMode.Exclusion),
+        [53] = new("线性加深", BlendMode.LinearBurn),
+        [54] = new("亮度只变暗", BlendMode.Darken, true),
+        [55] = new("亮度只变亮", BlendMode.Lighten, true),
+        [56] = new("明度", BlendMode.Luminosity, true),
+        [57] = new("颜色擦除", BlendMode.Normal, Supported: false),
+        [58] = new("擦除", BlendMode.Normal, Supported: false),
+        [59] = new("合并", BlendMode.Normal, Supported: false),
+        [60] = new("拆分", BlendMode.Normal, Supported: false),
+        [61] = new("穿透", BlendMode.Normal)
     };
 
     public static XcfMode? Find(int mode) => Table.GetValueOrDefault(mode);
 
-    public static string CompositeModeName(int mode) => mode switch { 2 => "Clip to backdrop", 3 => "Clip to layer", 4 => "Intersection", _ => "Union" };
+    public static string CompositeModeName(int mode) => mode switch { 2 => "剪贴到背景", 3 => "剪贴到图层", 4 => "交集", _ => "联合" };
 }

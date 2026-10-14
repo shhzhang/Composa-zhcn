@@ -26,16 +26,16 @@ public static class TrimDialog
             Grid.SetColumn(box, column);
             edges.Children.Add(box);
         }
-        Edge("Top", initial.Top, (o, v) => o with { Top = v }, 0, 0);
-        Edge("Bottom", initial.Bottom, (o, v) => o with { Bottom = v }, 0, 2);
-        Edge("Left", initial.Left, (o, v) => o with { Left = v }, 1, 0);
-        Edge("Right", initial.Right, (o, v) => o with { Right = v }, 1, 2);
+        Edge("顶部", initial.Top, (o, v) => o with { Top = v }, 0, 0);
+        Edge("底部", initial.Bottom, (o, v) => o with { Bottom = v }, 0, 2);
+        Edge("左侧", initial.Left, (o, v) => o with { Left = v }, 1, 0);
+        Edge("右侧", initial.Right, (o, v) => o with { Right = v }, 1, 2);
         var body = Ui.Column(14,
-            Ui.Label("Based On", Palette.Secondary, weight: Avalonia.Media.FontWeight.SemiBold), basedOn,
+            Ui.Label("基于", Palette.Secondary, weight: Avalonia.Media.FontWeight.SemiBold), basedOn,
             Ui.Separator(false),
-            Ui.Label("Trim Away", Palette.Secondary, weight: Avalonia.Media.FontWeight.SemiBold), edges);
+            Ui.Label("修掉", Palette.Secondary, weight: Avalonia.Media.FontWeight.SemiBold), edges);
         body.MinWidth = 260;
-        dialog = new DialogWindow("Trim", body) { CanAccept = initial.TrimsAny };
+        dialog = new DialogWindow("修边", body) { CanAccept = initial.TrimsAny };
         return await dialog.Ask(owner) ? options : null;
     }
 }

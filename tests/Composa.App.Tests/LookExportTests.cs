@@ -34,10 +34,10 @@ public class LookExportTests
         Assert.Contains("Gaussian Blur 1 reads the pixels around each pixel", texts);
         var sizes = dialog.GetVisualDescendants().OfType<ComboBox>().Single();
         Assert.Equal(3, sizes.ItemCount);
-        Assert.Equal("33 points", sizes.SelectedItem);
+        Assert.Equal("33 个点", sizes.SelectedItem);
         Screenshots.Save(dialog, "32-export-look");
         sizes.SelectedIndex = 2;
-        dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Export…").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "导出…").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Pump();
         Assert.Equal(65, await asked);
 
@@ -45,8 +45,8 @@ public class LookExportTests
         asked = LookDialogs.ExportLook(window, ["Curves 1"], [], 17);
         Pump();
         dialog = window.OwnedWindows.Last();
-        Assert.DoesNotContain(dialog.GetVisualDescendants().OfType<TextBlock>(), t => t.Text?.StartsWith("Left out") == true);
-        dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Cancel").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.DoesNotContain(dialog.GetVisualDescendants().OfType<TextBlock>(), t => t.Text?.StartsWith("未包含的图层") == true);
+        dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "取消").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Pump();
         Assert.Null(await asked);
 
@@ -54,15 +54,15 @@ public class LookExportTests
         window.AddSession(session);
         session.AddAdjustmentLayer(new GrainAdjustment { Amount = 20 });
         Pump();
-        window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "Export Look as .cube…").RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "导出 Look 为 .cube…").RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Pump();
         Assert.Empty(window.OwnedWindows);
         session.AddAdjustmentLayer(new InvertAdjustment());
         Pump();
-        window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "Export Look as .cube…").RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "导出 Look 为 .cube…").RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Pump();
         dialog = Assert.Single(window.OwnedWindows);
-        Assert.Contains("Grain 1 changes from place to place", dialog.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text));
+        Assert.Contains("颗粒 1 随位置变化", dialog.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text));
         dialog.Close();
         Pump();
     }

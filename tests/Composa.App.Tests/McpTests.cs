@@ -80,17 +80,17 @@ public class McpTests
         Assert.Equal(true, tooBig.IsError);
         Assert.Contains("at most", Text(tooBig));
         var created = await Pumped(client.CallToolAsync("new_document", new Dictionary<string, object?> { ["width"] = 400, ["height"] = 300, ["background"] = "#FFFFFF" }));
-        Assert.Equal("Created document 1: \"Untitled\" 400×300 px, now active.", Text(created));
+        Assert.Equal("Created document 1: \"未标题\" 400×300 px, now active.", Text(created));
         var session = window.Session!;
-        Assert.Equal("Background", session.ActiveLayer!.Name);
+        Assert.Equal("背景", session.ActiveLayer!.Name);
 
         var listed = await Pumped(client.CallToolAsync("list_documents"));
-        Assert.Contains("1: \"Untitled\" 400×300 px, 1 layers", Text(listed));
+        Assert.Contains("1: \"未标题\" 400×300 px, 1 layers", Text(listed));
 
         var filled = await Pumped(client.CallToolAsync("fill_layer", new Dictionary<string, object?> { ["color"] = "#FF0000" }));
         Assert.NotEqual(true, filled.IsError);
         Assert.Equal(SKColors.Red, session.Document.Layers[0].Pixels!.GetPixel(5, 5));
-        Assert.Equal("Fill", session.History.UndoName);
+        Assert.Equal("填充", session.History.UndoName);
 
         var added = await Pumped(client.CallToolAsync("add_text", new Dictionary<string, object?> { ["text"] = "Hello", ["x"] = 20, ["y"] = 30, ["size"] = 48, ["color"] = "#0000FF" }));
         Assert.NotEqual(true, added.IsError);
@@ -101,7 +101,7 @@ public class McpTests
         var described = Text(await Pumped(client.CallToolAsync("describe_document")));
         Assert.Contains("400×300 px", described);
         Assert.Matches("\\* \"Hello\" \\[[0-9a-f]{8}\\]: text \"Hello\"", described);
-        Assert.Matches("- \"Background\" \\[[0-9a-f]{8}\\]: pixels", described);
+        Assert.Matches("- \"背景\" \\[[0-9a-f]{8}\\]: pixels", described);
 
         var rendered = await Pumped(client.CallToolAsync("render", new Dictionary<string, object?> { ["maxSide"] = 200 }));
         var image = Assert.Single(rendered.Content.OfType<ImageContentBlock>());
@@ -114,7 +114,7 @@ public class McpTests
         var asResource = await Pumped(client.ReadResourceAsync("composa://documents/1"));
         var text = Assert.IsType<TextResourceContents>(Assert.Single(asResource.Contents));
         Assert.Equal("composa://documents/1", text.Uri);
-        Assert.Contains("- \"Background\"", text.Text);
+        Assert.Contains("- \"背景\"", text.Text);
         var imageResource = await Pumped(client.ReadResourceAsync("composa://documents/1/image"));
         var blob = Assert.IsType<BlobResourceContents>(Assert.Single(imageResource.Contents));
         Assert.Equal("image/png", blob.MimeType);
@@ -128,15 +128,15 @@ public class McpTests
         var badDetect = await Pumped(client.CallToolAsync("select_subject", new Dictionary<string, object?> { ["detect"] = "magic" }));
         Assert.Equal(true, badDetect.IsError);
         Assert.Equal("Nothing is selected.", Text(await Pumped(client.CallToolAsync("deselect"))));
-        Assert.Equal("Undid Deselect.", Text(await Pumped(client.CallToolAsync("undo"))));
-        Assert.Equal("Undid Select Subject.", Text(await Pumped(client.CallToolAsync("undo"))));
+        Assert.Equal("Undid 取消选择.", Text(await Pumped(client.CallToolAsync("undo"))));
+        Assert.Equal("Undid 选择主体.", Text(await Pumped(client.CallToolAsync("undo"))));
 
         // Image Size by width alone keeps the proportions; nearest neighbour keeps the hard edge of the red fill.
         Assert.Equal("The document is now 200×150 px at 72 pixels/inch.", Text(await Pumped(client.CallToolAsync("image_size", new Dictionary<string, object?> { ["width"] = 200, ["resample"] = "nearest" }))));
         Assert.Equal((200, 150), (session.Document.Width, session.Document.Height));
         var badResample = await Pumped(client.CallToolAsync("image_size", new Dictionary<string, object?> { ["width"] = 300, ["resample"] = "magic" }));
         Assert.Equal(true, badResample.IsError);
-        Assert.Equal("Undid Image Size.", Text(await Pumped(client.CallToolAsync("undo"))));
+        Assert.Equal("Undid 图像大小.", Text(await Pumped(client.CallToolAsync("undo"))));
         Assert.Equal((400, 300), (session.Document.Width, session.Document.Height));
         // A text layer has settings to redraw from, so Enhance Resolution refuses it.
         var notRaster = await Pumped(client.CallToolAsync("enhance_layer_resolution", new Dictionary<string, object?> { ["layer"] = "Hello" }));
@@ -152,10 +152,10 @@ public class McpTests
             Assert.Equal(3, session.Document.Layers.Count);                                          // Scaled down to fit and centered.
             var half = await Pumped(client.CallToolAsync("place_image", new Dictionary<string, object?> { ["path"] = picture, ["scale"] = 0.5, ["x"] = 100, ["y"] = 100 }));
             Assert.Contains("as a layer at 0,75 size 200×50", Text(half));                             // Half the fitted size, centered on 100,100.
-            Assert.Equal("Undid Add Image.", Text(await Pumped(client.CallToolAsync("undo"))));
+            Assert.Equal("Undid 添加图像.", Text(await Pumped(client.CallToolAsync("undo"))));
             var missing = await Pumped(client.CallToolAsync("place_image", new Dictionary<string, object?> { ["path"] = picture + ".missing" }));
             Assert.Equal(true, missing.IsError);
-            Assert.Equal("Undid Add Image.", Text(await Pumped(client.CallToolAsync("undo"))));
+            Assert.Equal("Undid 添加图像.", Text(await Pumped(client.CallToolAsync("undo"))));
         }
         finally { File.Delete(picture); }
 
@@ -163,42 +163,42 @@ public class McpTests
         Assert.Equal(true, refused.IsError);
         Assert.Contains("not a color", Text(refused));
 
-        Assert.Equal("Undid Text.", Text(await Pumped(client.CallToolAsync("undo"))));
+        Assert.Equal("Undid 文字.", Text(await Pumped(client.CallToolAsync("undo"))));
         Assert.Single(session.Document.Layers);
 
         // The layer tools, on a fresh text layer.
         await Pumped(client.CallToolAsync("add_text", new Dictionary<string, object?> { ["text"] = "Hello", ["x"] = 20, ["y"] = 30 }));
         var hello = session.ActiveLayer!;
         var set = await Pumped(client.CallToolAsync("set_layer", new Dictionary<string, object?> { ["layer"] = "hello", ["name"] = "Greeting", ["visible"] = false, ["opacity"] = 0.5, ["blend"] = "soft light" }));
-        Assert.Equal("\"Greeting\": named \"Greeting\", hidden, opacity 50%, blend Soft Light.", Text(set));
+        Assert.Equal("\"Greeting\": named \"Greeting\", hidden, opacity 50%, blend 柔光.", Text(set));
         Assert.False(hello.Visible);
         Assert.Equal(0.5, hello.Opacity);
         Assert.Equal(BlendMode.SoftLight, hello.Blend);
-        Assert.Equal("Blend Mode", session.History.UndoName);
+        Assert.Equal("混合模式", session.History.UndoName);
         await Pumped(client.CallToolAsync("set_layer", new Dictionary<string, object?> { ["layer"] = "Greeting", ["visible"] = true }));
         var moved = await Pumped(client.CallToolAsync("transform_layer", new Dictionary<string, object?> { ["layer"] = "Greeting", ["x"] = 50, ["y"] = 60 }));
         Assert.StartsWith("\"Greeting\" is now at 50,60 size", Text(moved));
         Assert.Equal(50, hello.Transform.X);
-        Assert.Equal("Background", session.Document.Layers[0].Name);
-        Assert.Equal("Duplicated \"Greeting\" as \"Greeting copy\", now active.", Text(await Pumped(client.CallToolAsync("duplicate_layer", new Dictionary<string, object?> { ["layer"] = "Greeting" }))));
+        Assert.Equal("背景", session.Document.Layers[0].Name);
+        Assert.Equal("Duplicated \"Greeting\" as \"Greeting 拷贝\", now active.", Text(await Pumped(client.CallToolAsync("duplicate_layer", new Dictionary<string, object?> { ["layer"] = "Greeting" }))));
         Assert.Equal(3, session.Document.Layers.Count);
-        await Pumped(client.CallToolAsync("reorder_layer", new Dictionary<string, object?> { ["layer"] = "Greeting copy", ["direction"] = "bottom" }));
-        Assert.Equal("Greeting copy", session.Document.Layers[0].Name);
-        Assert.Contains("already at the bottom", Text(await Pumped(client.CallToolAsync("reorder_layer", new Dictionary<string, object?> { ["layer"] = "Greeting copy", ["direction"] = "down" }))));
+        await Pumped(client.CallToolAsync("reorder_layer", new Dictionary<string, object?> { ["layer"] = "Greeting 拷贝", ["direction"] = "bottom" }));
+        Assert.Equal("Greeting 拷贝", session.Document.Layers[0].Name);
+        Assert.Contains("already at the bottom", Text(await Pumped(client.CallToolAsync("reorder_layer", new Dictionary<string, object?> { ["layer"] = "Greeting 拷贝", ["direction"] = "down" }))));
         var byId = await Pumped(client.CallToolAsync("select_layer", new Dictionary<string, object?> { ["layer"] = hello.Id.ToString("N")[..8] }));
         Assert.Equal("\"Greeting\" is the active layer.", Text(byId));
-        Assert.Equal("Deleted \"Greeting copy\".", Text(await Pumped(client.CallToolAsync("delete_layer", new Dictionary<string, object?> { ["layer"] = "Greeting copy" }))));
+        Assert.Equal("Deleted \"Greeting 拷贝\".", Text(await Pumped(client.CallToolAsync("delete_layer", new Dictionary<string, object?> { ["layer"] = "Greeting 拷贝" }))));
         Assert.Equal(2, session.Document.Layers.Count);
         // Painting and shapes.
         await Pumped(client.CallToolAsync("select_layer", new Dictionary<string, object?> { ["layer"] = "Greeting" }));
-        var stroke = await Pumped(client.CallToolAsync("paint_stroke", new Dictionary<string, object?> { ["points"] = new[] { new[] { 20.0, 200.0 }, new[] { 380.0, 200.0 } }, ["color"] = "#00FF00", ["size"] = 30, ["hardness"] = 1, ["layer"] = "Background" }));
-        Assert.Equal("Painted a paint stroke of 2 points on \"Background\".", Text(stroke));
+        var stroke = await Pumped(client.CallToolAsync("paint_stroke", new Dictionary<string, object?> { ["points"] = new[] { new[] { 20.0, 200.0 }, new[] { 380.0, 200.0 } }, ["color"] = "#00FF00", ["size"] = 30, ["hardness"] = 1, ["layer"] = "背景" }));
+        Assert.Equal("Painted a paint stroke of 2 points on \"背景\".", Text(stroke));
         Assert.Equal(SKColors.Lime, session.Document.Layers[0].Pixels!.GetPixel(200, 200));
-        Assert.Equal("Brush", session.History.UndoName);
+        Assert.Equal("画笔", session.History.UndoName);
         Assert.Equal("Greeting", session.ActiveLayer!.Name);                                  // Painting on a named layer does not select it.
         var onText = await Pumped(client.CallToolAsync("paint_stroke", new Dictionary<string, object?> { ["points"] = new[] { new[] { 20.0, 20.0 } }, ["layer"] = "Greeting" }));
         Assert.Equal(true, onText.IsError);
-        Assert.Contains("live text", Text(onText));
+        Assert.Contains("实时的文字", Text(onText));
         // Many strokes at once, colors read back, and a gridded or partial render.
         var batch = await Pumped(client.CallToolAsync("paint_strokes", new Dictionary<string, object?>
         {
@@ -207,16 +207,16 @@ public class McpTests
                 new { points = new[] { new[] { 20.0, 250.0 }, new[] { 380.0, 250.0 } }, color = "#00FF00", size = 20, hardness = 1.0 },
                 new { points = new[] { new[] { 20.0, 280.0 }, new[] { 380.0, 280.0 } }, color = "#0000FF", size = 10, hardness = 1.0 }
             },
-            ["layer"] = "Background"
+            ["layer"] = "背景"
         }));
-        Assert.Equal("Painted 2 strokes on \"Background\".", Text(batch));
+        Assert.Equal("Painted 2 strokes on \"背景\".", Text(batch));
         Assert.Equal(SKColors.Lime, session.Document.Layers[0].Pixels!.GetPixel(200, 250));
         Assert.Equal(SKColors.Blue, session.Document.Layers[0].Pixels!.GetPixel(200, 280));
-        Assert.Equal("Brush Strokes", session.History.UndoName);
+        Assert.Equal("画笔笔触", session.History.UndoName);
         Assert.Equal("Greeting", session.ActiveLayer!.Name);
-        Assert.Equal("Undid Brush Strokes.", Text(await Pumped(client.CallToolAsync("undo"))));
+        Assert.Equal("Undid 画笔笔触.", Text(await Pumped(client.CallToolAsync("undo"))));
         Assert.Equal(SKColors.Red, session.Document.Layers[0].Pixels!.GetPixel(200, 280));
-        var sampled = Text(await Pumped(client.CallToolAsync("sample_color", new Dictionary<string, object?> { ["points"] = new[] { new[] { 200.0, 200.0 }, new[] { 200.0, 20.0 } }, ["radius"] = 1, ["layer"] = "Background" })));
+        var sampled = Text(await Pumped(client.CallToolAsync("sample_color", new Dictionary<string, object?> { ["points"] = new[] { new[] { 200.0, 200.0 }, new[] { 200.0, 20.0 } }, ["radius"] = 1, ["layer"] = "背景" })));
         Assert.Contains("200,200: #00FF00", sampled);
         Assert.Contains("200,20: #FF0000", sampled);
         var gridded = await Pumped(client.CallToolAsync("render", new Dictionary<string, object?> { ["maxSide"] = 200, ["grid"] = 100 }));
@@ -233,54 +233,54 @@ public class McpTests
         Assert.Equal(true, halfRegion.IsError);
 
         var shape = await Pumped(client.CallToolAsync("add_shape", new Dictionary<string, object?> { ["kind"] = "ellipse", ["x"] = 10, ["y"] = 10, ["width"] = 100, ["height"] = 50, ["color"] = "#FF00FF" }));
-        Assert.Matches("Added ellipse \"Ellipse( \\d+)?\" at 10,10 size 100×50, now active\\.", Text(shape));
+        Assert.Matches("Added 椭圆 \"椭圆( \\d+)?\" at 10,10 size 100×50, now active\\.", Text(shape));
         Assert.Equal(ShapeKind.Ellipse, session.ActiveLayer!.Shape!.Kind);
         var line = await Pumped(client.CallToolAsync("add_line", new Dictionary<string, object?> { ["x1"] = 0, ["y1"] = 0, ["x2"] = 100, ["y2"] = 100, ["width"] = 6 }));
-        Assert.Matches("Added line \"Line( \\d+)?\" from 0,0 to 100,100, now active\\.", Text(line));
+        Assert.Matches("Added line \"直线( \\d+)?\" from 0,0 to 100,100, now active\\.", Text(line));
         Assert.Equal(6, session.ActiveLayer!.Shape!.LineWidth);
 
         // Adjustments and filters.
-        var inverted = await Pumped(client.CallToolAsync("adjust_invert", new Dictionary<string, object?> { ["layer"] = "Background" }));
-        Assert.Equal("Applied Invert to \"Background\".", Text(inverted));
+        var inverted = await Pumped(client.CallToolAsync("adjust_invert", new Dictionary<string, object?> { ["layer"] = "背景" }));
+        Assert.Equal("Applied 反相 to \"背景\".", Text(inverted));
         Assert.Equal(new SKColor(255, 0, 255), session.Document.Layers[0].Pixels!.GetPixel(200, 200));   // The lime stroke, inverted.
-        Assert.Equal("Invert", session.History.UndoName);
-        var asLayer = await Pumped(client.CallToolAsync("adjust_brightness_contrast", new Dictionary<string, object?> { ["contrast"] = 30, ["asLayer"] = true, ["layer"] = "Background" }));
-        Assert.Matches("Added adjustment layer \"Brightness/Contrast( \\d+)?\" above \"Background\", now active\\.", Text(asLayer));
+        Assert.Equal("反相", session.History.UndoName);
+        var asLayer = await Pumped(client.CallToolAsync("adjust_brightness_contrast", new Dictionary<string, object?> { ["contrast"] = 30, ["asLayer"] = true, ["layer"] = "背景" }));
+        Assert.Matches("Added adjustment layer \"亮度/对比度( \\d+)?\" above \"背景\", now active\\.", Text(asLayer));
         Assert.Equal(30, ((BrightnessContrastAdjustment)session.ActiveLayer!.Adjustment!).Contrast);
-        var looked = await Pumped(client.CallToolAsync("adjust_color_lookup", new Dictionary<string, object?> { ["look"] = "Vivid Slide", ["amount"] = 80, ["asLayer"] = true, ["layer"] = "Background" }));
-        Assert.Equal("Added adjustment layer \"Vivid Slide\" above \"Background\", now active.", Text(looked));
+        var looked = await Pumped(client.CallToolAsync("adjust_color_lookup", new Dictionary<string, object?> { ["look"] = "鲜艳反转片", ["amount"] = 80, ["asLayer"] = true, ["layer"] = "背景" }));
+        Assert.Equal("Added adjustment layer \"鲜艳反转片\" above \"背景\", now active.", Text(looked));
         var lookup = Assert.IsType<ColorLookupAdjustment>(session.ActiveLayer!.Adjustment);
-        Assert.Equal((Looks.Find("Vivid Slide")!.Id, 80d), (lookup.LatticeId, lookup.Amount));
-        Assert.Equal("Undid New Adjustment Layer.", Text(await Pumped(client.CallToolAsync("undo"))));       // One step, name and all.
+        Assert.Equal((Looks.Find("鲜艳反转片")!.Id, 80d), (lookup.LatticeId, lookup.Amount));
+        Assert.Equal("Undid 新建调整图层.", Text(await Pumped(client.CallToolAsync("undo"))));       // One step, name and all.
         var badLook = await Pumped(client.CallToolAsync("adjust_color_lookup", new Dictionary<string, object?> { ["look"] = "Kodachrome" }));
         Assert.Equal(true, badLook.IsError);
-        Assert.Contains("Fine Mono", Text(badLook));
+        Assert.Contains("精致黑白", Text(badLook));
         var noFile = await Pumped(client.CallToolAsync("adjust_color_lookup", new Dictionary<string, object?> { ["look"] = Path.Combine(Path.GetTempPath(), "composa-missing-look.cube") }));
         Assert.Equal(true, noFile.IsError);
         Assert.Contains("no file", Text(noFile));
         var onLive = await Pumped(client.CallToolAsync("adjust_exposure", new Dictionary<string, object?> { ["exposure"] = 1, ["layer"] = "Greeting" }));
         Assert.Equal(true, onLive.IsError);
         Assert.Contains("asLayer", Text(onLive));
-        var blurred = await Pumped(client.CallToolAsync("filter_blur", new Dictionary<string, object?> { ["radius"] = 6, ["layer"] = "Background" }));
-        Assert.Equal("Applied Gaussian Blur to \"Background\".", Text(blurred));
-        Assert.Equal("Gaussian Blur", session.History.UndoName);
-        var painted = await Pumped(client.CallToolAsync("filter_painterly", new Dictionary<string, object?> { ["style"] = "colorist wash", ["brushSize"] = 12, ["layer"] = "Background", ["seed"] = 5 }));
-        Assert.Equal("Applied Painterly to \"Background\".", Text(painted));
-        Assert.Equal("Painterly", session.History.UndoName);
-        Assert.Equal("Undid Painterly.", Text(await Pumped(client.CallToolAsync("undo"))));
+        var blurred = await Pumped(client.CallToolAsync("filter_blur", new Dictionary<string, object?> { ["radius"] = 6, ["layer"] = "背景" }));
+        Assert.Equal("Applied 高斯模糊 to \"背景\".", Text(blurred));
+        Assert.Equal("高斯模糊", session.History.UndoName);
+        var painted = await Pumped(client.CallToolAsync("filter_painterly", new Dictionary<string, object?> { ["style"] = "colorist wash", ["brushSize"] = 12, ["layer"] = "背景", ["seed"] = 5 }));
+        Assert.Equal("Applied 绘画 to \"背景\".", Text(painted));
+        Assert.Equal("绘画", session.History.UndoName);
+        Assert.Equal("Undid 绘画.", Text(await Pumped(client.CallToolAsync("undo"))));
         var badStyle = await Pumped(client.CallToolAsync("filter_painterly", new Dictionary<string, object?> { ["style"] = "cubist" }));
         Assert.Equal(true, badStyle.IsError);
-        var dithered = await Pumped(client.CallToolAsync("filter_dither", new Dictionary<string, object?> { ["style"] = "halftone dots", ["pixelSize"] = 1, ["colors"] = "two_colors", ["dark"] = "#102030", ["light"] = "#FFE080", ["layer"] = "Background" }));
-        Assert.Equal("Applied Dither to \"Background\".", Text(dithered));
-        Assert.Equal("Dither", session.History.UndoName);
-        Assert.Equal("Undid Dither.", Text(await Pumped(client.CallToolAsync("undo"))));
+        var dithered = await Pumped(client.CallToolAsync("filter_dither", new Dictionary<string, object?> { ["style"] = "halftone dots", ["pixelSize"] = 1, ["colors"] = "two_colors", ["dark"] = "#102030", ["light"] = "#FFE080", ["layer"] = "背景" }));
+        Assert.Equal("Applied 抖动 to \"背景\".", Text(dithered));
+        Assert.Equal("抖动", session.History.UndoName);
+        Assert.Equal("Undid 抖动.", Text(await Pumped(client.CallToolAsync("undo"))));
         var badDither = await Pumped(client.CallToolAsync("filter_dither", new Dictionary<string, object?> { ["style"] = "atkinson", ["colors"] = "sepia" }));
         Assert.Equal(true, badDither.IsError);
         var badRange = await Pumped(client.CallToolAsync("adjust_hue_saturation", new Dictionary<string, object?> { ["hue"] = 30, ["range"] = "purples" }));
         Assert.Equal(true, badRange.IsError);
         var byColor = await Pumped(client.CallToolAsync("select_color_range", new Dictionary<string, object?> { ["colors"] = new[] { "#808080" }, ["fuzziness"] = 200 }));
         Assert.StartsWith("Selected the area", Text(byColor));
-        Assert.Equal("Color Range", session.History.UndoName);
+        Assert.Equal("色彩范围", session.History.UndoName);
         var noneNear = await Pumped(client.CallToolAsync("select_color_range", new Dictionary<string, object?> { ["colors"] = new[] { "#010203" }, ["fuzziness"] = 0 }));
         Assert.StartsWith("No pixels are near", Text(noneNear));
         Assert.Null(session.Selection);
@@ -292,7 +292,7 @@ public class McpTests
         await Pumped(client.CallToolAsync("fill_layer", new Dictionary<string, object?> { ["color"] = "#0000FF" }));                     // Background is active: fills inside the selection only.
         Assert.Equal(SKColors.Blue, session.Document.Layers[0].Pixels!.GetPixel(50, 40));
         Assert.NotEqual(SKColors.Blue, session.Document.Layers[0].Pixels!.GetPixel(300, 200));
-        var traced = Text(await Pumped(client.CallToolAsync("trace_edges", new Dictionary<string, object?> { ["layer"] = "Background", ["minLength"] = 30, ["maxLines"] = 5 })));
+        var traced = Text(await Pumped(client.CallToolAsync("trace_edges", new Dictionary<string, object?> { ["layer"] = "背景", ["minLength"] = 30, ["maxLines"] = 5 })));
         Assert.Matches("^[1-5] edges, longest first", traced);                               // The blue rectangle's outline, at least.
         Assert.Matches(@"\n\d+,\d+ \d+,\d+", traced);
         Assert.Equal("Selected the area at 0,0 size 110×90.", Text(await Pumped(client.CallToolAsync("modify_selection", new Dictionary<string, object?> { ["expand"] = 10 }))));
@@ -365,15 +365,15 @@ public class McpTests
             var notCube = await Pumped(client.CallToolAsync("export_look", new Dictionary<string, object?> { ["path"] = Path.Combine(folder, "look.3dl") }));
             Assert.Equal(true, notCube.IsError);
             var look = await Pumped(client.CallToolAsync("export_look", new Dictionary<string, object?> { ["path"] = cube, ["size"] = 17 }));
-            Assert.StartsWith($"Exported the look of \"copy\" as a 17-point .cube to {cube}, baked from \"Brightness/Contrast", Text(look));   // The contrast layer added above.
+            Assert.StartsWith($"Exported the look of \"copy\" as a 17-point .cube to {cube}, baked from \"亮度/对比度", Text(look));   // The contrast layer added above.
             Assert.Equal(17, ColorLattice.Load(cube).Size);
             Assert.False(session.IsModified);
             var cubeTaken = await Pumped(client.CallToolAsync("export_look", new Dictionary<string, object?> { ["path"] = cube }));
             Assert.Equal(true, cubeTaken.IsError);
             Assert.Contains("overwrite", Text(cubeTaken));
-            var fromFile = await Pumped(client.CallToolAsync("adjust_color_lookup", new Dictionary<string, object?> { ["look"] = cube, ["layer"] = "Background" }));
-            Assert.Equal("Applied Color Lookup to \"Background\".", Text(fromFile));
-            Assert.Equal("Undid Color Lookup.", Text(await Pumped(client.CallToolAsync("undo"))));
+            var fromFile = await Pumped(client.CallToolAsync("adjust_color_lookup", new Dictionary<string, object?> { ["look"] = cube, ["layer"] = "背景" }));
+            Assert.Equal("Applied 颜色查找 to \"背景\".", Text(fromFile));
+            Assert.Equal("Undid 颜色查找.", Text(await Pumped(client.CallToolAsync("undo"))));
 
             var again = await Pumped(client.CallToolAsync("open_document", new Dictionary<string, object?> { ["path"] = copy }));
             Assert.Equal("Document 1 \"copy\" was already open, now active.", Text(again));
@@ -409,7 +409,7 @@ public class McpTests
             File.WriteAllBytes(asksPath, asks.Build());
             var asksRefused = await Pumped(client.CallToolAsync("open_document", new Dictionary<string, object?> { ["path"] = asksPath }));
             Assert.Equal(true, asksRefused.IsError);
-            Assert.Contains("Dissolved: Blend mode \"Dissolve\"", Text(asksRefused));
+            Assert.Contains("Dissolved: 混合模式「溶解」", Text(asksRefused));
         }
         finally { Directory.Delete(folder, recursive: true); }
 
@@ -450,7 +450,7 @@ public class McpTests
         Assert.True(await second.StartAsync());
         await Pumped(() => changes >= 3);
         Assert.Equal(changes, resourceChanges);                                              // Resources are announced alongside the tools.
-        Assert.Contains("1: \"Untitled\" 64×64 px", Text(await Pumped(client.CallToolAsync("list_documents"))));
+        Assert.Contains("1: \"未标题\" 64×64 px", Text(await Pumped(client.CallToolAsync("list_documents"))));
         Assert.Contains("composa://documents", (await client.ListResourcesAsync()).Select(r => r.Uri));
     }
 

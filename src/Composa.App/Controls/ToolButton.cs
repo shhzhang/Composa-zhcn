@@ -80,8 +80,8 @@ public sealed class ToolButton : ToggleButton
         Show(current.Icon);
         var key = current.Key() is { } gesture ? $" ({Shortcut.Label(gesture)})" : "";
         var others = group.Where(c => c != current).Select(c => c.Name).ToList();
-        var list = others.Count == 1 ? others[0] : string.Join(", ", others.SkipLast(1)) + " and " + others[^1];
-        ToolTip.SetTip(this, $"{current.Name}{key} · click and hold for {list}");
+        var list = others.Count == 1 ? others[0] : string.Join("、", others.SkipLast(1)) + " 和 " + others[^1];
+        ToolTip.SetTip(this, $"{current.Name}{key} · 长按可切换到 {list}");
     }
 
     /// <summary>

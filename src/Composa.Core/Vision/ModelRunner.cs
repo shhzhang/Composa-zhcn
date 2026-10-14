@@ -48,7 +48,7 @@ public static class ModelRunner
     public static float[] Run(SubjectModel model, float[] input, int edge, CancellationToken cancellation = default)
     {
         var (output, _, _) = RunImage(model, input, edge, edge, cancellation);
-        if (output.Length != edge * edge) throw new InvalidDataException($"The {model.Name} model answered with {output.Length} values for {edge}×{edge} pixels.");
+        if (output.Length != edge * edge) throw new InvalidDataException($"{model.Name} 模型对 {edge}×{edge} 像素返回了 {output.Length} 个值。");
         return output;
     }
 
@@ -83,10 +83,10 @@ public static class ModelRunner
         lock (gate)
         {
             if (sessions.TryGetValue(model.Id, out var existing)) return existing;
-            if (!model.IsInstalled) throw new InvalidDataException($"The {model.Name} model is not installed: {model.Path} is missing.");
+            if (!model.IsInstalled) throw new InvalidDataException($"未安装 {model.Name} 模型：缺少 {model.Path}。");
             if (!verified.Contains(model.Id))
             {
-                if (!model.Verify()) throw new InvalidDataException($"{model.Path} is not the {model.Name} model Composa was built with, so it is not used.");
+                if (!model.Verify()) throw new InvalidDataException($"{model.Path} 不是 Composa 构建时所用的 {model.Name} 模型，因此不会被使用。");
                 verified.Add(model.Id);
             }
             var options = new SessionOptions

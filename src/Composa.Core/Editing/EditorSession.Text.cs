@@ -29,7 +29,7 @@ public sealed partial class EditorSession
         var pixels = RenderText(style);
         var layer = Layer.Raster(style.LayerName(), pixels, Math.Round(at.X) - TextLayout.Padding, Math.Round(at.Y) - TextLayout.Padding);
         layer.Text = style;
-        Begin("Text");
+        Begin("文字");
         document.InsertAboveActive(layer);
         if (commit) Commit();
         EditingMask = false;
@@ -129,7 +129,7 @@ public sealed partial class EditorSession
         if (TextEdit != null && textLayer == layer) return TextEdit;
         FinishText();
         SelectLayer(layer.Id);
-        Begin("Edit Text");
+        Begin("编辑文字");
         return OpenTextEditor(layer, isNew: false);
     }
 
@@ -204,7 +204,7 @@ public sealed partial class EditorSession
     /// </summary>
     public TextStyle CurrentTextStyle => TextEdit?.Style ?? ActiveLayer?.Text ?? TextDefaults;
 
-    private const string StyleEditName = "Change Text Style";
+    private const string StyleEditName = "更改文字样式";
     /// <summary>The last bar change made to a text layer that was not open for typing, and the revision it left.</summary>
     private (Guid LayerId, int Revision)? styleEdit;
 
@@ -300,7 +300,7 @@ public sealed partial class EditorSession
         var tinted = style.WithColor((uint)color, 0, 0);
         if (tinted == style) return true;
         if (TextEdit != null && textLayer == layer) { TextEdit.ChangeStyle(_ => tinted); return true; }
-        Apply("Fill Text", () => SetText(layer, tinted));
+        Apply("填充文字", () => SetText(layer, tinted));
         LayersChanged?.Invoke();
         return true;
     }

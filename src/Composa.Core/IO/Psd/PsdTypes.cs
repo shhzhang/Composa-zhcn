@@ -6,8 +6,8 @@ namespace Composa.IO.Psd;
 /// <summary>A Photoshop file that cannot be read, with the reason in words a user can act on.</summary>
 public sealed class PsdException(string message) : IOException(message)
 {
-    public static PsdException Truncated() => new("The Photoshop file could not be read. It may be damaged or incomplete.");
-    public static PsdException TooLarge() => new($"The Photoshop file is larger than Composa can hold: {DocumentLimits.MaxSide:N0} pixels a side and {DocumentLimits.MaxSurfaceMegapixels} megapixels for any one layer, {DocumentLimits.DocumentBudgetMegapixels} megapixels of layers in all.");
+    public static PsdException Truncated() => new("无法读取该 Photoshop 文件。它可能已损坏或不完整。");
+    public static PsdException TooLarge() => new($"该 Photoshop 文件超出了 Composa 的容纳范围：每边 {DocumentLimits.MaxSide:N0} 像素、单个图层 {DocumentLimits.MaxSurfaceMegapixels} 百万像素、全部图层共 {DocumentLimits.DocumentBudgetMegapixels} 百万像素。");
 }
 
 /// <summary>What a Photoshop layer was, judged from the extra data it carries.</summary>

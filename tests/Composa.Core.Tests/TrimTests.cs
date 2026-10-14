@@ -58,7 +58,7 @@ public class TrimTests
         Assert.True(session.Trim());
         Assert.Equal((40, 40), (session.Document.Width, session.Document.Height));
         Assert.Equal((0, 0), ((int)square.Transform.X, (int)square.Transform.Y));
-        Assert.Equal("Trim", session.History.UndoName);
+        Assert.Equal("修边", session.History.UndoName);
         Assert.False(session.Trim());                                     // Already trimmed: nothing changes, no undo step.
         session.Undo();
         Assert.Equal((100, 100), (session.Document.Width, session.Document.Height));

@@ -18,7 +18,13 @@ public sealed record ShapeStyle(ShapeKind Kind, uint Fill, double CornerRadius)
     public double? EndX { get; init; }
     public double? EndY { get; init; }
 
-    public static string DisplayName(ShapeKind kind) => kind == ShapeKind.RoundedRectangle ? "Rounded Rectangle" : kind.ToString();
+    public static string DisplayName(ShapeKind kind) => kind switch
+    {
+        ShapeKind.Rectangle => "矩形",
+        ShapeKind.RoundedRectangle => "圆角矩形",
+        ShapeKind.Ellipse => "椭圆",
+        _ => "直线"
+    };
 }
 
 public enum TextAlignment { Left, Center, Right }
@@ -288,7 +294,7 @@ public sealed record TextStyle
     public string LayerName()
     {
         var flattened = string.Join(' ', Text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-        return flattened.Length == 0 ? "Text" : flattened.Length > 40 ? flattened[..40] : flattened;
+        return flattened.Length == 0 ? "文字" : flattened.Length > 40 ? flattened[..40] : flattened;
     }
 }
 
@@ -299,7 +305,7 @@ public sealed record TextStyle
 public sealed class Layer
 {
     public Guid Id { get; init; } = Guid.NewGuid();
-    public string Name { get; set; } = "Layer";
+    public string Name { get; set; } = "图层";
     public LayerKind Kind { get; init; }
     public bool Visible { get; set; } = true;
     public double Opacity { get; set; } = 1;

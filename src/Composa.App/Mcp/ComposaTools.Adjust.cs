@@ -104,7 +104,7 @@ public sealed partial class ComposaTools
         Adjust(document, layer, asLayer, new GradientMapAdjustment { Shadows = (uint)ParseColor(shadows), Highlights = (uint)ParseColor(highlights), Reversed = reversed });
 
     [McpServerTool(Name = "adjust_color_lookup")]
-    [Description("Color Lookup: grades the layer through a lookup table, either a bundled look by name (Fine Mono, Muted Chrome, Standard Slide or Vivid Slide) or a .cube or .3dl file at an absolute path. Amount, 0 to 100, mixes the look into the original. An adjustment layer made this way is named after the look.")]
+    [Description("Color Lookup: grades the layer through a lookup table, either a bundled look by name (精致黑白, 柔和胶片, 标准反转片 or 鲜艳反转片) or a .cube or .3dl file at an absolute path. Amount, 0 to 100, mixes the look into the original. An adjustment layer made this way is named after the look.")]
     public Task<string> AdjustColorLookup(
         [Description("A bundled look's name, or an absolute path to a .cube or .3dl file")] string look,
         [Description("How much of the look shows, 0 to 100")] double amount = 100,

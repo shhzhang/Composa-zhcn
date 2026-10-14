@@ -78,16 +78,16 @@ public sealed record FilterSettings
 
     public static string DisplayName(FilterKind kind) => kind switch
     {
-        FilterKind.GaussianBlur => "Gaussian Blur",
-        FilterKind.MotionBlur => "Motion Blur",
-        FilterKind.AddNoise => "Add Noise",
-        FilterKind.BloomGlow => "Bloom / Glow",
-        FilterKind.Dither => "Dither",
-        FilterKind.TonalContrast => "Tonal Contrast",
-        FilterKind.LensCorrection => "Lens Correction",
-        FilterKind.CameraRaw => "Camera Raw Filter",
-        FilterKind.RemoveBackground => "Remove Background",
-        FilterKind.Painterly => "Painterly",
+        FilterKind.GaussianBlur => "高斯模糊",
+        FilterKind.MotionBlur => "动感模糊",
+        FilterKind.AddNoise => "添加杂色",
+        FilterKind.BloomGlow => "泛光/辉光",
+        FilterKind.Dither => "抖动",
+        FilterKind.TonalContrast => "色调对比",
+        FilterKind.LensCorrection => "镜头校正",
+        FilterKind.CameraRaw => "Camera Raw 滤镜",
+        FilterKind.RemoveBackground => "移除背景",
+        FilterKind.Painterly => "绘画",
         _ => kind.ToString()
     };
 }

@@ -24,14 +24,14 @@ public class HistoryTests
     public void Steps_list_every_state_oldest_first_with_the_current_one_marked()
     {
         var session = ThreeFills();
-        Assert.Equal(["New Canvas", "Red", "Green", "Blue"], Names(session));
+        Assert.Equal(["新建画布", "Red", "Green", "Blue"], Names(session));
         Assert.Equal(3, session.History.CurrentIndex);
         session.Undo();
         // Undone steps stay listed after the current one until the next edit drops them.
-        Assert.Equal(["New Canvas", "Red", "Green", "Blue"], Names(session));
+        Assert.Equal(["新建画布", "Red", "Green", "Blue"], Names(session));
         Assert.Equal(2, session.History.CurrentIndex);
         session.Fill(SKColors.Black, "Black");
-        Assert.Equal(["New Canvas", "Red", "Green", "Black"], Names(session));
+        Assert.Equal(["新建画布", "Red", "Green", "Black"], Names(session));
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class HistoryTests
         session.GoToHistory(1);
         session.Undo();
         AssertColor(SKColors.White, session.Composite().GetPixel(4, 4));
-        Assert.Equal(["New Canvas", "Red", "Green", "Blue"], Names(session));
+        Assert.Equal(["新建画布", "Red", "Green", "Blue"], Names(session));
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class HistoryTests
         session.GoToHistory(1);
         Assert.False(session.IsEditingText);
         // The text became a step of its own before the move, so going back further still reaches it again.
-        Assert.Equal(["New Canvas", "Red", "Green", "Blue", "Text"], Names(session));
+        Assert.Equal(["新建画布", "Red", "Green", "Blue", "文字"], Names(session));
         Assert.Equal(1, session.History.CurrentIndex);
     }
 
@@ -143,7 +143,7 @@ public class HistoryTests
         session.ChangeTextStyle(st => st with { Size = 41 });
         session.ChangeTextStyle(st => st with { Size = 42 });
         // The second change folds into the first, and whoever listens hears the list as it ends up.
-        Assert.Equal(["New Canvas", "Text", "Change Text Style"], Names(session));
+        Assert.Equal(["新建画布", "文字", "更改文字样式"], Names(session));
         Assert.Equal(session.History.Steps.Count, seen[^1]);
     }
 
@@ -155,9 +155,9 @@ public class HistoryTests
         history.Push("Size", document);
         history.Push("Size again", document);
         var end = history.CurrentId;
-        history.MergeLast("Change Text Style");
+        history.MergeLast("更改文字样式");
         Assert.Equal(end, history.CurrentId);
-        Assert.Equal(["Open", "Change Text Style"], history.Steps.Select(s => s.Name));
+        Assert.Equal(["打开", "更改文字样式"], history.Steps.Select(s => s.Name));
     }
 
     [Fact]

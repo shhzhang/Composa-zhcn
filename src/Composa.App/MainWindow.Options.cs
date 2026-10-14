@@ -27,18 +27,18 @@ public sealed partial class MainWindow
         switch (s.Tool)
         {
             case Tool.Move:
-                Add(Title("Move"));
+                Add(Title("移动"));
                 BuildTransformFields(row);
                 break;
             case Tool.Brush or Tool.SpotHealing or Tool.CloneStamp or Tool.Smear:
-                Add(Title(s.Tool switch { Tool.SpotHealing => "Spot Healing", Tool.CloneStamp => "Clone Stamp", _ => Chosen() }));
-                var size = Ui.SliderField("Size", s.Brush.Size, 1, 500, v => s.Brush = s.Brush with { Size = v });
-                var hardness = Ui.SliderField("Hardness", s.Brush.Hardness * 100, 0, 100, v => s.Brush = s.Brush with { Hardness = v / 100 });
+                Add(Title(s.Tool switch { Tool.SpotHealing => "污点修复", Tool.CloneStamp => "仿制图章", _ => Chosen() }));
+                var size = Ui.SliderField("大小", s.Brush.Size, 1, 500, v => s.Brush = s.Brush with { Size = v });
+                var hardness = Ui.SliderField("硬度", s.Brush.Hardness * 100, 0, 100, v => s.Brush = s.Brush with { Hardness = v / 100 });
                 Add(size, hardness);
                 Action<double>? setOpacity = null;
                 if (s.Tool != Tool.SpotHealing)
                 {
-                    var opacity = Ui.SliderField(s.Tool == Tool.Smear ? "Strength" : "Opacity", s.Brush.Opacity * 100, 1, 100, v => s.Brush = s.Brush with { Opacity = v / 100 });
+                    var opacity = Ui.SliderField(s.Tool == Tool.Smear ? "强度" : "不透明度", s.Brush.Opacity * 100, 1, 100, v => s.Brush = s.Brush with { Opacity = v / 100 });
                     setOpacity = v => opacity.Value = v;
                     Add(opacity);
                 }
@@ -46,12 +46,12 @@ public sealed partial class MainWindow
                 if (s.Tool == Tool.Brush)
                 {
                     // Healing, cloning and smearing keep their own feel; only Paint and Erase trail the pointer.
-                    var smoothing = Ui.SliderField("Smoothing", s.Brush.Smoothing, 0, 100, v => s.Brush = s.Brush with { Smoothing = v });
+                    var smoothing = Ui.SliderField("平滑", s.Brush.Smoothing, 0, 100, v => s.Brush = s.Brush with { Smoothing = v });
                     setSmoothing = v => smoothing.Value = v;
                     Add(smoothing);
                 }
                 if (s.Tool == Tool.CloneStamp)
-                    Add(Ui.Check("Aligned", s.CloneAligned, v => s.CloneAligned = v), Ui.Check("Sample all layers", s.SampleAllLayers, v => s.SampleAllLayers = v));
+                    Add(Ui.Check("对齐", s.CloneAligned, v => s.CloneAligned = v), Ui.Check("对所有图层取样", s.SampleAllLayers, v => s.SampleAllLayers = v));
                 refreshOptions = () =>
                 {
                     size.Value = Math.Min(500, s.Brush.Size);
@@ -65,19 +65,19 @@ public sealed partial class MainWindow
                 if (s.Tool == Tool.Wand)
                 {
                     if (s.WandMode == WandMode.Wand)
-                        Add(Ui.SliderField("Tolerance", s.WandTolerance, 0, 255, v => s.WandTolerance = (int)v, width: 130), Ui.Check("Contiguous", s.WandContiguous, v => s.WandContiguous = v));
+                        Add(Ui.SliderField("容差", s.WandTolerance, 0, 255, v => s.WandTolerance = (int)v, width: 130), Ui.Check("连续的", s.WandContiguous, v => s.WandContiguous = v));
                     else
                     {
                         var edge = Ui.Number(s.ObjectEdgeOffset, -10, 10, v => s.ObjectEdgeOffset = (int)v, 1, "0", 52);
-                        ToolTip.SetTip(edge, "Positive values tighten the detected outline inward; negative values loosen it outward");
-                        Add(Ui.Row(5, Ui.Scrub(Ui.Label("Edge", Palette.Secondary), edge), edge, Ui.Label("px", Palette.Secondary)));
+                        ToolTip.SetTip(edge, "正值使检测到的轮廓向内收紧；负值使其向外放松");
+                        Add(Ui.Row(5, Ui.Scrub(Ui.Label("边缘", Palette.Secondary), edge), edge, Ui.Label("px", Palette.Secondary)));
                         var detect = Ui.Combo(Detects, s.Detect, Composa.Vision.SubjectFinder.DisplayName, v => { s.Detect = v; RememberToolSettings(); }, 128);
-                        ToolTip.SetTip(detect, "How the subject is found: a model for any subject or for a person, run on this machine, or the plain backdrop that touches the picture's edges. The same choice drives Select > Subject and Remove Background.");
-                        Add(Ui.Row(5, Ui.Label("Detect", Palette.Secondary), detect));
+                        ToolTip.SetTip(detect, "主体如何被识别：在本机运行、适用于任意主体或人物的模型，或紧贴图片边缘的纯色背景。同一选择也用于「选择 > 主体」和「移除背景」。");
+                        Add(Ui.Row(5, Ui.Label("检测", Palette.Secondary), detect));
                     }
-                    Add(Ui.Check("Sample all layers", s.SampleAllLayers, v => s.SampleAllLayers = v));
+                    Add(Ui.Check("对所有图层取样", s.SampleAllLayers, v => s.SampleAllLayers = v));
                 }
-                else Add(Ui.SliderField("Feather", s.Feather, 0, 100, v => s.Feather = v));
+                else Add(Ui.SliderField("羽化", s.Feather, 0, 100, v => s.Feather = v));
                 Add(Ui.Separator());
                 // Modify buttons with their amounts, as in the macOS tool bar; both need a selection.
                 Control Modify(string title, Func<int> get, Action<int> set, int max, Action apply)
@@ -88,51 +88,51 @@ public sealed partial class MainWindow
                     refreshOptions += () => button.IsEnabled = amount.IsEnabled = s.Selection != null;
                     return pair;
                 }
-                Add(Modify("Expand", () => s.SelectionExpandAmount, v => s.SelectionExpandAmount = v, 500, () => s.ExpandSelection(s.SelectionExpandAmount)),
-                    Modify("Contract", () => s.SelectionContractAmount, v => s.SelectionContractAmount = v, 500, () => s.ContractSelection(s.SelectionContractAmount)),
-                    Modify("Feather", () => s.SelectionFeatherAmount, v => s.SelectionFeatherAmount = v, 250, () => s.FeatherSelection(s.SelectionFeatherAmount)));
-                Add(Ui.Separator(), Flat("Select All", s.SelectAll), Flat("Deselect", s.Deselect), Flat("Inverse", s.InvertSelection));
+                Add(Modify("扩展", () => s.SelectionExpandAmount, v => s.SelectionExpandAmount = v, 500, () => s.ExpandSelection(s.SelectionExpandAmount)),
+                    Modify("收缩", () => s.SelectionContractAmount, v => s.SelectionContractAmount = v, 500, () => s.ContractSelection(s.SelectionContractAmount)),
+                    Modify("羽化", () => s.SelectionFeatherAmount, v => s.SelectionFeatherAmount = v, 250, () => s.FeatherSelection(s.SelectionFeatherAmount)));
+                Add(Ui.Separator(), Flat("全选", s.SelectAll), Flat("取消选择", s.Deselect), Flat("反选", s.InvertSelection));
                 refreshOptions?.Invoke();
                 break;
             case Tool.Gradient:
-                Add(Title("Gradient"),
-                    Ui.Combo(new[] { "Linear", "Radial" }, s.GradientRadial ? "Radial" : "Linear", v => v, v => s.GradientRadial = v == "Radial", 90),
-                    Ui.Check("Foreground to transparent", s.GradientToTransparent, v => { s.GradientToTransparent = v; UpdateStatus(); }));
-                var gradientOpacity = Ui.SliderField("Opacity", s.GradientOpacity * 100, 1, 100, v => s.GradientOpacity = v / 100);
+                Add(Title("渐变"),
+                    Ui.Combo(new[] { "线性", "径向" }, s.GradientRadial ? "径向" : "线性", v => v, v => s.GradientRadial = v == "径向", 90),
+                    Ui.Check("前景色到透明", s.GradientToTransparent, v => { s.GradientToTransparent = v; UpdateStatus(); }));
+                var gradientOpacity = Ui.SliderField("不透明度", s.GradientOpacity * 100, 1, 100, v => s.GradientOpacity = v / 100);
                 Add(gradientOpacity);
                 refreshOptions = () => gradientOpacity.Value = s.GradientOpacity * 100;
                 break;
             case Tool.Shape:
                 Add(Title(Chosen()));
-                if (s.ShapeKind == ShapeKind.Line) Add(Ui.SliderField("Width", s.ShapeLineWidth, 1, 100, v => s.ShapeLineWidth = v));
-                else if (s.ShapeKind == ShapeKind.RoundedRectangle) Add(Ui.SliderField("Corner radius", s.ShapeCornerRadius, 0, 400, v => s.ShapeCornerRadius = v, width: 150));
-                Add(Ui.Label(s.ShapeKind == ShapeKind.Line ? "Draws in the foreground color · Shift snaps to 45°" : "Fills with the foreground color", Palette.Secondary));
+                if (s.ShapeKind == ShapeKind.Line) Add(Ui.SliderField("宽度", s.ShapeLineWidth, 1, 100, v => s.ShapeLineWidth = v));
+                else if (s.ShapeKind == ShapeKind.RoundedRectangle) Add(Ui.SliderField("圆角半径", s.ShapeCornerRadius, 0, 400, v => s.ShapeCornerRadius = v, width: 150));
+                Add(Ui.Label(s.ShapeKind == ShapeKind.Line ? "使用前景色绘制 · Shift 吸附到 45°" : "使用前景色填充", Palette.Secondary));
                 break;
             case Tool.Text:
-                Add(Title("Type"));
+                Add(Title("文字"));
                 BuildTextFields(row);
                 break;
             case Tool.Crop:
-                Add(Title("Crop"));
+                Add(Title("裁剪"));
                 var ratio = Ui.Combo(EditorSession.CropRatios, s.CropRatio, r => r, r => { s.CropRatio = r; canvas.ChangeCropRatio(); }, 100);
-                ToolTip.SetTip(ratio, "The shape the crop box keeps while you drag it");
-                Add(Ui.Row(6, Ui.Label("Ratio", Palette.Secondary), ratio));
-                var readout = Ui.Label("Drag on the canvas to choose the area to keep", Palette.Secondary);
-                var apply = Ui.TextButton("Apply", canvas.ApplyCrop, accent: true);
-                var cancel = Ui.TextButton("Cancel", canvas.CancelCrop);
-                Add(readout, apply, cancel, Ui.Separator(), Flat("Trim transparent edges", () => { if (!s.Trim()) ShowProblem("Nothing to trim: no edge is transparent."); else canvas.Fit(); }));
+                ToolTip.SetTip(ratio, "拖动时裁剪框保持的形状");
+                Add(Ui.Row(6, Ui.Label("比例", Palette.Secondary), ratio));
+                var readout = Ui.Label("在画布上拖动以选择要保留的区域", Palette.Secondary);
+                var apply = Ui.TextButton("应用", canvas.ApplyCrop, accent: true);
+                var cancel = Ui.TextButton("取消", canvas.CancelCrop);
+                Add(readout, apply, cancel, Ui.Separator(), Flat("修边透明边缘", () => { if (!s.Trim()) ShowProblem("没有可修边的内容：没有边缘是透明的。"); else canvas.Fit(); }));
                 refreshOptions = () =>
                 {
                     apply.IsEnabled = cancel.IsEnabled = canvas.HasCrop;
-                    readout.Text = canvas.CropRect is { } crop ? $"{Math.Round(crop.Width)} × {Math.Round(crop.Height)} px" : "Drag on the canvas to choose the area to keep";
+                    readout.Text = canvas.CropRect is { } crop ? $"{Math.Round(crop.Width)} × {Math.Round(crop.Height)} px" : "在画布上拖动以选择要保留的区域";
                 };
                 refreshOptions();
                 break;
             case Tool.Eyedropper:
-                Add(Title("Eyedropper"), Ui.Label("Samples the merged image", Palette.Secondary));
+                Add(Title("吸管"), Ui.Label("对合并后的图像取样", Palette.Secondary));
                 break;
             case Tool.Hand or Tool.Zoom:
-                Add(Title(s.Tool == Tool.Hand ? "Hand" : "Zoom"), Flat("Fit", canvas.Fit), Flat("100%", () => canvas.ZoomTo(1)), Flat("200%", () => canvas.ZoomTo(2)));
+                Add(Title(s.Tool == Tool.Hand ? "抓手" : "缩放"), Flat("适合屏幕", canvas.Fit), Flat("100%", () => canvas.ZoomTo(1)), Flat("200%", () => canvas.ZoomTo(2)));
                 break;
         }
         optionsHost.Child = row;
@@ -156,10 +156,10 @@ public sealed partial class MainWindow
         var font = Ui.Combo(families, family, f => f, f => ChangeFace(face => face with { FontFamily = f }), 190);
         font.MaxWidth = 190;
         var size = Ui.Number(style.Size, 1, 2000, v => Change(st => st with { Size = v }), 1, "0.#", 64);
-        var bold = Ui.Check("Bold", style.Bold, v => ChangeFace(face => face with { Bold = v }));
-        var italic = Ui.Check("Italic", style.Italic, v => ChangeFace(face => face with { Italic = v }));
+        var bold = Ui.Check("粗体", style.Bold, v => ChangeFace(face => face with { Bold = v }));
+        var italic = Ui.Check("斜体", style.Italic, v => ChangeFace(face => face with { Italic = v }));
         var swatch = new Border { Width = 34, Height = 22, CornerRadius = new Avalonia.CornerRadius(3), BorderBrush = Avalonia.Media.Brushes.White, BorderThickness = new Avalonia.Thickness(1), Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand) };
-        ToolTip.SetTip(swatch, "Text color");
+        ToolTip.SetTip(swatch, "文字颜色");
         swatch.PointerPressed += async (_, _) =>
         {
             // The picker's working color shows on the canvas as it changes. Text being typed takes it as any bar change;
@@ -169,14 +169,14 @@ public sealed partial class MainWindow
             var original = s.CurrentTextStyle;
             var editing = s.TextEdit;
             var layer = editing == null && s.ActiveLayer is { Text: not null } active ? active : null;
-            if (layer != null) s.Begin("Change Text Style");
+            if (layer != null) s.Begin("更改文字样式");
             void Preview(SKColor color)
             {
                 var opaque = (uint)color | 0xFF000000;
                 if (editing != null && s.TextEdit == editing) s.SetTextColor(opaque);
                 else if (layer != null) s.PreviewTextStyle(layer, st => st.WithColor(opaque, 0, 0));
             }
-            var picked = await Dialogs.Prompts.Color(this, "Text Color", new SKColor(s.CurrentTextColor), editing != null || layer != null ? Preview : null);
+            var picked = await Dialogs.Prompts.Color(this, "文字颜色", new SKColor(s.CurrentTextColor), editing != null || layer != null ? Preview : null);
             if (layer != null) s.Cancel();
             if (picked is not { } color)
             {
@@ -200,15 +200,15 @@ public sealed partial class MainWindow
             alignRow.Children.Add(button);
         }
         var tracking = Ui.Number(style.Tracking, -100, 1000, v => Change(st => st with { Tracking = v }), 1, "0", 58);
-        ToolTip.SetTip(tracking, "Tracking: extra space after every character, in pixels");
+        ToolTip.SetTip(tracking, "字距：每个字符之后额外的间距，以像素为单位");
         var leading = Ui.Number(style.Leading, 0, 5000, v => Change(st => st with { Leading = v }), 1, "0", 58);
-        ToolTip.SetTip(leading, "Leading: line height baseline to baseline, in pixels. 0 is Auto: 120% of the size");
-        var done = Ui.TextButton("Done", () => { s.FinishText(); canvas.Focus(); RebuildOptions(); UpdateStatus(); }, accent: true);
-        var cancel = Ui.TextButton("Cancel", () => { s.CancelText(); canvas.Focus(); RebuildOptions(); UpdateStatus(); });
-        var edit = Ui.TextButton("Edit Text", () => { if (s.ActiveLayer is { Text: not null } layer) BeginTextEdit(layer); });
+        ToolTip.SetTip(leading, "行距：基线到基线的行高，以像素为单位。0 为自动：大小的 120%");
+        var done = Ui.TextButton("完成", () => { s.FinishText(); canvas.Focus(); RebuildOptions(); UpdateStatus(); }, accent: true);
+        var cancel = Ui.TextButton("取消", () => { s.CancelText(); canvas.Focus(); RebuildOptions(); UpdateStatus(); });
+        var edit = Ui.TextButton("编辑文字", () => { if (s.ActiveLayer is { Text: not null } layer) BeginTextEdit(layer); });
         foreach (var button in new[] { done, cancel, edit }) button.MinWidth = 0;
         row.Children.AddRange([font, Ui.Row(4, size, Ui.Scrub(Ui.Label("px", Palette.Secondary), size)), bold, italic, swatch, alignRow,
-            Ui.Row(5, Ui.Scrub(Ui.Label("Tracking", Palette.Secondary), tracking), tracking), Ui.Row(5, Ui.Scrub(Ui.Label("Leading", Palette.Secondary), leading), leading), Ui.Separator()]);
+            Ui.Row(5, Ui.Scrub(Ui.Label("字距", Palette.Secondary), tracking), tracking), Ui.Row(5, Ui.Scrub(Ui.Label("行距", Palette.Secondary), leading), leading), Ui.Separator()]);
         if (s.IsEditingText) row.Children.AddRange([done, cancel]);
         else { edit.IsEnabled = s.ActiveLayer?.Text != null; row.Children.Add(edit); }
         refreshOptions = () =>
@@ -224,7 +224,7 @@ public sealed partial class MainWindow
             // Selected letters in more than one family: the menu says so instead of naming one.
             var uniform = s.CurrentUniformTextFamily;
             var index = uniform == null ? -1 : families.ToList().IndexOf(uniform);
-            font.PlaceholderText = uniform ?? "(Multiple)";
+            font.PlaceholderText = uniform ?? "(多种)";
             if (font.SelectedIndex != index) font.SelectedIndex = index;
             swatch.Background = new Avalonia.Media.SolidColorBrush(new SKColor(s.CurrentTextColor).ToAvalonia());
             foreach (var (alignment, button) in alignments) button.IsChecked = current.Alignment == alignment;
@@ -244,13 +244,13 @@ public sealed partial class MainWindow
     {
         var s = session!;
         var layer = s.ActiveLayer;
-        var autoSelect = Ui.Check("Auto Select", canvas.AutoSelect, v => { canvas.AutoSelect = v; RememberToolSettings(); });
-        ToolTip.SetTip(autoSelect, "Click a layer's pixels to select it. Off, a drag moves the current layer from anywhere; Ctrl-click still picks.");
+        var autoSelect = Ui.Check("自动选择", canvas.AutoSelect, v => { canvas.AutoSelect = v; RememberToolSettings(); });
+        ToolTip.SetTip(autoSelect, "单击图层的像素即可选择该图层。关闭时，拖动可从任意位置移动当前图层；Ctrl+单击仍可选取。");
         row.Children.Add(autoSelect);
-        row.Children.Add(Ui.Check("Transform controls", canvas.ShowTransformControls, v => { canvas.ShowTransformControls = v; canvas.InvalidateVisual(); RememberToolSettings(); }));
+        row.Children.Add(Ui.Check("变换控件", canvas.ShowTransformControls, v => { canvas.ShowTransformControls = v; canvas.InvalidateVisual(); RememberToolSettings(); }));
         if (layer?.Pixels == null)
         {
-            row.Children.Add(Ui.Label(layer == null ? "No layer selected" : layer.IsGroup ? "Moves every layer in the folder" : "This layer has no pixels", Palette.Secondary));
+            row.Children.Add(Ui.Label(layer == null ? "未选择图层" : layer.IsGroup ? "移动文件夹中的所有图层" : "此图层没有像素", Palette.Secondary));
             return;
         }
         var updating = false;

@@ -38,7 +38,7 @@ public class WholeImageTests
     private static List<MenuItem> TabMenu(MainWindow window, EditorSession session)
     {
         var tab = window.GetVisualDescendants().OfType<Border>()
-            .Where(b => b.ContextMenu?.Items.OfType<MenuItem>().Any(i => i.Header as string == "Copy Image") == true)
+            .Where(b => b.ContextMenu?.Items.OfType<MenuItem>().Any(i => i.Header as string == "复制图像") == true)
             .ElementAt(window.Sessions.ToList().IndexOf(session));
         return tab.ContextMenu!.Items.OfType<MenuItem>().ToList();
     }
@@ -50,17 +50,17 @@ public class WholeImageTests
         var session = EditorSession.NewCanvas(320, 200, SKColors.White);
         window.AddSession(session);
 
-        Menu(window, "Copy Merged");
-        Assert.Contains("Copied 320 × 200 px", Status(window));
+        Menu(window, "合并拷贝");
+        Assert.Contains("已拷贝 320 × 200 像素", Status(window));
         session.SelectRect(new SKRect(10, 10, 110, 60));
-        Menu(window, "Copy Merged");
-        Assert.Contains("Copied 100 × 50 px", Status(window));
+        Menu(window, "合并拷贝");
+        Assert.Contains("已拷贝 100 × 50 像素", Status(window));
         session.Deselect();
-        Menu(window, "Copy");
-        Assert.Contains("Copied 1 layer", Status(window));
+        Menu(window, "拷贝");
+        Assert.Contains("已拷贝 1 个图层", Status(window));
         // The next command puts the tool hint back.
-        Menu(window, "All");
-        Assert.DoesNotContain("Copied", Status(window));
+        Menu(window, "全部");
+        Assert.DoesNotContain("已拷贝", Status(window));
     }
 
     [AvaloniaFact]
@@ -74,11 +74,11 @@ public class WholeImageTests
         first.SelectRect(new SKRect(10, 10, 110, 60));
 
         // The menu acts on its own tab, not on the current one.
-        Click(TabMenu(window, first).Single(i => i.Header as string == "Copy Image"));
+        Click(TabMenu(window, first).Single(i => i.Header as string == "复制图像"));
         Assert.Equal((320, 200), (EditorSession.Clipboard!.Pixels.Width, EditorSession.Clipboard.Pixels.Height));
         Assert.Null(EditorSession.CopiedLayers);
         Assert.Same(second, window.Sessions[^1]);
-        Assert.Contains("Copied 320 × 200 px", Status(window));
+        Assert.Contains("已拷贝 320 × 200 像素", Status(window));
         Assert.NotNull(first.Selection);
     }
 
@@ -92,10 +92,10 @@ public class WholeImageTests
         window.AddSession(second);
 
         var menu = TabMenu(window, first);
-        Assert.False(menu.Single(i => i.Header as string == "Show in Folder").IsEnabled);
-        Click(menu.Single(i => i.Header as string == "Close Others"));
+        Assert.False(menu.Single(i => i.Header as string == "在文件夹中显示").IsEnabled);
+        Click(menu.Single(i => i.Header as string == "关闭其他"));
         Assert.Equal([first], window.Sessions);
-        Assert.False(TabMenu(window, first).Single(i => i.Header as string == "Close Others").IsEnabled);
+        Assert.False(TabMenu(window, first).Single(i => i.Header as string == "关闭其他").IsEnabled);
     }
 
     [AvaloniaFact]
@@ -106,11 +106,11 @@ public class WholeImageTests
         original.SuggestedName = "Poster";
         window.AddSession(original);
 
-        Menu(window, "Duplicate");
-        Assert.Equal(["Poster", "Poster copy"], window.Sessions.Select(s => s.Title));
+        Menu(window, "复制");
+        Assert.Equal(["Poster", "Poster 拷贝"], window.Sessions.Select(s => s.Title));
         Assert.Same(window.Sessions[1], window.Session);
-        Click(TabMenu(window, original).Single(i => i.Header as string == "Duplicate"));
-        Assert.Equal(["Poster", "Poster copy", "Poster copy"], window.Sessions.Select(s => s.Title));
+        Click(TabMenu(window, original).Single(i => i.Header as string == "复制"));
+        Assert.Equal(["Poster", "Poster 拷贝", "Poster 拷贝"], window.Sessions.Select(s => s.Title));
         Assert.Equal((320, 200), (window.Session!.Document.Width, window.Session.Document.Height));
     }
 }

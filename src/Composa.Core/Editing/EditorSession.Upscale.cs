@@ -137,7 +137,7 @@ public sealed partial class EditorSession
     public bool EnhanceResolution(Layer layer, EnhancedLayers enhanced)
     {
         if (enhanced.For(layer) is not { } pixels) return false;
-        Apply("Enhance Resolution", () =>
+        Apply("增强分辨率", () =>
         {
             layer.Pixels = pixels;
             if (layer.Mask is { } mask && (mask.Width != pixels.Width || mask.Height != pixels.Height)) layer.Mask = Resample(mask, pixels.Width, pixels.Height);

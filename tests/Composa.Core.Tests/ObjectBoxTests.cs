@@ -33,7 +33,7 @@ public class ObjectBoxTests
         var session = Scene();
         await session.SelectObjectInBoxAsync(new SKRectI(470, 40, 570, 140));
         Assert.NotNull(session.Selection);
-        Assert.Equal("Object Selection", session.History.UndoName);
+        Assert.Equal("对象选择", session.History.UndoName);
         var bounds = SelectionMask.Bounds(session.Selection!, 128);
         Assert.InRange(bounds.Left, 490, 510);
         Assert.InRange(bounds.Right, 530, 550);
@@ -54,7 +54,7 @@ public class ObjectBoxTests
         Assert.NotNull(session.Selection);
         await session.SelectObjectInBoxAsync(new SKRectI(20, 20, 220, 180), SelectionMode.Add); // Plain noise: nothing stands out, and Add keeps what was there.
         Assert.NotNull(session.Selection);
-        Assert.Equal("Select All", session.History.UndoName);
+        Assert.Equal("全选", session.History.UndoName);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class ObjectBoxTests
         session.AddImageLayer("late", Pixels.NewColor(4, 4), new SKPoint(2, 2));
         await running;
         Assert.Null(session.Selection);
-        Assert.Equal("Add Image", session.History.UndoName);
+        Assert.Equal("添加图像", session.History.UndoName);
         using var cancelled = new CancellationTokenSource();
         cancelled.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.SelectObjectInBoxAsync(new SKRectI(470, 40, 570, 140), SelectionMode.Replace, cancelled.Token));

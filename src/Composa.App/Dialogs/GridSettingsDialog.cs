@@ -43,38 +43,38 @@ public static class GridSettingsDialog
             updating = false;
             swatch.Background = new SolidColorBrush(a.Color.ToAvalonia());
             note.Text = g.IsValid
-                ? $"A subdivision every {g.Step:0.##} pixels."
-                : $"Use gridlines every {LayoutGrid.MinSpacing}-{LayoutGrid.MaxSpacing} pixels and {LayoutGrid.MinSubdivisions}-{LayoutGrid.MaxSubdivisions} subdivisions, no more than the pixels between gridlines.";
+                ? $"每 {g.Step:0.##} 像素一个子网格。"
+                : $"网格线间距须在 {LayoutGrid.MinSpacing}-{LayoutGrid.MaxSpacing} 像素之间，子网格数须在 {LayoutGrid.MinSubdivisions}-{LayoutGrid.MaxSubdivisions} 之间，且不超过网格线之间的像素数。";
             note.Foreground = g.IsValid ? Palette.Secondary : Warning;
             dialog.CanAccept = g.IsValid;
             if (g.IsValid) preview(g, a);
         }
 
         presetBox = Ui.Combo(presets, appearance.Preset, GridAppearance.DisplayName, p => { if (!updating) Change(appearance with { Preset = p }, grid); }, 150);
-        ToolTip.SetTip(swatch, "Choose a custom grid color");
+        ToolTip.SetTip(swatch, "选择自定网格颜色");
         swatch.PointerPressed += async (_, _) =>
         {
             // The picker shows on the canvas as it goes; a color other than the one in use becomes the Custom color.
             var before = appearance;
             GridAppearance Custom(SKColor color) => before with { Preset = GridColorPreset.Custom, CustomColor = (uint)color | 0xFF000000 };
-            var picked = await Prompts.Color(dialog, "Grid Color", before.Color, color => Change(Custom(color), grid));
+            var picked = await Prompts.Color(dialog, "网格颜色", before.Color, color => Change(Custom(color), grid));
             Change(picked is { } color && color != before.Color ? Custom(color) : before, grid);
         };
         styleBox = Ui.Combo(styles, appearance.Style, GridAppearance.DisplayName, s => { if (!updating) Change(appearance with { Style = s }, grid); }, 150);
-        opacityField = Ui.SliderField("Opacity", appearance.Opacity, GridAppearance.MinOpacity, GridAppearance.MaxOpacity,
+        opacityField = Ui.SliderField("不透明度", appearance.Opacity, GridAppearance.MinOpacity, GridAppearance.MaxOpacity,
             v => Change(appearance with { Opacity = (int)v }, grid), width: 204, reset: GridAppearance.DefaultOpacity);
         spacingBox = Ui.Number(grid.Spacing, LayoutGrid.MinSpacing, LayoutGrid.MaxSpacing, v => { if (!updating) Change(appearance, grid with { Spacing = (int)v }); }, width: 120);
         subdivisionsBox = Ui.Number(grid.Subdivisions, LayoutGrid.MinSubdivisions, LayoutGrid.MaxSubdivisions, v => { if (!updating) Change(appearance, grid with { Subdivisions = (int)v }); }, width: 120);
         // The Custom color is kept, so it is still there if Custom is chosen again.
-        var restore = Ui.TextButton("Restore Defaults", () => Change(new GridAppearance { CustomColor = appearance.CustomColor }, new LayoutGrid()));
+        var restore = Ui.TextButton("恢复默认", () => Change(new GridAppearance { CustomColor = appearance.CustomColor }, new LayoutGrid()));
 
         var form = CanvasDialogs.Form(
-            ("Color", Ui.Row(8, presetBox, swatch)),
-            ("Style", styleBox),
-            ("Opacity", opacityField),
-            ("Gridline every", Ui.Row(6, spacingBox, Ui.Label("pixels", Palette.Secondary))),
-            ("Subdivisions", subdivisionsBox));
-        dialog = new DialogWindow("Grid Settings", Ui.Column(12, form, note, restore));
+            ("颜色", Ui.Row(8, presetBox, swatch)),
+            ("样式", styleBox),
+            ("不透明度", opacityField),
+            ("网格线间距", Ui.Row(6, spacingBox, Ui.Label("像素", Palette.Secondary))),
+            ("子网格", subdivisionsBox));
+        dialog = new DialogWindow("网格设置", Ui.Column(12, form, note, restore));
         Change(appearance, grid);
         return await dialog.Ask(owner) ? (grid, appearance) : null;
     }

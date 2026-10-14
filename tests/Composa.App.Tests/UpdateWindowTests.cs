@@ -95,7 +95,7 @@ public sealed class UpdateWindowTests : IDisposable
 
     private static void CheckForUpdates(MainWindow window)
     {
-        var item = window.GetLogicalDescendants().OfType<Menu>().First().GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "Check for Updates…");
+        var item = window.GetLogicalDescendants().OfType<Menu>().First().GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "检查更新…");
         item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Available);
     }
@@ -105,7 +105,7 @@ public sealed class UpdateWindowTests : IDisposable
     {
         var (window, _) = Open(InstallKind.Deb);
         CheckForUpdates(window);
-        Assert.Equal(["Download", "Release notes", "Skip this version"], window.UpdateNotice.Buttons);
+        Assert.Equal(["下载", "发行说明", "跳过此版本"], window.UpdateNotice.Buttons);
         Assert.True(Screenshots.Save(window, "20-update-window-available"));
     }
 
@@ -114,7 +114,7 @@ public sealed class UpdateWindowTests : IDisposable
     {
         var (window, _) = Open(InstallKind.Developer);
         CheckForUpdates(window);
-        Assert.Equal(["Release notes", "Skip this version"], window.UpdateNotice.Buttons);
+        Assert.Equal(["发行说明", "跳过此版本"], window.UpdateNotice.Buttons);
     }
 
     [AvaloniaFact]
@@ -122,21 +122,21 @@ public sealed class UpdateWindowTests : IDisposable
     {
         var (window, programs) = Open(InstallKind.Deb);
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Ready);
 
         var path = Expected(InstallKind.Deb);
         Assert.True(File.Exists(path));
         Assert.Equal(package, File.ReadAllBytes(path));
-        Assert.Equal(["Show in Folder", "Install"], window.UpdateNotice.Buttons);
+        Assert.Equal(["在文件夹中显示", "安装"], window.UpdateNotice.Buttons);
         Assert.Equal("sudo apt install " + Installer.ShellQuote(path), window.UpdateNotice.Command);
         Assert.True(Screenshots.Save(window, "20-update-window-ready"));
 
-        window.UpdateNotice.Press("Show in Folder");
+        window.UpdateNotice.Press("在文件夹中显示");
         PumpUntil(() => programs.Revealed.Count == 1);
         Assert.Equal([path], programs.Revealed);
 
-        window.UpdateNotice.Press("Install");
+        window.UpdateNotice.Press("安装");
         PumpUntil(() => programs.Opened.Count == 1);
         Assert.Equal([path], programs.Opened);
         Assert.Empty(programs.Ran);
@@ -153,22 +153,22 @@ public sealed class UpdateWindowTests : IDisposable
         document.MarkModified();
 
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Ready);
-        Assert.Equal(["Show in Folder", "Install"], window.UpdateNotice.Buttons);
+        Assert.Equal(["在文件夹中显示", "安装"], window.UpdateNotice.Buttons);
         Assert.Null(window.UpdateNotice.Command);
 
         // The unsaved document asks; Cancel there stops the install as it would stop a quit.
-        window.UpdateNotice.Press("Install");
+        window.UpdateNotice.Press("安装");
         var prompt = WaitForDialog(window);
-        Press(prompt, "Cancel");
+        Press(prompt, "取消");
         PumpUntil(() => !prompt.IsVisible);
         Assert.Empty(programs.Ran);
         Assert.True(window.IsVisible);
 
-        window.UpdateNotice.Press("Install");
+        window.UpdateNotice.Press("安装");
         prompt = WaitForDialog(window);
-        Press(prompt, "Don't Save");
+        Press(prompt, "不保存");
         PumpUntil(() => !window.IsVisible);
         var setup = Assert.Single(programs.Ran);
         Assert.Equal(Expected(InstallKind.WindowsInstaller), setup.Program);
@@ -186,11 +186,11 @@ public sealed class UpdateWindowTests : IDisposable
         Assert.True(document.IsEditingText);
 
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Ready);
-        window.UpdateNotice.Press("Install");
+        window.UpdateNotice.Press("安装");
         var prompt = WaitForDialog(window);
-        Press(prompt, "Cancel");
+        Press(prompt, "取消");
         PumpUntil(() => !prompt.IsVisible);
 
         Assert.Empty(programs.Ran);
@@ -206,10 +206,10 @@ public sealed class UpdateWindowTests : IDisposable
         var http = new FakeHttp((_, _) => throw new InvalidOperationException("Something nobody expected"));
         var (window, _) = Open(InstallKind.Deb, http);
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Failed);
         Assert.Contains("Something nobody expected", window.UpdateNotice.Message);
-        Assert.Equal(["Retry", "Release notes"], window.UpdateNotice.Buttons);
+        Assert.Equal(["重试", "发行说明"], window.UpdateNotice.Buttons);
     }
 
     /// <summary>Cancelling at the unsaved-changes prompt cancels the quit, and a download under way carries on.</summary>
@@ -226,18 +226,18 @@ public sealed class UpdateWindowTests : IDisposable
         window.AddSession(document);
         document.MarkModified();
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => Directory.Exists(folder) && Directory.GetFiles(folder).Any(f => f.EndsWith(".part")));
 
         window.Close();
         var prompt = WaitForDialog(window);
-        Press(prompt, "Cancel");
+        Press(prompt, "取消");
         PumpUntil(() => !prompt.IsVisible);
         Assert.True(window.IsVisible);
         Assert.Equal(UpdateNotice.Phase.Downloading, window.UpdateNotice.State);
         Assert.Contains(Directory.GetFiles(folder), f => f.EndsWith(".part"));
 
-        window.UpdateNotice.Press("Cancel");
+        window.UpdateNotice.Press("取消");
         PumpUntil(() => Directory.GetFiles(folder).Length == 0);
     }
 
@@ -246,10 +246,10 @@ public sealed class UpdateWindowTests : IDisposable
     {
         var (window, _) = Open(InstallKind.AppImage);
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Ready);
 
-        Assert.Equal(["Show in Folder"], window.UpdateNotice.Buttons);
+        Assert.Equal(["在文件夹中显示"], window.UpdateNotice.Buttons);
         Assert.Null(window.UpdateNotice.Command);
         if (!OperatingSystem.IsWindows())
         {
@@ -269,12 +269,12 @@ public sealed class UpdateWindowTests : IDisposable
             : await new HttpMessageInvoker(files).SendAsync(request, cancel));
         var (window, _) = Open(InstallKind.Tarball, http);
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Failed);
-        Assert.Equal("Could not reach GitHub. Check the connection and try again.", window.UpdateNotice.Message);
+        Assert.Equal("无法连接到 GitHub。请检查网络连接后重试。", window.UpdateNotice.Message);
 
         fail = false;
-        window.UpdateNotice.Press("Retry");
+        window.UpdateNotice.Press("重试");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Ready);
         Assert.Single(Directory.GetFiles(folder));
     }
@@ -292,7 +292,7 @@ public sealed class UpdateWindowTests : IDisposable
         });
         var (window, _) = Open(InstallKind.Rpm, http);
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => started && Directory.Exists(folder) && Directory.GetFiles(folder).Any(f => f.EndsWith(".part")));
         Assert.Equal(UpdateNotice.Phase.Downloading, window.UpdateNotice.State);
 
@@ -312,11 +312,11 @@ public sealed class UpdateWindowTests : IDisposable
                 : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new Trickle(package, () => { })) });
         var (window, _) = Open(InstallKind.WindowsZip, http);
         CheckForUpdates(window);
-        window.UpdateNotice.Press("Download");
+        window.UpdateNotice.Press("下载");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Downloading && Directory.Exists(folder) && Directory.GetFiles(folder).Length > 0);
-        window.UpdateNotice.Press("Cancel");
+        window.UpdateNotice.Press("取消");
         PumpUntil(() => window.UpdateNotice.State == UpdateNotice.Phase.Available);
-        Assert.Contains("Download", window.UpdateNotice.Buttons);
+        Assert.Contains("下载", window.UpdateNotice.Buttons);
         PumpUntil(() => Directory.GetFiles(folder).Length == 0);
     }
 

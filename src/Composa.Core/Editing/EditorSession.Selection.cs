@@ -26,56 +26,56 @@ public sealed partial class EditorSession
         SelectionChanged?.Invoke();
     }
 
-    public void Select(SKBitmap shape, SelectionMode mode, string name = "Select") =>
+    public void Select(SKBitmap shape, SelectionMode mode, string name = "选择") =>
         SetSelection(name, SelectionMask.Combine(document.Selection, shape, mode));
 
     public void SelectRect(SKRect rect, SelectionMode mode = SelectionMode.Replace) =>
-        Select(SelectionMask.FromRect(document.Width, document.Height, rect, (float)Feather), mode, "Rectangular Marquee");
+        Select(SelectionMask.FromRect(document.Width, document.Height, rect, (float)Feather), mode, "矩形选框");
 
     public void SelectEllipse(SKRect rect, SelectionMode mode = SelectionMode.Replace) =>
-        Select(SelectionMask.FromEllipse(document.Width, document.Height, rect, (float)Feather), mode, "Elliptical Marquee");
+        Select(SelectionMask.FromEllipse(document.Width, document.Height, rect, (float)Feather), mode, "椭圆选框");
 
     public void SelectPolygon(IReadOnlyList<SKPoint> points, SelectionMode mode = SelectionMode.Replace) =>
-        Select(SelectionMask.FromPolygon(document.Width, document.Height, points, (float)Feather), mode, "Lasso");
+        Select(SelectionMask.FromPolygon(document.Width, document.Height, points, (float)Feather), mode, "套索");
 
-    public void SelectAll() => SetSelection("Select All", SelectionMask.All(document.Width, document.Height));
-    public void Deselect() => SetSelection("Deselect", null);
+    public void SelectAll() => SetSelection("全选", SelectionMask.All(document.Width, document.Height));
+    public void Deselect() => SetSelection("取消选择", null);
 
     public void InvertSelection()
     {
         if (document.Selection == null) { SelectAll(); return; }
         var inverted = SelectionMask.Invert(document.Selection);
-        SetSelection("Select Inverse", SelectionMask.IsEmpty(inverted) ? null : inverted);
+        SetSelection("反选", SelectionMask.IsEmpty(inverted) ? null : inverted);
     }
 
     public void ExpandSelection(int pixels)
     {
-        if (document.Selection != null && pixels > 0) SetSelection("Expand Selection", SelectionMask.Expand(document.Selection, pixels));
+        if (document.Selection != null && pixels > 0) SetSelection("扩展选区", SelectionMask.Expand(document.Selection, pixels));
     }
 
     public void ContractSelection(int pixels)
     {
-        if (document.Selection != null && pixels > 0) SetSelection("Contract Selection", SelectionMask.Contract(document.Selection, pixels));
+        if (document.Selection != null && pixels > 0) SetSelection("收缩选区", SelectionMask.Contract(document.Selection, pixels));
     }
 
     public void FeatherSelection(float radius)
     {
-        if (document.Selection != null && radius > 0) SetSelection("Feather Selection", SelectionMask.Feather(document.Selection, radius));
+        if (document.Selection != null && radius > 0) SetSelection("羽化选区", SelectionMask.Feather(document.Selection, radius));
     }
 
     public void MoveSelection(int dx, int dy)
     {
-        if (document.Selection != null && (dx != 0 || dy != 0)) SetSelection("Move Selection", SelectionMask.Translate(document.Selection, dx, dy));
+        if (document.Selection != null && (dx != 0 || dy != 0)) SetSelection("移动选区", SelectionMask.Translate(document.Selection, dx, dy));
     }
 
     public void SelectLayerPixels(Layer layer, SelectionMode mode = SelectionMode.Replace)
     {
-        if (SelectionMask.FromLayer(document, layer, fromMask: false) is { } shape) Select(shape, mode, "Load Selection");
+        if (SelectionMask.FromLayer(document, layer, fromMask: false) is { } shape) Select(shape, mode, "载入选区");
     }
 
     public void SelectLayerMask(Layer layer, SelectionMode mode = SelectionMode.Replace)
     {
-        if (SelectionMask.FromLayer(document, layer, fromMask: true) is { } shape) Select(shape, mode, "Load Selection");
+        if (SelectionMask.FromLayer(document, layer, fromMask: true) is { } shape) Select(shape, mode, "载入选区");
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public sealed partial class EditorSession
         var (source, owned) = SelectionSample();
         var shape = MagicWand.Select(source, x, y, WandTolerance, WandContiguous);
         if (owned) source.Dispose();
-        Select(shape, mode, "Magic Wand");
+        Select(shape, mode, "魔棒");
     }
 
     /// <summary>The Magic tool's Object mode: selects the object under the point. Landing on the backdrop deselects (in Replace mode).</summary>
@@ -108,7 +108,7 @@ public sealed partial class EditorSession
         var shape = ObjectSelection.Select(source, x, y, ObjectEdgeOffset);
         if (owned) source.Dispose();
         if (shape == null) { if (mode == SelectionMode.Replace) Deselect(); return; }
-        Select(shape, mode, "Object Selection");
+        Select(shape, mode, "对象选择");
     }
 
     /// <summary>Select > Subject: everything in the picture that is not the plain backdrop around it.</summary>
@@ -116,7 +116,7 @@ public sealed partial class EditorSession
     {
         var shape = ObjectSelection.Subject(Composite());
         if (shape == null) return false;
-        Select(shape, mode, "Select Subject");
+        Select(shape, mode, "选择主体");
         return true;
     }
 }

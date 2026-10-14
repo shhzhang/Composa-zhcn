@@ -23,9 +23,9 @@ public class EnhanceResolutionUiTests
         var layer = session.AddImageLayer("logo", small, new SKPoint(200, 150));
         window.AddSession(session);
         Dispatcher.UIThread.RunJobs();
-        var item = window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "Enhance Resolution");
+        var item = window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "增强分辨率");
         var layerMenu = (MenuItem)item.Parent!;
-        Assert.Equal("_Layer", layerMenu.Header as string);
+        Assert.Equal("图层(_L)", layerMenu.Header as string);
 
         // Shown at its own size, there is nothing to gain and the item is disabled.
         layerMenu.RaiseEvent(new RoutedEventArgs(MenuItem.SubmenuOpenedEvent));
@@ -40,9 +40,9 @@ public class EnhanceResolutionUiTests
         {
             item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             var deadline = DateTime.UtcNow.AddSeconds(30);
-            while (session.History.UndoName != "Enhance Resolution" && DateTime.UtcNow < deadline) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(20); }
+            while (session.History.UndoName != "增强分辨率" && DateTime.UtcNow < deadline) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(20); }
             Dispatcher.UIThread.RunJobs();
-            Assert.Equal("Enhance Resolution", session.History.UndoName);
+            Assert.Equal("增强分辨率", session.History.UndoName);
             var after = session.ActiveLayer!;
             Assert.Equal((120, 90), (after.Pixels!.Width, after.Pixels.Height));
             Assert.Equal(new SKRect(100, 75, 220, 165), after.Bounds);

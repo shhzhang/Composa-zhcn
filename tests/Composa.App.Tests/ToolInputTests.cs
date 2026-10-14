@@ -160,7 +160,7 @@ public class ToolInputTests
         Drag(new SKPoint(0, 200), new SKPoint(600, 200));
         window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
         Assert.False(session.IsInteracting);
-        Assert.Equal("Gradient", session.History.UndoName);
+        Assert.Equal("渐变", session.History.UndoName);
         Assert.True(session.Composite().GetPixel(20, 200).Red > 200);
         Assert.True(session.Composite().GetPixel(580, 200).Blue > 200);
 
@@ -176,7 +176,7 @@ public class ToolInputTests
 
         session.SelectLayer(session.Document.Layers[0].Id);
         window.KeyPressQwerty(PhysicalKey.Backspace, RawInputModifiers.Control);
-        Assert.Equal("Fill", session.History.UndoName);
+        Assert.Equal("填充", session.History.UndoName);
         TestColor(SKColors.Blue, session.Document.Layers[0].Pixels!.GetPixel(5, 5));
     }
 
@@ -190,7 +190,7 @@ public class ToolInputTests
         Dispatcher.UIThread.RunJobs();
         Drag(new SKPoint(300, 200), new SKPoint(340, 230));
         Assert.Equal((290d, 180d), (layer.Transform.X, layer.Transform.Y));
-        Assert.Equal("Move", session.History.UndoName);
+        Assert.Equal("移动", session.History.UndoName);
 
         Drag(new SKPoint(390, 280), new SKPoint(440, 330)); // Bottom-right handle, proportional.
         Assert.Equal((150d, 150d), (Math.Round(layer.Transform.Width), Math.Round(layer.Transform.Height)));
@@ -223,7 +223,7 @@ public class ToolInputTests
 
         // Ctrl-drag the top-left corner straight down past the bottom edge: the shape folds and the handle goes with the corner.
         Drag(new SKPoint(250, 150), new SKPoint(250, 330), RawInputModifiers.Control);
-        Assert.Equal("Distort", session.History.UndoName);
+        Assert.Equal("扭曲", session.History.UndoName);
         Assert.Equal((250d, 150d, 100d, 100d), (layer.Transform.X, layer.Transform.Y, layer.Transform.Width, layer.Transform.Height));
         Assert.Equal([0f, 180f, 0f, 0f, 0f, 0f, 0f, 0f], layer.Transform.Distort);
         var corners = layer.Transform.Corners(100, 100);
@@ -236,10 +236,10 @@ public class ToolInputTests
 
         // Every corner of a distorted layer distorts; the edge handles still scale the whole shape.
         Drag(new SKPoint(350, 250), new SKPoint(400, 300));
-        Assert.Equal("Distort", session.History.UndoName);
+        Assert.Equal("扭曲", session.History.UndoName);
         Assert.Equal([30f, 180f, 0f, 0f, 50f, 50f, 0f, 0f], layer.Transform.Distort);
         Drag(new SKPoint(375, 225), new SKPoint(425, 225)); // The right edge's midpoint, between the top-right and the moved bottom-right corner.
-        Assert.Equal("Scale", session.History.UndoName);
+        Assert.Equal("缩放", session.History.UndoName);
         Assert.True(layer.Transform.Width > 100);
         Assert.Equal(30 * layer.Transform.Width / 100, layer.Transform.Distort![0], 1); // The distortion scales with the frame.
     }
@@ -302,7 +302,7 @@ public class ToolInputTests
         // With the Brush: the layer moves, nothing is painted, and the tool stays the Brush.
         Drag(new SKPoint(300, 200), new SKPoint(340, 230), RawInputModifiers.Control);
         Assert.Equal((290d, 180d), (layer.Transform.X, layer.Transform.Y));
-        Assert.Equal("Move", session.History.UndoName);
+        Assert.Equal("移动", session.History.UndoName);
         Assert.Equal(Tool.Brush, session.Tool);
         Assert.Equal(SKColors.Red, session.Composite().GetPixel(320, 220));
 
