@@ -120,7 +120,7 @@ public class UpscalerTests
     {
         using var large = Pixels.NewColor(5000, 3000); // 15 megapixels, 240 at four times, over the 200 ceiling.
         var error = Assert.Throws<InvalidOperationException>(() => Upscaler.Enlarge(large, 4, NearestFour));
-        Assert.Contains($"{Model.DocumentLimits.MaxSurfaceMegapixels} megapixels", error.Message);
+        Assert.Contains($"{Model.DocumentLimits.MaxSurfaceMegapixels} 百万像素", error.Message);
     }
 
     private sealed class SyncProgress(Action<(int, int)> report) : IProgress<(int Done, int Total)>

@@ -7,11 +7,14 @@ using Avalonia.Media;
 namespace Composa.App.Controls;
 
 /// <summary>One panel under the Layers panel: a header that collapses it and the panel itself, sized by the splitter above it.</summary>
-public sealed class DockSection(string title, Control content, DockPanelState state)
+public sealed class DockSection(string title, Control content, DockPanelState state, string? label = null)
 {
     public const double MinHeight = 90;
 
+    /// <summary>The key the section is remembered under; never shown and never translated.</summary>
     public string Title { get; } = title;
+    /// <summary>What the header shows.</summary>
+    public string Label { get; } = label ?? title;
     public Control Content { get; } = content;
     public DockPanelState State { get; set; } = state;
 
@@ -94,13 +97,13 @@ public sealed class SideDock : UserControl
     private Control Build(DockSection section, bool open)
     {
         var chevron = Icons.Create(open ? Icons.ChevronDown : Icons.ChevronRight, 12, Palette.Secondary);
-        var title = Ui.Label(section.Title, weight: FontWeight.SemiBold);
+        var title = Ui.Label(section.Label, weight: FontWeight.SemiBold);
         var header = new Border
         {
             Background = Brushes.Transparent, Cursor = new Cursor(StandardCursorType.Hand), Padding = new Thickness(8, 8, 10, 6),
             Child = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { chevron, title } }
         };
-        ToolTip.SetTip(header, open ? "Collapse " + section.Title : "Expand " + section.Title);
+        ToolTip.SetTip(header, open ? "折叠 " + section.Label : "展开 " + section.Label);
         header.PointerPressed += (_, e) =>
         {
             if (!e.GetCurrentPoint(header).Properties.IsLeftButtonPressed) return;

@@ -26,9 +26,9 @@ public sealed record TrimOptions
 
     public static string DisplayName(TrimBasedOn basedOn) => basedOn switch
     {
-        TrimBasedOn.TopLeftPixelColor => "Top Left Pixel Color",
-        TrimBasedOn.BottomRightPixelColor => "Bottom Right Pixel Color",
-        _ => "Transparent Pixels"
+        TrimBasedOn.TopLeftPixelColor => "左上角像素颜色",
+        TrimBasedOn.BottomRightPixelColor => "右下角像素颜色",
+        _ => "透明像素"
     };
 }
 
@@ -94,7 +94,7 @@ public sealed partial class EditorSession
         options ??= new TrimOptions();
         using var flat = Flatten();
         if (ImageTrim.Bounds(flat, options) is not { } bounds || bounds == document.Bounds) return false;
-        Crop(bounds, "Trim");
+        Crop(bounds, "修边");
         return true;
     }
 

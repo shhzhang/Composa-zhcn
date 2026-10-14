@@ -7,9 +7,9 @@ namespace Composa.IO.Xcf;
 /// <summary>A GIMP file that cannot be read, with the reason in words a user can act on.</summary>
 public sealed class XcfException(string message) : IOException(message)
 {
-    public static XcfException NotXcf() => new("This is not a GIMP file.");
-    public static XcfException Truncated() => new("The GIMP file could not be read. It may be damaged or incomplete.");
-    public static XcfException TooLarge() => new($"The GIMP file is larger than Composa can hold: {DocumentLimits.MaxSide:N0} pixels a side and {DocumentLimits.MaxSurfaceMegapixels} megapixels for any one layer, {DocumentLimits.DocumentBudgetMegapixels} megapixels of layers in all.");
+    public static XcfException NotXcf() => new("这不是 GIMP 文件。");
+    public static XcfException Truncated() => new("无法读取该 GIMP 文件。它可能已损坏或不完整。");
+    public static XcfException TooLarge() => new($"该 GIMP 文件超出了 Composa 的容纳范围：每边 {DocumentLimits.MaxSide:N0} 像素、单个图层 {DocumentLimits.MaxSurfaceMegapixels} 百万像素、全部图层共 {DocumentLimits.DocumentBudgetMegapixels} 百万像素。");
 }
 
 /// <summary>
@@ -20,7 +20,7 @@ public sealed class XcfException(string message) : IOException(message)
 /// </summary>
 internal readonly record struct XcfPrecision(int BytesPerSample, bool IsFloat, bool Linear, string Name)
 {
-    public static readonly XcfPrecision Gamma8 = new(1, false, false, "8-bit");
+    public static readonly XcfPrecision Gamma8 = new(1, false, false, "8 位");
 
     /// <summary>The precision a header code means for a file of <paramref name="version"/>, or null when the code is unknown.</summary>
     public static XcfPrecision? FromCode(int version, uint code)
@@ -28,19 +28,19 @@ internal readonly record struct XcfPrecision(int BytesPerSample, bool IsFloat, b
         if (version == 4)
             return code switch
             {
-                0 => Gamma8, 1 => new(2, false, false, "16-bit"), 2 => new(4, false, true, "32-bit linear"),
-                3 => new(2, true, true, "16-bit floating point linear"), 4 => new(4, true, true, "32-bit floating point linear"), _ => null
+                0 => Gamma8, 1 => new(2, false, false, "16 位"), 2 => new(4, false, true, "32 位线性"),
+                3 => new(2, true, true, "16 位浮点线性"), 4 => new(4, true, true, "32 位浮点线性"), _ => null
             };
-        if (version is 5 or 6 && code is 400 or 450) return new(2, true, code == 400, code == 400 ? "16-bit floating point linear" : "16-bit floating point");
-        if (version is 5 or 6 && code is 500 or 550) return new(4, true, code == 500, code == 500 ? "32-bit floating point linear" : "32-bit floating point");
+        if (version is 5 or 6 && code is 400 or 450) return new(2, true, code == 400, code == 400 ? "16 位浮点线性" : "16 位浮点");
+        if (version is 5 or 6 && code is 500 or 550) return new(4, true, code == 500, code == 500 ? "32 位浮点线性" : "32 位浮点");
         return code switch
         {
-            100 => new(1, false, true, "8-bit linear"), 150 => Gamma8,
-            200 => new(2, false, true, "16-bit linear"), 250 => new(2, false, false, "16-bit"),
-            300 => new(4, false, true, "32-bit linear"), 350 => new(4, false, false, "32-bit"),
-            500 => new(2, true, true, "16-bit floating point linear"), 550 => new(2, true, false, "16-bit floating point"),
-            600 => new(4, true, true, "32-bit floating point linear"), 650 => new(4, true, false, "32-bit floating point"),
-            700 => new(8, true, true, "64-bit floating point linear"), 750 => new(8, true, false, "64-bit floating point"),
+            100 => new(1, false, true, "8 位线性"), 150 => Gamma8,
+            200 => new(2, false, true, "16 位线性"), 250 => new(2, false, false, "16 位"),
+            300 => new(4, false, true, "32 位线性"), 350 => new(4, false, false, "32 位"),
+            500 => new(2, true, true, "16 位浮点线性"), 550 => new(2, true, false, "16 位浮点"),
+            600 => new(4, true, true, "32 位浮点线性"), 650 => new(4, true, false, "32 位浮点"),
+            700 => new(8, true, true, "64 位浮点线性"), 750 => new(8, true, false, "64 位浮点"),
             _ => null
         };
     }

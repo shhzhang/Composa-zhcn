@@ -28,19 +28,19 @@ public static class ImageFiles
         }
     }
 
-    public static SKBitmap Load(Stream stream, string name = "image")
+    public static SKBitmap Load(Stream stream, string name = "图像")
     {
         using var codec = SKCodec.Create(stream, out var status)
-            ?? throw new InvalidDataException($"{name} could not be read ({status}). Supported formats are PNG, JPEG, WebP, BMP and GIF; HEIC, AVIF and TIFF open when ImageMagick is installed.");
+            ?? throw new InvalidDataException($"{name} 无法读取（{status}）。支持的格式有 PNG、JPEG、WebP、BMP 和 GIF；安装 ImageMagick 后可打开 HEIC、AVIF 和 TIFF。");
         var info = codec.Info;
         if (!DocumentLimits.FitsSurface(info.Width, info.Height))
-            throw new InvalidDataException($"{name} is larger than the supported {DocumentLimits.MaxSide:N0} pixels a side and {DocumentLimits.MaxSurfaceMegapixels} megapixels.");
+            throw new InvalidDataException($"{name} 超出了支持的每边 {DocumentLimits.MaxSide:N0} 像素、{DocumentLimits.MaxSurfaceMegapixels} 百万像素上限。");
         var bitmap = new SKBitmap(Pixels.ColorInfo(info.Width, info.Height));
         var result = codec.GetPixels(bitmap.Info, bitmap.GetPixels());
         if (result is not (SKCodecResult.Success or SKCodecResult.IncompleteInput))
         {
             bitmap.Dispose();
-            throw new InvalidDataException($"{name} could not be decoded ({result}).");
+            throw new InvalidDataException($"{name} 无法解码（{result}）。");
         }
         return Upright(bitmap, codec.EncodedOrigin);
     }
@@ -91,7 +91,7 @@ public static class ImageFiles
                 ExportFormat.Jpeg => SKEncodedImageFormat.Jpeg,
                 ExportFormat.Webp => SKEncodedImageFormat.Webp,
                 _ => SKEncodedImageFormat.Png
-            }, Math.Clamp(quality, 1, 100)) ?? throw new IOException("The image could not be encoded.");
+            }, Math.Clamp(quality, 1, 100)) ?? throw new IOException("无法编码图像。");
             return data.ToArray();
         }
         finally { flattened?.Dispose(); }

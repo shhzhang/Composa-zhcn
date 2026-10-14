@@ -90,7 +90,7 @@ public sealed class PsdImport
     };
 
     /// <summary>Listed for every layer the reader had to cut to the canvas to make the file fit.</summary>
-    public const string CroppedNote = "Cropped to the canvas so the file fits in memory. Pixels outside the canvas weren't imported.";
+    public const string CroppedNote = "已裁剪到画布以便文件载入内存。画布外的像素未被导入。";
 
     private static readonly string[] TextKeys = ["TySh", "tySh", "txt2"];
     private static readonly string[] VectorKeys = ["vmsk", "vsms", "vogk"];
@@ -108,7 +108,7 @@ public sealed class PsdImport
         {
             // A flattened file: the merged image is all there is, and it becomes the one layer.
             var flat = new List<Layer>();
-            if (file.Composite != null) flat.Add(Layer.Raster("Background", file.Composite));
+            if (file.Composite != null) flat.Add(Layer.Raster("背景", file.Composite));
             return new PsdImport(file.Width, file.Height, file.Resolution, flat, conversions);
         }
 
@@ -129,7 +129,7 @@ public sealed class PsdImport
                 record.MaskImage?.Dispose();
                 continue;
             }
-            var name = record.Name.Length == 0 ? "Layer" : record.Name;
+            var name = record.Name.Length == 0 ? "图层" : record.Name;
             if (record.Cropped) conversions.Add(new ImportConversion(name, CroppedNote));
             var target = openGroups.Count > 0 ? pending[openGroups.Peek()] : roots;
             Layer? layer;
@@ -139,7 +139,7 @@ public sealed class PsdImport
                 layer = new Layer { Id = id, Name = name, Kind = LayerKind.Group, Collapsed = record.Section == 2 };
                 if (pending.TryGetValue(id, out var children)) layer.Children.AddRange(children);
                 target = openGroups.Count > 0 ? pending[openGroups.Peek()] : roots;
-                if (record.BlendKey is not ("pass" or "norm")) conversions.Add(new ImportConversion(name, $"Folder blend mode \"{record.BlendKey.Trim()}\" isn't supported. The folder will be pass-through."));
+                if (record.BlendKey is not ("pass" or "norm")) conversions.Add(new ImportConversion(name, $"文件夹混合模式「{record.BlendKey.Trim()}」不受支持，该文件夹将按穿透处理。"));
                 record.Image?.Dispose();
             }
             else
@@ -147,7 +147,7 @@ public sealed class PsdImport
                 layer = BuildLayer(record, name, canvas, ref remaining, conversions);
                 if (layer == null) continue;
                 if (!Blends.ContainsKey(record.BlendKey) && record.BlendKey != "pass")
-                    conversions.Add(new ImportConversion(name, $"Blend mode \"{record.BlendKey.Trim()}\" isn't supported and will be applied as Normal."));
+                    conversions.Add(new ImportConversion(name, $"混合模式「{record.BlendKey.Trim()}」不受支持，将按「正常」应用。"));
                 layer.Blend = Blends.GetValueOrDefault(record.BlendKey, BlendMode.Normal);
                 if (record.Clipping) clipping.Add(layer.Id);
             }
@@ -181,14 +181,14 @@ public sealed class PsdImport
             : extra.ContainsKey("SoCo") ? PsdLayerKind.Fill
             : OtherFillKeys.Any(extra.ContainsKey) ? PsdLayerKind.Other
             : PsdLayerKind.Raster;
-        if (EffectKeys.Any(extra.ContainsKey)) Note("Layer effects were discarded, so the appearance may differ.");
+        if (EffectKeys.Any(extra.ContainsKey)) Note("图层效果已被舍弃，外观可能有所不同。");
 
         if (kind == PsdLayerKind.Adjustment)
         {
             record.Image?.Dispose();
             var adjustment = PsdAdjustments.Parse(extra, out var approximate);
-            if (adjustment == null) { Note("This adjustment type isn't supported and was skipped."); record.MaskImage?.Dispose(); return null; }
-            if (approximate) Note("Adjustment parameters may not match Photoshop exactly.");
+            if (adjustment == null) { Note("此调整类型不受支持，已跳过。"); record.MaskImage?.Dispose(); return null; }
+            if (approximate) Note("调整参数可能与 Photoshop 不完全一致。");
             var layer = Layer.ForAdjustment(adjustment);
             layer.Name = name;
             return layer;
@@ -204,8 +204,8 @@ public sealed class PsdImport
             }
             Note(PsdText.RasterizedNote);
         }
-        if (kind == PsdLayerKind.SmartObject) Note("The smart object was rasterized. Linked contents can't be edited.");
-        if (kind == PsdLayerKind.Other) Note("Gradient and pattern fills aren't supported; the layer was imported empty.");
+        if (kind == PsdLayerKind.SmartObject) Note("智能对象已栅格化。链接的内容无法编辑。");
+        if (kind == PsdLayerKind.Other) Note("不支持渐变和图案填充；图层已按空导入。");
 
         if (kind is PsdLayerKind.Vector or PsdLayerKind.Fill)
         {
@@ -226,11 +226,11 @@ public sealed class PsdImport
             }
             if (record.Image == null && PsdVector.Rasterized(extra, canvas, remaining) is { } raster)
             {
-                Note("Vector shape was rasterized to pixels.");
+                Note("矢量形状已栅格化为像素。");
                 remaining -= (long)raster.Bounds.Width * raster.Bounds.Height;
                 return Layer.Raster(name, raster.Image, raster.Bounds.Left, raster.Bounds.Top);
             }
-            if (kind == PsdLayerKind.Vector) Note("Vector shape was rasterized to pixels.");
+            if (kind == PsdLayerKind.Vector) Note("矢量形状已栅格化为像素。");
         }
         if (record.Image is { } image) return Layer.Raster(name, image, record.Left, record.Top);
         // No pixel area: an empty layer over the canvas, as Photoshop shows it.
@@ -275,7 +275,7 @@ public sealed class PsdImport
         }
         layer.Mask = mask;
         layer.MaskEnabled = !record.MaskDisabled;
-        if (!record.MaskLinked) conversions.Add(new ImportConversion(layer.Name, "The mask was unlinked from its layer in Photoshop; here it moves with the layer."));
+        if (!record.MaskLinked) conversions.Add(new ImportConversion(layer.Name, "蒙版在 Photoshop 中未与图层链接；此处它将随图层一起移动。"));
     }
 
     /// <summary>A clipped layer follows the sibling below it here, so clipping onto a folder or an adjustment has no base to keep.</summary>
@@ -290,7 +290,7 @@ public sealed class PsdImport
             for (var j = i - 1; j >= 0; j--)
                 if (!clipping.Contains(siblings[j].Id)) { baseLayer = siblings[j]; break; }
             if (baseLayer is { Pixels: not null }) layer.Clipped = true;
-            else conversions.Add(new ImportConversion(layer.Name, "This clipping mask's base isn't supported, so clipping was skipped."));
+            else conversions.Add(new ImportConversion(layer.Name, "此剪贴蒙版的基底不受支持，已跳过剪贴。"));
         }
     }
 }

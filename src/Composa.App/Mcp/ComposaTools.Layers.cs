@@ -41,7 +41,7 @@ public sealed partial class ComposaTools
         if (opacity is { } o)
         {
             if (o is < 0 or > 1 || double.IsNaN(o)) throw new McpException("opacity is a number from 0 to 1.");
-            s.Begin("Opacity");
+            s.Begin("不透明度");
             s.SetOpacity(target, o);
             s.Commit();
             s.NotifyLayersChanged();

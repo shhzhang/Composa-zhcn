@@ -107,7 +107,7 @@ public class TextLayoutTests
     [Fact]
     public void Layer_names_come_from_the_first_words()
     {
-        Assert.Equal("Text", new TextStyle { Text = "  \n " }.LayerName());
+        Assert.Equal("文字", new TextStyle { Text = "  \n " }.LayerName());
         Assert.Equal("Hello World", new TextStyle { Text = "Hello\n\nWorld  " }.LayerName());
         Assert.Equal(40, new TextStyle { Text = new string('x', 100) }.LayerName().Length);
     }
@@ -201,7 +201,7 @@ public class TextSessionTests
         session.RasterizeShape(session.ActiveLayer!);
         Assert.True(session.CanEditPixels);
         session.Adjust(new InvertAdjustment());
-        Assert.Equal("Invert", session.History.UndoName);
+        Assert.Equal("反相", session.History.UndoName);
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class TextSessionTests
         Assert.True(layer.Pixels!.Width > narrow); // Point text grows as it is typed.
         Assert.True(session.FinishText());
         Assert.False(session.IsEditingText);
-        Assert.Equal("Text", session.History.UndoName);
+        Assert.Equal("文字", session.History.UndoName);
         Assert.Equal("Hi there", session.Document.Find(layer.Id)!.Text!.Text);
         Assert.Equal("", session.TextDefaults.Text);
         Assert.Equal(40, session.TextDefaults.Size);
@@ -235,7 +235,7 @@ public class TextSessionTests
         Assert.Equal(3, session.Document.Layers.Count);
         session.FinishText(); // Nothing typed: the layer goes away and no undo step is left.
         Assert.Equal(2, session.Document.Layers.Count);
-        Assert.Equal("Text", session.History.UndoName);
+        Assert.Equal("文字", session.History.UndoName);
     }
 
     [Fact]
@@ -261,7 +261,7 @@ public class TextSessionTests
         session.Tool = Tool.Move; // Leaving the tool commits.
         Assert.False(session.IsEditingText);
         Assert.Equal("Hello!", session.Document.Find(layer.Id)!.Text!.Text);
-        Assert.Equal("Edit Text", session.History.UndoName);
+        Assert.Equal("编辑文字", session.History.UndoName);
         Assert.Equal(before + 1, session.History.Count);
     }
 
@@ -279,7 +279,7 @@ public class TextSessionTests
         session.ChangeTextStyle(s => s with { Size = 61 });
         Assert.Equal(61, layer.Text.Size);
         Assert.Equal(before + 1, session.History.Count);
-        Assert.Equal("Change Text Style", session.History.UndoName);
+        Assert.Equal("更改文字样式", session.History.UndoName);
         Assert.Equal(61, session.TextDefaults.Size); // The next text starts from the style last set.
         // An unchanged value leaves no step, and another edit in between keeps the steps apart.
         session.ChangeTextStyle(s => s with { Size = 61 });
@@ -323,14 +323,14 @@ public class TextSessionTests
         var session = EditorSession.NewCanvas(400, 200, SKColors.White);
         var layer = session.AddText(new SKPoint(300, 40), new TextStyle { Text = "ab", FontFamily = Family, Size = 30, Alignment = TextAlignment.Right });
         var rightEdge = layer.Transform.X + layer.Transform.Width;
-        session.Begin("Edit Text");
+        session.Begin("编辑文字");
         session.SetText(layer, layer.Text! with { Text = "abcdef" });
         session.Commit();
         Assert.Equal(rightEdge, layer.Transform.X + layer.Transform.Width, 0.5);
 
         session.SetTransform(layer, layer.Transform with { Rotation = 30 });
         var corner = layer.Matrix.MapPoint(layer.Pixels!.Width, 0);
-        session.Begin("Edit Text");
+        session.Begin("编辑文字");
         session.SetText(layer, layer.Text! with { Text = "abcdefghij" });
         session.Commit();
         var after = layer.Matrix.MapPoint(layer.Pixels!.Width, 0);
@@ -354,9 +354,9 @@ public class TextSessionTests
         Assert.Equal("Title", layer.Name);
         session.DuplicateSelectedLayers();
         var copy = session.ActiveLayer!;
-        Assert.Equal("Title copy", copy.Name);
+        Assert.Equal("Title 拷贝", copy.Name);
         session.Fill(SKColors.Red);
-        Assert.Equal("Title copy", copy.Name);                              // A copy keeps its name through a recolor too.
+        Assert.Equal("Title 拷贝", copy.Name);                              // A copy keeps its name through a recolor too.
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public class TextSessionTests
         session.Fill(SKColors.Blue);
         Assert.Equal(0xFF0000FFu, layer.Text!.Color);
         Assert.NotNull(layer.Text);
-        Assert.Equal("Fill Text", session.History.UndoName);
+        Assert.Equal("填充文字", session.History.UndoName);
         using var stream = new MemoryStream();
         ProjectFile.Write(session.Document, stream);
         stream.Position = 0;
@@ -498,7 +498,7 @@ public class TextColorTests
         layer = session.Document.Find(layer.Id)!;
         Assert.Equal(Green, layer.Text!.Color);
         Assert.Null(layer.Text.ColorRuns);
-        Assert.Equal("Change Text Style", session.History.UndoName);
+        Assert.Equal("更改文字样式", session.History.UndoName);
         session.Undo();
         layer = session.Document.Find(layer.Id)!;
 

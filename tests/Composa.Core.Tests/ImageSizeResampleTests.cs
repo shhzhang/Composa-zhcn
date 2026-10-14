@@ -27,7 +27,7 @@ public class ImageSizeResampleTests
         Assert.Equal((40, 30), (pixels.Width, pixels.Height));
         for (var y = 0; y < 30; y++) for (var x = 0; x < 40; x++)
             Assert.True(art.GetPixel(x / 10, y / 10) == pixels.GetPixel(x, y), $"at {x},{y}");
-        Assert.Equal("Image Size", session.History.UndoName);
+        Assert.Equal("图像大小", session.History.UndoName);
 
         // Automatic smooths the same picture: a block edge is a blend, not a step.
         session.Undo();

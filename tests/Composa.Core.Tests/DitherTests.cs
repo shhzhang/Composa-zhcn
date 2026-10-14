@@ -180,6 +180,6 @@ public class DitherTests
         Assert.True(DitherSettings.TryParseStyle("atkinson", out var atkinson) && atkinson == DitherStyle.Atkinson);
         Assert.False(DitherSettings.TryParseStyle("blurry", out _));
         Assert.Equal(10, DitherSettings.Groups.Sum(g => g.Count));
-        Assert.Equal("Dither", FilterSettings.DisplayName(FilterKind.Dither));
+        Assert.Equal("抖动", FilterSettings.DisplayName(FilterKind.Dither));
     }
 }

@@ -88,7 +88,7 @@ public class LayersPanelInputTests
         window.MouseUp(below, MouseButton.Left);
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(1, session.Document.Layers.IndexOf(top)); // Was index 3 (top); now just above the background.
-        Assert.Equal("Reorder Layers", session.History.UndoName);
+        Assert.Equal("调整图层顺序", session.History.UndoName);
     }
 
     [AvaloniaFact]
@@ -122,41 +122,41 @@ public class LayerContextMenuTests
         MenuItem Item(string header) => panel.GetVisualDescendants().OfType<Border>().Single(b => b.Tag == layer).ContextMenu!.Items.OfType<MenuItem>().Single(i => (string)i.Header! == header);
 
         var headers = Headers();
-        Assert.Equal(["Duplicate Layer", "Rename…", "Delete Layer"], headers.Take(3));
-        Assert.Contains("Create Clipping Mask", headers);
-        Assert.Contains("Group Selected Layers", headers);
-        Assert.Contains("Move Out of Folder", headers);
-        Assert.Contains("Merge Down", headers);
-        Assert.Contains("Add Mask", headers);
-        Assert.Contains("Disable Mask", headers);
-        Assert.Contains("Delete Mask", headers);
-        Assert.Equal("Hide Layer", headers[^1]);
-        Assert.DoesNotContain("Layer Effects", headers);
-        Assert.False(Item("Move Out of Folder").IsEnabled);
-        Assert.False(Item("Delete Mask").IsEnabled);
-        Assert.Equal(["Reveal All (White)", "Hide All (Black)"], Item("Add Mask").Items.OfType<MenuItem>().Select(i => (string)i.Header!));
+        Assert.Equal(["复制图层", "重命名…", "删除图层"], headers.Take(3));
+        Assert.Contains("创建剪贴蒙版", headers);
+        Assert.Contains("编组所选图层", headers);
+        Assert.Contains("移出文件夹", headers);
+        Assert.Contains("向下合并", headers);
+        Assert.Contains("添加蒙版", headers);
+        Assert.Contains("停用蒙版", headers);
+        Assert.Contains("删除蒙版", headers);
+        Assert.Equal("隐藏图层", headers[^1]);
+        Assert.DoesNotContain("图层效果", headers);
+        Assert.False(Item("移出文件夹").IsEnabled);
+        Assert.False(Item("删除蒙版").IsEnabled);
+        Assert.Equal(["显示全部 (白色)", "隐藏全部 (黑色)"], Item("添加蒙版").Items.OfType<MenuItem>().Select(i => (string)i.Header!));
 
         session.AddMask(layer);
         session.SetVisible(layer, false);
         Dispatcher.UIThread.RunJobs();
         headers = Headers();
         // Adding a mask targets it, so Delete at the top now deletes the mask, as the mask section's own item does.
-        Assert.Equal("Delete Mask", headers[2]);
+        Assert.Equal("删除蒙版", headers[2]);
         session.EditingMask = false;
         session.NotifyLayersChanged();
         Dispatcher.UIThread.RunJobs();
         headers = Headers();
-        Assert.Equal("Delete Layer", headers[2]);
-        Assert.False(Item("Add Mask").IsEnabled);
-        Assert.True(Item("Delete Mask").IsEnabled);
-        Assert.Equal("Show Layer", headers[^1]);
+        Assert.Equal("删除图层", headers[2]);
+        Assert.False(Item("添加蒙版").IsEnabled);
+        Assert.True(Item("删除蒙版").IsEnabled);
+        Assert.Equal("显示图层", headers[^1]);
 
         // Several selected: the menu says so, and Rename needs one layer.
         session.SelectLayer(session.Document.Layers[0].Id, extend: true);
         Dispatcher.UIThread.RunJobs();
         headers = Headers();
-        Assert.Equal("Duplicate Layers", headers[0]);
-        Assert.Equal("Delete Selected Layers", headers[2]);
-        Assert.False(Item("Rename…").IsEnabled);
+        Assert.Equal("复制所选图层", headers[0]);
+        Assert.Equal("删除所选图层", headers[2]);
+        Assert.False(Item("重命名…").IsEnabled);
     }
 }

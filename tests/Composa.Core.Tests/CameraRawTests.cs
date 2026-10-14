@@ -160,7 +160,7 @@ public class CameraRawTests
         var session = EditorSession.NewCanvas(60, 60, SKColors.White);
         session.AddImageLayer("Photo", Solid(30, 30, Gray), new SKPoint(30, 30));
         session.ApplyFilter(new FilterSettings { Kind = FilterKind.CameraRaw, CameraRaw = new CameraRawSettings { Exposure = 1 } });
-        Assert.Equal("Camera Raw Filter", session.History.UndoName);
+        Assert.Equal("Camera Raw 滤镜", session.History.UndoName);
         Assert.True(session.Composite().GetPixel(30, 30).Red > 160);
         Assert.True(new FilterSettings { Kind = FilterKind.CameraRaw }.IsIdentity);
         Assert.False(new FilterSettings { Kind = FilterKind.CameraRaw, CameraRaw = new CameraRawSettings { Tint = 5 } }.IsIdentity);

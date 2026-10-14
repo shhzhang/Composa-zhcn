@@ -91,7 +91,7 @@ public sealed class ColorLattice
     public static ColorLattice Load(string path)
     {
         var info = new FileInfo(path);
-        if (info.Length > MaxFileBytes) throw new InvalidDataException($"The file is larger than {MaxFileBytes / (1024 * 1024)} MB, which no lookup table needs.");
+        if (info.Length > MaxFileBytes) throw new InvalidDataException($"文件超过 {MaxFileBytes / (1024 * 1024)} MB，没有查找表需要这么大。");
         return Parse(File.ReadAllText(path), info.Name);
     }
 
@@ -127,19 +127,19 @@ public sealed class ColorLattice
             }
             if (keyword is "LUT_1D_SIZE" or "LUT_3D_SIZE")
             {
-                if (early > 0) throw Refuse(early, $"a color comes before {keyword}.");
-                if (parts.Length != 2 || !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var n)) throw Refuse(number, $"{keyword} needs a whole number.");
+                if (early > 0) throw Refuse(early, $"颜色出现在 {keyword} 之前。");
+                if (parts.Length != 2 || !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var n)) throw Refuse(number, $"{keyword} 需要一个整数。");
                 if (keyword == "LUT_3D_SIZE")
                 {
-                    if (cube != null) throw Refuse(number, "LUT_3D_SIZE is given twice.");
-                    if (n < 2 || n > DocumentLimits.MaxLookupSize) throw Refuse(number, $"LUT_3D_SIZE must be between 2 and {DocumentLimits.MaxLookupSize}.");
+                    if (cube != null) throw Refuse(number, "LUT_3D_SIZE 出现了两次。");
+                    if (n < 2 || n > DocumentLimits.MaxLookupSize) throw Refuse(number, $"LUT_3D_SIZE 必须在 2 到 {DocumentLimits.MaxLookupSize} 之间。");
                     size = n;
                     cube = new float[n * n * n * 3];
                 }
                 else
                 {
-                    if (curves != null) throw Refuse(number, "LUT_1D_SIZE is given twice.");
-                    if (n < 2 || n > DocumentLimits.MaxLookupCurveSize) throw Refuse(number, $"LUT_1D_SIZE must be between 2 and {DocumentLimits.MaxLookupCurveSize}.");
+                    if (curves != null) throw Refuse(number, "LUT_1D_SIZE 出现了两次。");
+                    if (n < 2 || n > DocumentLimits.MaxLookupCurveSize) throw Refuse(number, $"LUT_1D_SIZE 必须在 2 到 {DocumentLimits.MaxLookupCurveSize} 之间。");
                     curveSize = n;
                     curves = new float[n * 3];
                 }
@@ -147,24 +147,24 @@ public sealed class ColorLattice
             }
             if (keyword is "DOMAIN_MIN" or "DOMAIN_MAX")
             {
-                if (parts.Length != 4 || !TryColor(parts, 1, out var domain)) throw Refuse(number, $"{keyword} needs three numbers.");
+                if (parts.Length != 4 || !TryColor(parts, 1, out var domain)) throw Refuse(number, $"{keyword} 需要三个数字。");
                 if (keyword == "DOMAIN_MIN") domainMin = domain; else domainMax = domain;
                 continue;
             }
             if (keyword is "LUT_1D_INPUT_RANGE" or "LUT_3D_INPUT_RANGE")
             {
                 // Resolve's spelling of the domain: one range for all three channels.
-                if (parts.Length != 3 || !TryNumber(parts[1], out var low) || !TryNumber(parts[2], out var high)) throw Refuse(number, $"{keyword} needs two numbers.");
+                if (parts.Length != 3 || !TryNumber(parts[1], out var low) || !TryNumber(parts[2], out var high)) throw Refuse(number, $"{keyword} 需要两个数字。");
                 domainMin = (low, low, low);
                 domainMax = (high, high, high);
                 continue;
             }
             if (keyword.StartsWith("LUT_", StringComparison.Ordinal)) continue;   // a keyword this reader does not know
             if (parts.Length != 3 || !TryColor(parts, 0, out var color))
-                throw Refuse(number, char.IsLetter(line[0]) ? $"\"{parts[0]}\" is not a .cube keyword." : "expected a color as three numbers.");
+                throw Refuse(number, char.IsLetter(line[0]) ? $"「{parts[0]}」不是 .cube 关键字。" : "颜色应为三个数字。");
             if (cube == null && curves == null) { if (early == 0) early = number; continue; }
             var total = curveSize + (cube != null ? size * size * size : 0);
-            if (read >= total) throw Refuse(number, $"more colors than the {total} the sizes call for.");
+            if (read >= total) throw Refuse(number, $"颜色比尺寸要求的 {total} 个还多。");
             var target = read < curveSize ? curves! : cube!;
             var at = (read < curveSize ? read : read - curveSize) * 3;
             target[at] = color.Item1;
@@ -172,11 +172,11 @@ public sealed class ColorLattice
             target[at + 2] = color.Item3;
             read++;
         }
-        if (cube == null && curves == null) throw new InvalidDataException("Not a .cube file: it has no LUT_3D_SIZE or LUT_1D_SIZE line.");
+        if (cube == null && curves == null) throw new InvalidDataException("不是 .cube 文件：缺少 LUT_3D_SIZE 或 LUT_1D_SIZE 行。");
         var expected = curveSize + (cube != null ? size * size * size : 0);
-        if (read < expected) throw new InvalidDataException($"The file ends after {read} of the {expected} colors its sizes call for.");
+        if (read < expected) throw new InvalidDataException($"文件提前结束：尺寸要求 {expected} 个颜色，只读到 {read} 个。");
         if (domainMax.Item1 <= domainMin.Item1 || domainMax.Item2 <= domainMin.Item2 || domainMax.Item3 <= domainMin.Item3)
-            throw new InvalidDataException("DOMAIN_MAX must be above DOMAIN_MIN in every channel.");
+            throw new InvalidDataException("每个通道的 DOMAIN_MAX 都必须大于 DOMAIN_MIN。");
         return new ColorLattice(size, cube, curveSize, curves, domainMin, domainMax, title);
     }
 
@@ -204,24 +204,24 @@ public sealed class ColorLattice
                 numeric = int.TryParse(parts[p], NumberStyles.Integer, CultureInfo.InvariantCulture, out values[p]) && values[p] >= 0;
             if (!numeric)
             {
-                if (!line.Any(char.IsLetter)) throw Refuse(number, "expected whole numbers.");
+                if (!line.Any(char.IsLetter)) throw Refuse(number, "应为整数。");
                 // "Mesh 4 12": input bits (the levels line has 2^4 + 1 entries) and output bits. 3DMESH and other headers are skipped.
                 if (parts[0].Equals("Mesh", StringComparison.OrdinalIgnoreCase) && parts.Length == 3 && int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out var bits) && bits is >= 1 and <= 16)
                     outputBits = bits;
                 continue;
             }
             if (mesh == null && rows.Count == 0 && values.Length > 3) { mesh = values; continue; }
-            if (values.Length != 3) throw Refuse(number, "expected a color as three whole numbers.");
-            if (mesh != null && rows.Count >= (long)mesh.Length * mesh.Length * mesh.Length) throw Refuse(number, $"more colors than the {mesh.Length} input levels call for.");
+            if (values.Length != 3) throw Refuse(number, "颜色应为三个整数。");
+            if (mesh != null && rows.Count >= (long)mesh.Length * mesh.Length * mesh.Length) throw Refuse(number, $"颜色比 {mesh.Length} 级输入要求的还多。");
             rows.Add((values[0], values[1], values[2]));
         }
         var size = mesh?.Length ?? (int)Math.Round(Math.Cbrt(rows.Count));
         if (size < 2 || rows.Count < (long)size * size * size)
             throw new InvalidDataException(mesh == null
-                ? $"Not a .3dl file: {rows.Count} colors are not a whole cube."
-                : $"The file ends after {rows.Count} of the {(long)size * size * size} colors its {size} input levels call for.");
-        if (size > DocumentLimits.MaxLookupSize) throw new InvalidDataException($"The lookup table has {size} points per axis; at most {DocumentLimits.MaxLookupSize} are supported.");
-        if (rows.Count > size * size * size) throw new InvalidDataException($"Not a .3dl file: {rows.Count} colors are not a whole cube.");
+                ? $"不是 .3dl 文件：{rows.Count} 个颜色构不成完整的立方体。"
+                : $"文件提前结束：{size} 级输入要求 {(long)size * size * size} 个颜色，只读到 {rows.Count} 个。");
+        if (size > DocumentLimits.MaxLookupSize) throw new InvalidDataException($"查找表每轴 {size} 个点；最多支持 {DocumentLimits.MaxLookupSize} 个。");
+        if (rows.Count > size * size * size) throw new InvalidDataException($"不是 .3dl 文件：{rows.Count} 个颜色构不成完整的立方体。");
         var peak = 0;
         foreach (var row in rows) peak = Math.Max(peak, Math.Max(row.R, Math.Max(row.G, row.B)));
         var scale = outputBits > 0 ? (1 << outputBits) - 1 : peak > 4095 ? 65535 : peak > 1023 ? 4095 : peak > 255 ? 1023 : 255;
@@ -240,7 +240,7 @@ public sealed class ColorLattice
         return new ColorLattice(size, data, 0, null, (0, 0, 0), (1, 1, 1), "");
     }
 
-    private static InvalidDataException Refuse(int line, string problem) => new($"Line {line}: {problem}");
+    private static InvalidDataException Refuse(int line, string problem) => new($"第 {line} 行：{problem}");
 
     private static bool TryNumber(string text, out float value) =>
         float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value) && float.IsFinite(value);
@@ -429,7 +429,7 @@ public sealed class ColorLattice
         try
         {
             if (!reader.ReadBytes(4).AsSpan().SequenceEqual(Magic)) throw Damaged();
-            if (reader.ReadInt32() != 1) throw new InvalidDataException("The lookup table was written by a newer Composa.");
+            if (reader.ReadInt32() != 1) throw new InvalidDataException("该查找表由更新版本的 Composa 写入。");
             var size = reader.ReadInt32();
             var curveSize = reader.ReadInt32();
             if (size != 0 && (size < 2 || size > DocumentLimits.MaxLookupSize)) throw Damaged();
@@ -450,7 +450,7 @@ public sealed class ColorLattice
             throw Damaged();
         }
 
-        static InvalidDataException Damaged() => new("A lookup table inside the project is damaged.");
+        static InvalidDataException Damaged() => new("项目内的查找表已损坏。");
     }
 
     // ── identity ─────────────────────────────────────────────────────────────
@@ -483,7 +483,7 @@ public sealed record ColorLookupAdjustment : Adjustment
     /// <summary>How much of the look shows, 0 to 100.</summary>
     public double Amount { get; init; } = 100;
     public override AdjustmentKind Kind => AdjustmentKind.ColorLookup;
-    public override string DisplayName => "Color Lookup";
+    public override string DisplayName => "颜色查找";
     public override bool IsIdentity => Lattice == null || Amount <= 0;
 
     internal override PixelOp CreateOp() => Lattice!.CreateOp((float)(Amount / 100));

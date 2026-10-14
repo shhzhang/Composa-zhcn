@@ -268,7 +268,7 @@ public sealed partial class CanvasView
                     }
                 }
                 SettleGradient(keep: true);
-                if (session.EditableLayer is not { } target) { Problem?.Invoke("Select a pixel layer or a mask to draw a gradient on."); break; }
+                if (session.EditableLayer is not { } target) { Problem?.Invoke("请选择要绘制渐变的像素图层或蒙版。"); break; }
                 gradientMovesStart = false;
                 gradientFrom = gradientTo = pressDocument;
                 gradientOriginal = session.BeginGradient(target);
@@ -790,9 +790,9 @@ public sealed partial class CanvasView
         var hit = LayerAt(pressDocument);
         if (hit != null && !session.Document.SelectedLayerIds.Contains(hit.Id) && (frame == null || HitFrame(frame, pressScreen, allowRotate: false) == TransformHandle.None))
             session.SelectLayer(hit.Id, extend: false);
-        if (session.BeginTransform("Move") == null)
+        if (session.BeginTransform("移动") == null)
         {
-            Problem?.Invoke("Select a layer with pixels to move.");
+            Problem?.Invoke("请选择包含像素的图层进行移动。");
             return;
         }
         temporaryMove = true;
@@ -822,9 +822,9 @@ public sealed partial class CanvasView
             // Ctrl-dragging a corner distorts, as in Photoshop; once a layer is distorted its corners keep distorting.
             distortCorner = handle switch { TransformHandle.TopLeft => 0, TransformHandle.TopRight => 1, TransformHandle.BottomRight => 2, _ => 3 };
         }
-        if (session.BeginTransform(handle == TransformHandle.Move ? "Move" : handle == TransformHandle.Rotate ? "Rotate" : distortCorner >= 0 ? "Distort" : "Scale") == null)
+        if (session.BeginTransform(handle == TransformHandle.Move ? "移动" : handle == TransformHandle.Rotate ? "旋转" : distortCorner >= 0 ? "扭曲" : "缩放") == null)
         {
-            Problem?.Invoke("Select a layer with pixels to move.");
+            Problem?.Invoke("请选择包含像素的图层进行移动。");
             return;
         }
         drag = Drag.Transform;
@@ -941,7 +941,7 @@ public sealed partial class CanvasView
             else if (session.Tool == Tool.Gradient) session.GradientOpacity = value;
             else if (session.Tool == Tool.Move && session.ActiveLayer is { } layer)
             {
-                session.Apply("Opacity", () => session.SetOpacity(layer, value));
+                session.Apply("不透明度", () => session.SetOpacity(layer, value));
                 session.NotifyLayersChanged();
             }
             else return false;

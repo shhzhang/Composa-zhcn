@@ -35,10 +35,10 @@ public class XcfFixtureTests
         Assert.Equal((BlendMode.Multiply, false), (blue.Blend, blue.Visible));
         Assert.Equal(0.6, blue.Opacity, 2);
         AssertColor(new SKColor(0x59, 0x95, 0xF3), blue.Pixels!.GetPixel(12, 8));
-        Assert.Equal(deep, Messages(import).Any(m => m.Contains("precision was lost")));
+        Assert.Equal(deep, Messages(import).Any(m => m.Contains("损失了部分精度")));
         // GIMP picks Clip to backdrop for Multiply itself; only its linear blending is worth a line, and only on the Multiply layer.
-        Assert.Contains(import.Conversions, c => c.LayerName == "Half blue" && c.Message.Contains("linear light"));
-        Assert.DoesNotContain(import.Conversions, c => c.Message.Contains("Clip to backdrop"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Half blue" && c.Message.Contains("线性光"));
+        Assert.DoesNotContain(import.Conversions, c => c.Message.Contains("剪贴到背景"));
         Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Red square");
     }
 
@@ -47,12 +47,12 @@ public class XcfFixtureTests
     {
         var gray = Load("gray.xcf");
         AssertColor(new SKColor(0x9E, 0x9E, 0x9E), gray.Layers[1].Pixels!.GetPixel(10, 10));
-        Assert.DoesNotContain(gray.Conversions, c => c.Message.Contains("palette"));
+        Assert.DoesNotContain(gray.Conversions, c => c.Message.Contains("调色板"));
         var indexed = Load("indexed.xcf");
         Assert.Equal(["Background", "Dot"], indexed.Layers.Select(l => l.Name));
         AssertColor(new SKColor(0x7C, 0xCB, 0x95), indexed.Layers[0].Pixels!.GetPixel(5, 5));
         AssertColor(new SKColor(0xF3, 0xF3, 0x59), indexed.Layers[1].Pixels!.GetPixel(5, 5));
-        Assert.Contains(Messages(indexed), m => m.Contains("indexed palette"));
+        Assert.Contains(Messages(indexed), m => m.Contains("索引调色板"));
     }
 
     [Fact]
@@ -75,9 +75,9 @@ public class XcfFixtureTests
         Assert.Equal(255, masked.Mask.GetPixelSpan()[25]);                                // the right half left white.
         Assert.Equal(BlendMode.GrainMerge, import.Layers[3].Blend);
         // GIMP's mode, exactly: the only note left on that layer is that GIMP blends it in linear light.
-        Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Grain" && c.Message.Contains("no exact equivalent"));
-        Assert.Contains(import.Conversions, c => c.LayerName == "Grain" && c.Message.Contains("linear light"));
-        Assert.Contains(Messages(import), m => m.Contains("path was left out"));
+        Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Grain" && c.Message.Contains("没有完全对应"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Grain" && c.Message.Contains("线性光"));
+        Assert.Contains(Messages(import), m => m.Contains("路径被舍弃"));
 
         // GIMP 3 names the font inside a GimpFont form and writes the color as linear floats.
         var text = import.Layers[4];
@@ -92,7 +92,7 @@ public class XcfFixtureTests
         Assert.Equal(TextAlignment.Left, style.Alignment);
         Assert.Null(style.BoxWidth);
         Assert.Equal((4 - (double)Composa.Text.TextLayout.Padding, 40 - (double)Composa.Text.TextLayout.Padding), (text.Transform.X, text.Transform.Y));
-        Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Hello GIMP" && c.Message.Contains("pixels"));
+        Assert.DoesNotContain(import.Conversions, c => c.LayerName == "Hello GIMP" && c.Message.Contains("已按像素导入"));
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class XcfFixtureTests
         Assert.Equal("Sharp square", square.Name);
         AssertColor(SKColors.Black, square.Pixels!.GetPixel(0, 12), 0);
         AssertColor(SKColors.Black, square.Pixels.GetPixel(23, 23), 0);
-        Assert.Contains(import.Conversions, c => c.LayerName == "Sharp square" && c.Message.Contains("effect (a GIMP filter)"));
+        Assert.Contains(import.Conversions, c => c.LayerName == "Sharp square" && c.Message.Contains("GIMP 滤镜"));
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class XcfFixtureTests
         var vector = Load("vector-layer.xcf");
         Assert.Equal(["Background", "Shape"], vector.Layers.Select(l => l.Name));
         Assert.NotNull(vector.Layers[1].Pixels);
-        Assert.Contains(vector.Conversions, c => c.LayerName == "Shape" && c.Message.Contains("vector layer"));
+        Assert.Contains(vector.Conversions, c => c.LayerName == "Shape" && c.Message.Contains("矢量图层"));
 
         // GIMP 3.2.6 declares the link property four bytes short; the reader steps over that and reads the layer.
         var link = Load("link-layer.xcf");
@@ -122,6 +122,6 @@ public class XcfFixtureTests
         var linked = link.Layers[1];
         Assert.Equal((16, 16), (linked.Pixels!.Width, linked.Pixels.Height));
         AssertColor(new SKColor(0x95, 0xE7, 0x95), linked.Pixels.GetPixel(8, 8), 4);   // 0.3 and 0.8 linear, as GIMP's color setter takes them.
-        Assert.Contains(link.Conversions, c => c.LayerName == "linked.png" && c.Message.Contains("link layer"));
+        Assert.Contains(link.Conversions, c => c.LayerName == "linked.png" && c.Message.Contains("链接图层"));
     }
 }

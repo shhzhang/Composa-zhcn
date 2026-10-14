@@ -48,19 +48,19 @@ public sealed class UpdateNotice : Border
         // Built here rather than through Ui.IconButton, which leaves the icon its default muted
         // foreground: readable on a dark panel, nearly invisible on this one.
         dismiss = new Button { Content = Icons.Create(Icons.Close, 11, Brushes.White), Classes = { "flat" }, Margin = new Thickness(8, 0, 0, 0) };
-        ToolTip.SetTip(dismiss, "Dismiss");
+        ToolTip.SetTip(dismiss, "关闭");
         dismiss.Click += (_, _) => Hide();
         Grid.SetColumn(dismiss, 2);
         row.Children.Add(dismiss);
 
-        var hint = Ui.Label("Or in a terminal:", Brushes.White);
+        var hint = Ui.Label("或在终端中：", Brushes.White);
         hint.Margin = new Thickness(0, 0, 8, 0);
         commandRow.Children.Add(hint);
         Grid.SetColumn(command, 1);
         commandRow.Children.Add(command);
-        copy = Ui.TextButton("Copy", () => _ = CopyCommand());
+        copy = Ui.TextButton("复制", () => _ = CopyCommand());
         copy.Margin = new Thickness(8, 0, 0, 0);
-        ToolTip.SetTip(copy, "Copy the command, for a software centre that will not install a downloaded package");
+        ToolTip.SetTip(copy, "复制这条命令，供无法安装已下载包的软件中心使用");
         Grid.SetColumn(copy, 2);
         commandRow.Children.Add(copy);
 
@@ -96,10 +96,10 @@ public sealed class UpdateNotice : Border
     /// <summary>A newer version exists. <paramref name="canDownload"/> is whether a file for this install can be fetched.</summary>
     public void Show(ReleaseVersion version, bool canDownload)
     {
-        Enter(Phase.Available, $"Composa {version} is available. You are running {AppInfo.Version}.");
-        if (canDownload) AddButton("Download", () => Download?.Invoke(), "Download it into your Downloads folder, checked against the release's checksums");
-        AddButton("Release notes", () => OpenReleasePage?.Invoke());
-        AddButton("Skip this version", () => { Skip?.Invoke(); Hide(); });
+        Enter(Phase.Available, $"Composa {version} 可用，当前运行的是 {AppInfo.Version}。");
+        if (canDownload) AddButton("下载", () => Download?.Invoke(), "下载到你的下载文件夹，并与发布版的校验和比对");
+        AddButton("发行说明", () => OpenReleasePage?.Invoke());
+        AddButton("跳过此版本", () => { Skip?.Invoke(); Hide(); });
     }
 
     public void ShowProgress(ReleaseVersion version, DownloadProgress received)
@@ -107,14 +107,14 @@ public sealed class UpdateNotice : Border
         if (State != Phase.Downloading)
         {
             Enter(Phase.Downloading, "");
-            AddButton("Cancel", () => CancelDownload?.Invoke());
+            AddButton("取消", () => CancelDownload?.Invoke());
             // A download is not something to dismiss and forget: it is cancelled or it finishes.
             dismiss.IsVisible = false;
             progress.IsVisible = true;
         }
         message.Text = received.Total is > 0 and var total
-            ? $"Downloading Composa {version}… {Megabytes(received.Received)} of {Megabytes(total)} MB"
-            : $"Downloading Composa {version}… {Megabytes(received.Received)} MB";
+            ? $"正在下载 Composa {version}… {Megabytes(received.Received)} / 共 {Megabytes(total)} MB"
+            : $"正在下载 Composa {version}… 已下载 {Megabytes(received.Received)} MB";
         fraction = received.Total is > 0 and var whole ? Math.Clamp((double)received.Received / whole, 0, 1) : 0;
         LayOutProgress();
     }
@@ -124,14 +124,14 @@ public sealed class UpdateNotice : Border
     public void ShowReady(ReleaseVersion version, string path, string? installHint, string? terminalCommand)
     {
         // The folder by its own name, which is how the file manager shows it; the tooltip has the whole path.
-        Enter(Phase.Ready, $"Composa {version} is ready in {Path.GetFileName(Path.GetDirectoryName(path))}: {Path.GetFileName(path)}");
+        Enter(Phase.Ready, $"Composa {version} 已就绪，位于 {Path.GetFileName(Path.GetDirectoryName(path))}：{Path.GetFileName(path)}");
         ToolTip.SetTip(message, path);
-        AddButton("Show in Folder", () => ShowInFolder?.Invoke());
-        if (installHint != null) AddButton("Install", () => Install?.Invoke(), installHint);
+        AddButton("在文件夹中显示", () => ShowInFolder?.Invoke());
+        if (installHint != null) AddButton("安装", () => Install?.Invoke(), installHint);
         if (terminalCommand != null)
         {
             command.Text = terminalCommand;
-            copy.Content = "Copy";
+            copy.Content = "复制";
             commandRow.IsVisible = true;
         }
     }
@@ -139,8 +139,8 @@ public sealed class UpdateNotice : Border
     public void ShowFailed(string problem)
     {
         Enter(Phase.Failed, problem);
-        AddButton("Retry", () => Download?.Invoke());
-        AddButton("Release notes", () => OpenReleasePage?.Invoke());
+        AddButton("重试", () => Download?.Invoke());
+        AddButton("发行说明", () => OpenReleasePage?.Invoke());
     }
 
     public void Hide()
@@ -187,7 +187,7 @@ public sealed class UpdateNotice : Border
     {
         if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard || command.Text is not { } text) return;
         await clipboard.SetTextAsync(text);
-        copy.Content = "Copied";
+        copy.Content = "已复制";
     }
 
     /// <summary>Megabytes as GitHub counts them on the release page, a million bytes, to one decimal.</summary>

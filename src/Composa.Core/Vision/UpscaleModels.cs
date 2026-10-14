@@ -29,7 +29,7 @@ public static class UpscaleModels
     /// <summary>Real-ESRGAN general v3 (SRVGGNetCompact): four times, 4.9 MB, fast enough on a CPU. In git.</summary>
     public static readonly UpscaleModel General = new(
         Id: "realesr-general-x4v3",
-        Name: "Enhance",
+        Name: "增强",
         File: "realesr-general-x4v3.onnx",
         Sha256: "09b757accd747d7e423c1d352b3e8f23e77cc5742d04bae958d4eb8082b76fa4",
         Bytes: 4_871_181,
@@ -38,7 +38,7 @@ public static class UpscaleModels
         Source: "https://github.com/xinntao/Real-ESRGAN",
         Url: "https://huggingface.co/OwlMaster/AllFilesRope/resolve/main/realesr-general-x4v3.onnx",
         Scale: 4,
-        Note: "Invents plausible detail while enlarging a photo. Fine edges and textures come out crisp; faces and text can come out wrong.");
+        Note: "放大照片时生成合理的细节。精细边缘与纹理清晰锐利；人脸和文字可能出现偏差。");
 
     public static readonly IReadOnlyList<UpscaleModel> All = [General];
 
@@ -48,6 +48,6 @@ public static class UpscaleModels
     /// <summary>Why <see cref="IsAvailable"/> is false, for a dialog's note, or null when it is true.</summary>
     public static string? UnavailableReason =>
         ModelRunner.CanRun(General) ? null
-        : !ModelRunner.IsAvailable ? "The model runtime did not load on this machine."
-        : $"The enlarging model is not installed ({General.Path}).";
+        : !ModelRunner.IsAvailable ? "模型运行时未能在此计算机上加载。"
+        : $"未安装放大模型（{General.Path}）。";
 }

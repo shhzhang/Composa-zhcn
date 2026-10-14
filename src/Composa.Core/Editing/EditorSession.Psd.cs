@@ -16,7 +16,7 @@ public sealed partial class EditorSession
     /// centered on <paramref name="center"/> when given, as one undoable step.
     /// </summary>
     public Layer PlacePhotoshop(PsdImport import, string name, SKPoint? center = null) =>
-        PlaceImported(import.Layers, name, "Import Photoshop File", center, PsdException.TooLarge);
+        PlaceImported(import.Layers, name, "导入 Photoshop 文件", center, PsdException.TooLarge);
 
     /// <summary>Another editor's layers into this document, inside one folder, as one step named <paramref name="step"/>.</summary>
     private Layer PlaceImported(List<Layer> incoming, string name, string step, SKPoint? center, Func<Exception> tooLarge)

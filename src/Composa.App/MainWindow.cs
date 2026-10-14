@@ -64,7 +64,7 @@ public sealed partial class MainWindow : Window
         AddAt(center, Ui.Separator(), 1).Margin = new Thickness(0);
         AddAt(center, canvasHost, 2);
         AddAt(center, Ui.Separator(), 3).Margin = new Thickness(0);
-        var historySection = new DockSection("History", history, settings.Dock.GetValueOrDefault("History") ?? new DockPanelState());
+        var historySection = new DockSection("History", history, settings.Dock.GetValueOrDefault("History") ?? new DockPanelState(), label: "历史记录");
         historySection.Changed += () => { settings.Dock["History"] = historySection.State; settings.Save(); };
         // The column has the Layers panel's width, so a long step name is cut off rather than widening it.
         dock = new SideDock(layers, historySection) { Width = layers.Width };
@@ -122,23 +122,23 @@ public sealed partial class MainWindow : Window
     {
         var abandoned = recovery!.FindAbandoned();
         if (abandoned.Count == 0) return;
-        var names = string.Join("\n", abandoned.Select(e => $"• {e.Title} (autosaved {e.SavedAt:g})"));
-        var recover = await Dialogs.Prompts.Confirm(this, "Recover Unsaved Work",
-            $"Composa did not close normally last time. These documents had unsaved changes:\n\n{names}\n\nRecover them? Choosing Cancel discards the autosaved copies.", "Recover");
+        var names = string.Join("\n", abandoned.Select(e => $"• {e.Title}（自动保存于 {e.SavedAt:g}）"));
+        var recover = await Dialogs.Prompts.Confirm(this, "恢复未保存的工作",
+            $"Composa 上次未正常关闭。以下文档有未保存的更改：\n\n{names}\n\n是否恢复？选择「取消」将丢弃自动保存的副本。", "恢复");
         foreach (var entry in abandoned)
         {
             if (recover)
             {
                 try
                 {
-                    var restored = new EditorSession(Composa.IO.ProjectFile.Load(entry.ProjectPath)) { SuggestedName = entry.Title + " (recovered)" };
-                    restored.History.BaseName = "Recovered";
+                    var restored = new EditorSession(Composa.IO.ProjectFile.Load(entry.ProjectPath)) { SuggestedName = entry.Title + "（已恢复）" };
+                    restored.History.BaseName = "已恢复";
                     restored.MarkModified();
                     AddSession(restored);
                 }
                 catch (Exception error)
                 {
-                    await Dialogs.Prompts.Alert(this, "Couldn't recover " + entry.Title, error.Message + "\n\nThe autosaved copy was kept at " + entry.ProjectPath);
+                    await Dialogs.Prompts.Alert(this, "无法恢复 " + entry.Title, error.Message + "\n\n自动保存的副本保留在 " + entry.ProjectPath);
                     continue;
                 }
             }
@@ -280,13 +280,13 @@ public sealed partial class MainWindow : Window
         {
             Items =
             {
-                Entry("Copy Image", () => _ = CopyImage(item)),
-                Entry("Duplicate", () => AddSession(item.Duplicate())),
+                Entry("复制图像", () => _ = CopyImage(item)),
+                Entry("复制", () => AddSession(item.Duplicate())),
                 new Separator(),
-                Entry("Show in Folder", () => _ = ShowInFolder(item.FilePath!), item.FilePath != null),
+                Entry("在文件夹中显示", () => _ = ShowInFolder(item.FilePath!), item.FilePath != null),
                 new Separator(),
-                Entry("Close", () => _ = CloseSession(item)),
-                Entry("Close Others", () => _ = CloseOthers(item), sessions.Count > 1)
+                Entry("关闭", () => _ = CloseSession(item)),
+                Entry("关闭其他", () => _ = CloseOthers(item), sessions.Count > 1)
             }
         };
     }
@@ -303,7 +303,7 @@ public sealed partial class MainWindow : Window
     private async Task ShowInFolder(string path)
     {
         if (!await FileReveal.Show(path, Launcher))
-            ShowProblem("Couldn't open the folder " + (Path.GetDirectoryName(Path.GetFullPath(path)) ?? path) + ".");
+            ShowProblem("无法打开文件夹 " + (Path.GetDirectoryName(Path.GetFullPath(path)) ?? path) + "。");
     }
 
     private async Task<bool> CloseSession(EditorSession item)
@@ -366,7 +366,7 @@ public sealed partial class MainWindow : Window
             var host = new Mcp.McpHost(this);
             host.ConnectionsChanged += UpdateAiText;
             if (await host.StartAsync()) aiControl = host;
-            else ShowProblem("Another Composa window already allows AI control; agents reach that one.");
+            else ShowProblem("另一个 Composa 窗口已允许 AI 控制；智能体将连接到那个窗口。");
         }
         else
         {
@@ -380,7 +380,7 @@ public sealed partial class MainWindow : Window
     {
         var connected = aiControl?.Connections ?? 0;
         aiText.IsVisible = connected > 0;
-        aiText.Text = connected == 1 ? "AI connected" : $"{connected} AIs connected";
+        aiText.Text = connected == 1 ? "AI 已连接" : $"{connected} 个 AI 已连接";
     }
 
     private async void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -416,11 +416,11 @@ public sealed partial class MainWindow : Window
 
     private Control BuildTabBar()
     {
-        var newButton = Ui.IconButton(Icons.Plus, "New canvas (Ctrl+N)", () => _ = NewCanvas());
+        var newButton = Ui.IconButton(Icons.Plus, "新建画布 (Ctrl+N)", () => _ = NewCanvas());
         var scroll = new ScrollViewer { Content = tabs, HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
         var zoomControls = Ui.Row(2,
-            Ui.TextButton("Fit", () => canvas.Fit()), Ui.TextButton("100%", () => canvas.ZoomTo(1)),
-            Ui.IconButton(Icons.ZoomOut, "Zoom out (Ctrl+-)", canvas.ZoomOut), Ui.IconButton(Icons.ZoomIn, "Zoom in (Ctrl++)", canvas.ZoomIn));
+            Ui.TextButton("适合屏幕", () => canvas.Fit()), Ui.TextButton("100%", () => canvas.ZoomTo(1)),
+            Ui.IconButton(Icons.ZoomOut, "缩小 (Ctrl+-)", canvas.ZoomOut), Ui.IconButton(Icons.ZoomIn, "放大 (Ctrl++)", canvas.ZoomIn));
         foreach (var button in zoomControls.Children.OfType<Button>()) { button.MinWidth = 0; button.Classes.Add("flat"); }
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"), Background = Palette.Window, Margin = new Thickness(6, 2) };
         grid.Children.Add(newButton);
@@ -431,12 +431,12 @@ public sealed partial class MainWindow : Window
 
     private static readonly (Tool Tool, Icons.Icon Icon, string Tip)[] ToolList =
     [
-        (Tool.Move, Icons.Move, "Move / Transform (V)"), (Tool.Marquee, Icons.Marquee, "Marquee (M)"), (Tool.Lasso, Icons.Lasso, "Lasso (L)"),
-        (Tool.Wand, Icons.Wand, "Magic (W)"), (Tool.Crop, Icons.Crop, "Crop (C)"), (Tool.Brush, Icons.Brush, "Brush (B) · Eraser (E)"),
-        (Tool.SpotHealing, Icons.Heal, "Spot Healing Brush (J)"), (Tool.CloneStamp, Icons.Stamp, "Clone Stamp (S) · Alt-click sets the source"),
-        (Tool.Smear, Icons.Drop, "Smear (R)"), (Tool.Gradient, Icons.Gradient, "Gradient (G)"), (Tool.Shape, Icons.Shape, "Shape (U)"),
-        (Tool.Text, Icons.Text, "Type (T) · click for point text, drag a paragraph box, click text to edit it"), (Tool.Eyedropper, Icons.Eyedropper, "Eyedropper (I)"),
-        (Tool.Hand, Icons.Hand, "Hand (H) · hold Space with any tool"), (Tool.Zoom, Icons.Zoom, "Zoom (Z)")
+        (Tool.Move, Icons.Move, "移动 / 变换 (V)"), (Tool.Marquee, Icons.Marquee, "选框 (M)"), (Tool.Lasso, Icons.Lasso, "套索 (L)"),
+        (Tool.Wand, Icons.Wand, "魔棒 (W)"), (Tool.Crop, Icons.Crop, "裁剪 (C)"), (Tool.Brush, Icons.Brush, "画笔 (B) · 橡皮擦 (E)"),
+        (Tool.SpotHealing, Icons.Heal, "污点修复画笔 (J)"), (Tool.CloneStamp, Icons.Stamp, "仿制图章 (S) · 按住 Alt 单击设置源"),
+        (Tool.Smear, Icons.Drop, "涂抹 (R)"), (Tool.Gradient, Icons.Gradient, "渐变 (G)"), (Tool.Shape, Icons.Shape, "形状 (U)"),
+        (Tool.Text, Icons.Text, "文字 (T) · 单击创建点文字，拖动创建段落文本框，单击文字进行编辑"), (Tool.Eyedropper, Icons.Eyedropper, "吸管 (I)"),
+        (Tool.Hand, Icons.Hand, "抓手 (H) · 任意工具下按住空格"), (Tool.Zoom, Icons.Zoom, "缩放 (Z)")
     ];
 
     /// <summary>
@@ -459,19 +459,19 @@ public sealed partial class MainWindow : Window
         return tool switch
         {
             Tool.Marquee => Kinds(MarqueeKey, s => s.MarqueeKind, (s, v) => s.MarqueeKind = v,
-                (MarqueeKind.Rectangle, "Rectangle Marquee", Icons.Marquee), (MarqueeKind.Ellipse, "Ellipse Marquee", Icons.MarqueeEllipse)),
+                (MarqueeKind.Rectangle, "矩形选框", Icons.Marquee), (MarqueeKind.Ellipse, "椭圆选框", Icons.MarqueeEllipse)),
             Tool.Lasso => Kinds(LassoKey, s => s.LassoKind, (s, v) => s.LassoKind = v,
-                (LassoKind.Freehand, "Freehand Lasso", Icons.Lasso), (LassoKind.Polygonal, "Polygonal Lasso", Icons.PolygonLasso)),
+                (LassoKind.Freehand, "套索", Icons.Lasso), (LassoKind.Polygonal, "多边形套索", Icons.PolygonLasso)),
             Tool.Wand => Kinds(MagicKey, s => s.WandMode, (s, v) => s.WandMode = v,
-                (WandMode.Wand, "Magic Wand", Icons.Wand), (WandMode.Object, "Object Selection", Icons.ObjectSelect)),
+                (WandMode.Wand, "魔棒", Icons.Wand), (WandMode.Object, "对象选择", Icons.ObjectSelect)),
             Tool.Brush =>
             [
-                Choice("Brush", Icons.Brush, BrushKey, s => !s.EraserMode, s => s.EraserMode = false),
-                Choice("Eraser", Icons.Eraser, EraserKey, s => s.EraserMode, s => s.EraserMode = true)
+                Choice("画笔", Icons.Brush, BrushKey, s => !s.EraserMode, s => s.EraserMode = false),
+                Choice("橡皮擦", Icons.Eraser, EraserKey, s => s.EraserMode, s => s.EraserMode = true)
             ],
             Tool.Smear => Kinds(SmearKey, s => s.SmearMode, (s, v) => s.SmearMode = v,
-                (SmearMode.Liquify, "Liquify", Icons.Liquify), (SmearMode.Blur, "Blur", Icons.Drop), (SmearMode.Smudge, "Smudge", Icons.Smudge),
-                (SmearMode.Dodge, "Dodge", Icons.Dodge), (SmearMode.Burn, "Burn", Icons.Burn)),
+                (SmearMode.Liquify, "液化", Icons.Liquify), (SmearMode.Blur, "模糊", Icons.Drop), (SmearMode.Smudge, "抹擦", Icons.Smudge),
+                (SmearMode.Dodge, "减淡", Icons.Dodge), (SmearMode.Burn, "加深", Icons.Burn)),
             Tool.Shape => Kinds(ShapeKey, s => s.ShapeKind, (s, v) => s.ShapeKind = v,
                 (ShapeKind.Rectangle, ShapeStyle.DisplayName(ShapeKind.Rectangle), Icons.Rectangle),
                 (ShapeKind.RoundedRectangle, ShapeStyle.DisplayName(ShapeKind.RoundedRectangle), Icons.RoundedRectangle),
@@ -492,8 +492,8 @@ public sealed partial class MainWindow : Window
         }
 
         foregroundSwatch.Cursor = backgroundSwatch.Cursor = new Cursor(StandardCursorType.Hand);
-        ToolTip.SetTip(foregroundSwatch, "Foreground color");
-        ToolTip.SetTip(backgroundSwatch, "Background color");
+        ToolTip.SetTip(foregroundSwatch, "前景色");
+        ToolTip.SetTip(backgroundSwatch, "背景色");
         foregroundSwatch.PointerPressed += (_, _) => _ = PickColor(foreground: true);
         backgroundSwatch.PointerPressed += (_, _) => _ = PickColor(foreground: false);
         backgroundSwatch.Margin = new Thickness(14, 14, 0, 0);
@@ -501,7 +501,7 @@ public sealed partial class MainWindow : Window
         foregroundSwatch.VerticalAlignment = backgroundSwatch.VerticalAlignment = VerticalAlignment.Top;
         var swatches = new Panel { Width = 42, Height = 42, Margin = new Thickness(0, 8, 0, 0), Children = { backgroundSwatch, foregroundSwatch } };
         rail.Children.Add(swatches);
-        var swap = Ui.IconButton(Icons.Swap, "Swap colors (X) · D resets to black and white", () => { session?.SwapColors(); UpdateColors(); }, 14);
+        var swap = Ui.IconButton(Icons.Swap, "交换颜色 (X) · D 恢复为黑白", () => { session?.SwapColors(); UpdateColors(); }, 14);
         swap.HorizontalAlignment = HorizontalAlignment.Center;
         rail.Children.Add(swap);
 
@@ -534,15 +534,15 @@ public sealed partial class MainWindow : Window
     {
         var title = Ui.Label("Composa", size: 26, weight: FontWeight.SemiBold);
         title.HorizontalAlignment = HorizontalAlignment.Center;
-        var subtitle = Ui.Label("Create a canvas, open a project or image, or drop files here.", Palette.Secondary);
+        var subtitle = Ui.Label("新建画布、打开项目或图像，或将文件拖放到此处。", Palette.Secondary);
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
-        var buttons = Ui.Row(10, Ui.TextButton("New Canvas…", () => _ = NewCanvas(), accent: true), Ui.TextButton("Open…", () => _ = Open()));
+        var buttons = Ui.Row(10, Ui.TextButton("新建画布…", () => _ = NewCanvas(), accent: true), Ui.TextButton("打开…", () => _ = Open()));
         buttons.HorizontalAlignment = HorizontalAlignment.Center;
         var box = Ui.Column(14, title, subtitle, buttons);
         var recent = settings.RecentFiles.Where(p => File.Exists(p) || Directory.Exists(p)).Take(6).ToList();
         if (recent.Count > 0)
         {
-            var heading = Ui.Label("Recent", Palette.Secondary);
+            var heading = Ui.Label("最近使用", Palette.Secondary);
             heading.HorizontalAlignment = HorizontalAlignment.Center;
             heading.Margin = new Thickness(0, 18, 0, 0);
             box.Children.Add(heading);
@@ -574,7 +574,7 @@ public sealed partial class MainWindow : Window
         var editing = foreground ? target.TextEdit : null;
         var original = target.CurrentTextStyle;
         void Recolor(SKColor color) { if (editing != null && target.TextEdit == editing) target.SetTextColor((uint)color | 0xFF000000); }
-        var picked = await Dialogs.Prompts.Color(this, foreground ? "Foreground Color" : "Background Color", foreground ? target.Foreground : target.Background, editing != null ? Recolor : null);
+        var picked = await Dialogs.Prompts.Color(this, foreground ? "前景色" : "背景色", foreground ? target.Foreground : target.Background, editing != null ? Recolor : null);
         if (picked is not { } color)
         {
             if (editing != null && target.TextEdit == editing) target.RestoreTextColors(original);
@@ -624,34 +624,34 @@ public sealed partial class MainWindow : Window
         {
             zoomText.Text = "";
             sizeText.Text = "";
-            hintText.Text = "Ready when you are";
+            hintText.Text = "准备就绪";
             return;
         }
         zoomText.Text = canvas.Zoom >= 0.1 ? $"{canvas.Zoom * 100:0.#}%" : $"{canvas.Zoom * 100:0.##}%";
         sizeText.Text = $"{session.Document.Width} × {session.Document.Height} px · {session.Document.Resolution:0.#} ppi · sRGB";
-        hintText.Text = problem ?? (saving.Count > 0 ? "Saving " + string.Join(", ", saving.Values.Select(w => Path.GetFileName(w.Path))) + "…" : note ?? Hint(session));
+        hintText.Text = problem ?? (saving.Count > 0 ? "正在保存 " + string.Join(", ", saving.Values.Select(w => Path.GetFileName(w.Path))) + "…" : note ?? Hint(session));
         hintText.Foreground = problem != null ? new SolidColorBrush(Color.Parse("#FFB454")) : Palette.Secondary;
     }
 
-    private static string Hint(EditorSession s) => s.Tool == Tool.Move ? ToolHint(s) : ToolHint(s) + " · Ctrl-drag moves the layer";
+    private static string Hint(EditorSession s) => s.Tool == Tool.Move ? ToolHint(s) : ToolHint(s) + " · 按住 Ctrl 拖动可移动图层";
 
     private static string ToolHint(EditorSession s) => s.Tool switch
     {
-        Tool.Move => "Drag to move · Handles resize (Shift free, Alt from center) · Outside a corner rotates · Ctrl-drag a corner distorts · Ctrl-click picks a layer · 1–0 opacity",
-        Tool.Marquee => "Drag to select · Shift add · Alt subtract · Shift+Alt intersect · Drag inside to move · Delete clears · Ctrl+D deselect",
-        Tool.Lasso => s.LassoKind == LassoKind.Freehand ? "Drag to select · Shift add · Alt subtract · Drag inside to move" : "Click corners · Click the start, double-click or Enter to close · Backspace removes a corner · Escape cancels",
-        Tool.Wand => s.WandMode == WandMode.Object ? "Click an object to select its outline · Drag a box around a small one · Tab for Wand · Shift add · Alt subtract" : "Click to select similar colors · Tab for Object · Shift add · Alt subtract",
-        Tool.Crop => "Drag to crop · Shift keeps proportions · Alt symmetric · Enter applies · Escape cancels",
-        Tool.Brush => (s.EraserMode ? "Drag to erase" : "Drag to paint · Alt-click picks a color") + " · Shift-click draws a line · [ ] size · { } hardness · 1–0 opacity",
-        Tool.SpotHealing => "Drag over blemishes to heal · [ ] size",
-        Tool.CloneStamp => "Alt-click sets the source · Drag to clone · [ ] size · 1–0 opacity",
-        Tool.Smear => "Drag to " + (s.SmearMode == SmearMode.Liquify ? "push pixels" : s.SmearMode.ToString().ToLowerInvariant()) + " · [ ] size · 1–0 strength",
-        Tool.Gradient => "Drag to draw from foreground to " + (s.GradientToTransparent ? "transparent" : "background") + " · Drag an end to adjust · Shift snaps to 45° · Enter applies · Escape cancels",
-        Tool.Shape => s.ShapeKind == ShapeKind.Line ? "Drag to draw a line on a new layer · Shift snaps to 45° · Tab for the next shape" : "Drag to draw a shape on a new layer · Shift square · Alt from center · Tab for the next shape",
-        Tool.Text => s.IsEditingText ? "Type · Drag the box's handles to resize it · Alt+arrows tracking and leading · Ctrl+Enter finishes · Escape cancels" : "Click for point text · Drag a box for paragraph text · Click text to edit it",
-        Tool.Eyedropper => "Click to pick the foreground color · Alt-click for the background",
-        Tool.Hand => "Drag to pan · Ctrl+wheel zooms",
-        _ => "Click to zoom in · Alt-click to zoom out · Drag right or left to zoom smoothly"
+        Tool.Move => "拖动以移动 · 控制点调整大小（Shift 自由缩放，Alt 从中心缩放）· 在边角外侧旋转 · Ctrl+拖动角可扭曲 · Ctrl+单击选取图层 · 1–0 不透明度",
+        Tool.Marquee => "拖动以选择 · Shift 相加 · Alt 相减 · Shift+Alt 交叉 · 在选区内拖动可移动 · Delete 清除 · Ctrl+D 取消选择",
+        Tool.Lasso => s.LassoKind == LassoKind.Freehand ? "拖动以选择 · Shift 相加 · Alt 相减 · 在选区内拖动可移动" : "单击各角点 · 单击起点、双击或按 Enter 闭合 · Backspace 移除角点 · Escape 取消",
+        Tool.Wand => s.WandMode == WandMode.Object ? "单击对象以选择其轮廓 · 在小对象周围拖出一个框 · 按 Tab 切换到魔棒 · Shift 相加 · Alt 相减" : "单击以选择相似颜色 · 按 Tab 切换到对象选择 · Shift 相加 · Alt 相减",
+        Tool.Crop => "拖动以裁剪 · Shift 保持比例 · Alt 对称 · Enter 应用 · Escape 取消",
+        Tool.Brush => (s.EraserMode ? "拖动以擦除" : "拖动以绘画 · Alt+单击拾取颜色") + " · Shift+单击绘制直线 · [ ] 调整大小 · { } 调整硬度 · 1–0 不透明度",
+        Tool.SpotHealing => "在瑕疵上拖动以修复 · [ ] 调整大小",
+        Tool.CloneStamp => "Alt+单击设置源 · 拖动以仿制 · [ ] 调整大小 · 1–0 不透明度",
+        Tool.Smear => "拖动以" + (s.SmearMode == SmearMode.Liquify ? "推移像素" : s.SmearMode.ToString().ToLowerInvariant()) + " · [ ] 调整大小 · 1–0 强度",
+        Tool.Gradient => "拖动以从前景色绘制到" + (s.GradientToTransparent ? "透明" : "背景色") + " · 拖动端点进行调整 · Shift 吸附到 45° · Enter 应用 · Escape 取消",
+        Tool.Shape => s.ShapeKind == ShapeKind.Line ? "拖动以在新图层上绘制直线 · Shift 吸附到 45° · 按 Tab 切换到下一个形状" : "拖动以在新图层上绘制形状 · Shift 绘制正方形 · Alt 从中心绘制 · 按 Tab 切换到下一个形状",
+        Tool.Text => s.IsEditingText ? "输入 · 拖动文本框控制点调整其大小 · Alt+方向键调整字距与行距 · Ctrl+Enter 完成 · Escape 取消" : "单击创建点文字 · 拖动创建段落文本框 · 单击文字进行编辑",
+        Tool.Eyedropper => "单击拾取前景色 · Alt+单击拾取背景色",
+        Tool.Hand => "拖动以平移 · Ctrl+滚轮缩放",
+        _ => "单击放大 · Alt+单击缩小 · 向右或向左拖动以平滑缩放"
     };
 
     private bool reportingFailure;
@@ -669,8 +669,8 @@ public sealed partial class MainWindow : Window
         {
             try
             {
-                await Dialogs.Prompts.Alert(this, "Something went wrong",
-                    $"{error.GetType().Name}: {error.Message}\n\nThe last action may not have completed. Your document is still open; saving a copy now (File > Save As) is a good idea.");
+                await Dialogs.Prompts.Alert(this, "出现了问题",
+                    $"{error.GetType().Name}: {error.Message}\n\n上一个操作可能未完成。文档仍处于打开状态；建议现在保存一份副本（文件 > 另存为）。");
             }
             finally { reportingFailure = false; }
         }

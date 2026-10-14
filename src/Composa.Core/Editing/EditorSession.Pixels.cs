@@ -159,7 +159,7 @@ public sealed partial class EditorSession
 
     // ---- Fill and clear -----------------------------------------------------------------------------------------
 
-    public void Fill(SKColor color, string name = "Fill")
+    public void Fill(SKColor color, string name = "填充")
     {
         if (!IsEditingMask && document.Selection == null && ActiveLayer is { Text: not null } text && RecolorText(text, color)) return;
         if (EditableLayer is not { } layer) return;
@@ -183,7 +183,7 @@ public sealed partial class EditorSession
     public void ClearSelection()
     {
         if (EditableLayer is not { } layer || document.Selection == null) return;
-        Apply("Clear", () =>
+        Apply("清除", () =>
         {
             var original = Target(layer);
             var cleared = Pixels.Clone(original);
@@ -367,9 +367,9 @@ public sealed partial class EditorSession
     {
         if (document.Selection == null || IsEditingMask) return;
         if (Selections.SelectionMask.Bounds(document.Selection) is var hole && (long)hole.Width * hole.Height > Inpaint.MaxArea)
-            throw new InvalidOperationException("The selection is too large for Content-Aware Fill. Select a smaller area (up to about 16 megapixels).");
+            throw new InvalidOperationException("选区太大，无法使用内容识别填充。请选择更小的区域（最多约 16 百万像素）。");
         // Growing the layer to the canvas lets a selection past the image's edge extend the image.
-        if (!BeginPreview("Content-Aware Fill", coverCanvas: true)) return;
+        if (!BeginPreview("内容识别填充", coverCanvas: true)) return;
         PreviewContentAwareFill();
         CommitPreview();
     }
@@ -412,7 +412,7 @@ public sealed partial class EditorSession
     /// </summary>
     public SKBitmap BeginGradient(Layer layer)
     {
-        Begin("Gradient");
+        Begin("渐变");
         GrowToCanvas(layer);
         return Target(layer);
     }
@@ -494,7 +494,7 @@ public sealed partial class EditorSession
         if (style.Kind == ShapeKind.Line) throw new ArgumentException("A line is added with AddLine.", nameof(style));
         rect = SKRect.Create((float)Math.Round(rect.Left), (float)Math.Round(rect.Top), (float)Math.Round(rect.Width), (float)Math.Round(rect.Height));
         if (rect.Width < 1 || rect.Height < 1) return null;
-        return AddShapeLayer(style, rect, style.Kind == ShapeKind.Ellipse ? "Ellipse" : "Rectangle");
+        return AddShapeLayer(style, rect, style.Kind == ShapeKind.Ellipse ? "椭圆" : "矩形");
     }
 
     /// <summary>Adds a live line between two document points, <see cref="ShapeLineWidth"/> thick with round ends, in the foreground color.</summary>
@@ -516,12 +516,12 @@ public sealed partial class EditorSession
             StartX = (from.X - box.Left) / box.Width, StartY = (from.Y - box.Top) / box.Height,
             EndX = (to.X - box.Left) / box.Width, EndY = (to.Y - box.Top) / box.Height
         };
-        return AddShapeLayer(style, box, "Line");
+        return AddShapeLayer(style, box, "直线");
     }
 
     private Layer? AddShapeLayer(ShapeStyle style, SKRect rect, string stem)
     {
-        if ((long)rect.Width * (long)rect.Height > DocumentLimits.MaxSurfacePixels) { Problem?.Invoke($"That shape is too large. A shape can cover up to {DocumentLimits.MaxSurfaceMegapixels} megapixels."); return null; }
+        if ((long)rect.Width * (long)rect.Height > DocumentLimits.MaxSurfacePixels) { Problem?.Invoke($"该形状太大。形状最多可覆盖 {DocumentLimits.MaxSurfaceMegapixels} 百万像素。"); return null; }
         var layer = Layer.Raster(document.UniqueName(stem), RenderShape(style, (int)rect.Width, (int)rect.Height), rect.Left, rect.Top);
         layer.Shape = style;
         Apply(stem, () => document.InsertAboveActive(layer));
@@ -534,7 +534,7 @@ public sealed partial class EditorSession
     public void RasterizeShape(Layer layer)
     {
         if (!layer.IsLive) return;
-        Apply("Rasterize Layer", () => { layer.Shape = null; layer.Text = null; });
+        Apply("栅格化图层", () => { layer.Shape = null; layer.Text = null; });
         LayersChanged?.Invoke();
     }
 
@@ -607,14 +607,14 @@ public sealed partial class EditorSession
     /// Pastes as a new layer: where it was copied from when that still fits the canvas, otherwise centered. Layers
     /// copied whole come back complete instead; an image handed in from another app always pastes as pixels.
     /// </summary>
-    public Layer? Paste(ClipboardImage? image = null, string name = "Pasted Layer") => Paste(image, name, inPlace: false);
+    public Layer? Paste(ClipboardImage? image = null, string name = "粘贴的图层") => Paste(image, name, inPlace: false);
 
     /// <summary>
     /// Paste in Place: where it was copied from even when that lies partly outside the canvas, and layers copied
     /// whole keep their positions in another project too. Only what would land entirely off the canvas, or an image
     /// from another app, which has no place, is centered.
     /// </summary>
-    public Layer? PasteInPlace(ClipboardImage? image = null) => Paste(image, "Pasted Layer", inPlace: true);
+    public Layer? PasteInPlace(ClipboardImage? image = null) => Paste(image, "粘贴的图层", inPlace: true);
 
     private Layer? Paste(ClipboardImage? image, string name, bool inPlace)
     {
@@ -627,7 +627,7 @@ public sealed partial class EditorSession
         var layer = Layer.Raster(document.UniqueName(name), pixels,
             fits ? placed.Left : Math.Round((document.Width - pixels.Width) / 2.0),
             fits ? placed.Top : Math.Round((document.Height - pixels.Height) / 2.0));
-        Apply("Paste", () => document.InsertAboveActive(layer));
+        Apply("粘贴", () => document.InsertAboveActive(layer));
         EditingMask = false;
         Invalidate(AffectedArea(layer));
         LayersChanged?.Invoke();
@@ -657,7 +657,7 @@ public sealed partial class EditorSession
                     layer.Mask = RemapDocumentMask(mask, document.Width, document.Height, SKMatrix.CreateTranslation((float)dx, (float)dy), 255);
             }
         }
-        Apply(pasted.Count > 1 ? "Paste Layers" : "Paste Layer", () =>
+        Apply(pasted.Count > 1 ? "粘贴多个图层" : "粘贴图层", () =>
         {
             if (ActiveLayer is { } active)
             {
@@ -685,9 +685,9 @@ public sealed partial class EditorSession
         if (document.Selection is not { } selection || (image ??= Clipboard) == null) return null;
         var bounds = SelectionMask.Bounds(selection);
         var pixels = Pixels.Clone(image.Pixels);
-        var layer = Layer.Raster(document.UniqueName("Pasted Layer"), pixels,
+        var layer = Layer.Raster(document.UniqueName("粘贴的图层"), pixels,
             Math.Round((bounds.Left + bounds.Right - pixels.Width) / 2.0), Math.Round((bounds.Top + bounds.Bottom - pixels.Height) / 2.0));
-        Apply("Paste Into", () =>
+        Apply("贴入", () =>
         {
             document.InsertAboveActive(layer);
             layer.Mask = SelectionInLayerSpace(layer);
@@ -706,8 +706,8 @@ public sealed partial class EditorSession
     {
         if (document.Selection == null) { DuplicateSelectedLayers(); return; }
         if (ActiveLayer is not { Pixels: not null } source || GrabLayer(source) is not { } image) return;
-        var layer = Layer.Raster(document.UniqueName("Layer"), image.Pixels, image.Origin.X, image.Origin.Y);
-        Apply("Layer via Copy", () =>
+        var layer = Layer.Raster(document.UniqueName("图层"), image.Pixels, image.Origin.X, image.Origin.Y);
+        Apply("通过拷贝的图层", () =>
         {
             document.InsertAboveActive(layer);
             document.Selection = null;

@@ -41,7 +41,7 @@ public class EnhanceResolutionTests
         Assert.Equal(1, enhanced.Count);
         Assert.True(session.EnhanceResolution(layer, enhanced));
         enhanced.DisposeUnused(session.Document);
-        Assert.Equal("Enhance Resolution", session.History.UndoName);
+        Assert.Equal("增强分辨率", session.History.UndoName);
         var after = session.ActiveLayer!;
         Assert.Equal((100, 75), (after.Pixels!.Width, after.Pixels.Height));
         Assert.Equal(boundsBefore, after.Bounds);

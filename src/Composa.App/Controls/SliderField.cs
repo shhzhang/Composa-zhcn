@@ -70,7 +70,7 @@ public sealed class SliderField : Control
         VisualChildren.Add(editor);
         LogicalChildren.Add(editor);
         // Not focusable, so pressing it leaves the editor focused until the reset has closed it on purpose.
-        resetText = new TextBlock { Text = "Reset", FontSize = 11.5, Foreground = Palette.Secondary, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        resetText = new TextBlock { Text = "重置", FontSize = 11.5, Foreground = Palette.Secondary, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
         resetButton = new Border { IsVisible = false, Background = Palette.PanelRaised, CornerRadius = new CornerRadius(3), Child = resetText, Cursor = new Cursor(StandardCursorType.Hand), Focusable = false };
         resetButton.PointerEntered += (_, _) => resetText.Foreground = Palette.Foreground;
         resetButton.PointerExited += (_, _) => resetText.Foreground = Palette.Secondary;
@@ -160,11 +160,11 @@ public sealed class SliderField : Control
             Grid.SetRow(w, row); Grid.SetColumn(w, 0); Grid.SetRow(h, row); Grid.SetColumn(h, 1);
             grid.Children.Add(w); grid.Children.Add(h);
         }
-        Row(0, "Change", "Drag left or right");
-        Row(1, "Fine steps", "Hold Alt while dragging");
-        Row(2, "Exact value", "Double-click to type");
-        Row(3, $"Step by {unit}", "Arrow keys or scroll wheel");
-        if (reset != null) Row(4, "Reset", "Double-click, then Reset");
+        Row(0, "更改数值", "左右拖动");
+        Row(1, "微调", "拖动时按住 Alt");
+        Row(2, "精确数值", "双击后输入");
+        Row(3, $"按 {unit} 步进", "方向键或滚轮");
+        if (reset != null) Row(4, "重置", "双击后再点「重置」");
         return grid;
     }
 

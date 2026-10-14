@@ -140,15 +140,15 @@ public static class ProjectFile
     public static Document Read(Stream stream)
     {
         using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
-        var entry = zip.GetEntry("manifest.json") ?? throw new InvalidDataException("This is not a Composa project: it has no manifest.");
-        if (entry.Length > 4 * 1024 * 1024) throw new InvalidDataException("The project's manifest is too large.");
+        var entry = zip.GetEntry("manifest.json") ?? throw new InvalidDataException("这不是 Composa 项目文件：缺少清单。");
+        if (entry.Length > 4 * 1024 * 1024) throw new InvalidDataException("项目清单过大。");
         Manifest manifest;
         using (var manifestStream = entry.Open())
-            manifest = JsonSerializer.Deserialize<Manifest>(manifestStream, Json) ?? throw new InvalidDataException("The project's manifest is empty.");
-        if (manifest.Format != Format) throw new InvalidDataException("This is not a Composa project.");
-        if (manifest.Version > Version) throw new InvalidDataException($"This project uses format version {manifest.Version}; this app supports up to version {Version}.");
+            manifest = JsonSerializer.Deserialize<Manifest>(manifestStream, Json) ?? throw new InvalidDataException("项目清单为空。");
+        if (manifest.Format != Format) throw new InvalidDataException("这不是 Composa 项目文件。");
+        if (manifest.Version > Version) throw new InvalidDataException($"此项目使用的格式版本为 {manifest.Version}；本应用最高支持版本 {Version}。");
         if (manifest.Width < 1 || manifest.Height < 1 || manifest.Width > Document.MaxSide || manifest.Height > Document.MaxSide)
-            throw new InvalidDataException("The project's canvas size is invalid.");
+            throw new InvalidDataException("项目的画布大小无效。");
 
         var document = new Document(manifest.Width, manifest.Height) { Resolution = Math.Clamp(manifest.Resolution, 1, 9600) };
         var cache = new Dictionary<string, SKBitmap>();
@@ -157,9 +157,9 @@ public static class ProjectFile
 
         SKBitmap Fetch(string name, bool mask)
         {
-            if (name.Contains("..") || name.Contains('/') || name.Contains('\\')) throw new InvalidDataException("The project refers to an unsafe path.");
+            if (name.Contains("..") || name.Contains('/') || name.Contains('\\')) throw new InvalidDataException("项目引用了不安全的路径。");
             if (cache.TryGetValue(name, out var cached)) return cached;
-            var image = zip.GetEntry("images/" + name) ?? throw new InvalidDataException($"An image inside the project is missing ({name}).");
+            var image = zip.GetEntry("images/" + name) ?? throw new InvalidDataException($"项目内的图像缺失（{name}）。");
             using var buffer = new MemoryStream();
             using (var input = image.Open()) input.CopyTo(buffer);
             buffer.Position = 0;
@@ -169,18 +169,18 @@ public static class ProjectFile
         ColorLattice FetchLookup(string id)
         {
             if (lookups.TryGetValue(id, out var cached)) return cached;
-            if (id.Length != 64 || !id.All(char.IsAsciiHexDigitLower)) throw new InvalidDataException("The project refers to an unsafe path.");
-            var entry = zip.GetEntry("lookups/" + id + ".bin") ?? throw new InvalidDataException("A lookup table inside the project is missing.");
-            if (entry.Length > ColorLattice.MaxEntryBytes) throw new InvalidDataException("A lookup table inside the project is too large.");
+            if (id.Length != 64 || !id.All(char.IsAsciiHexDigitLower)) throw new InvalidDataException("项目引用了不安全的路径。");
+            var entry = zip.GetEntry("lookups/" + id + ".bin") ?? throw new InvalidDataException("项目内的颜色查找表缺失。");
+            if (entry.Length > ColorLattice.MaxEntryBytes) throw new InvalidDataException("项目内的颜色查找表过大。");
             using var input = entry.Open();
             var lattice = ColorLattice.ReadFrom(input);
-            if (lattice.Id != id) throw new InvalidDataException("A lookup table inside the project is damaged.");
+            if (lattice.Id != id) throw new InvalidDataException("项目内的颜色查找表已损坏。");
             return lookups[id] = lattice;
         }
 
         Layer Build(LayerRecord record, int depth)
         {
-            if (++count > 10_000 || depth > 64) throw new InvalidDataException("The project has too many layers.");
+            if (++count > 10_000 || depth > 64) throw new InvalidDataException("项目的图层过多。");
             var layer = new Layer
             {
                 Id = record.Id == Guid.Empty ? Guid.NewGuid() : record.Id, Name = record.Name, Kind = record.Kind, Visible = record.Visible,
@@ -195,8 +195,8 @@ public static class ProjectFile
                 layer.Transform = IsUsable(record.Transform) ? record.Transform! : LayerTransform.Identity(layer.Pixels.Width, layer.Pixels.Height);
                 if (record.Effects is { } effects && !effects.IsEmpty) layer.Effects = effects.Clamped();
             }
-            else if (record.Kind == LayerKind.Raster) throw new InvalidDataException($"Layer \"{record.Name}\" has no image.");
-            if (record.Kind == LayerKind.Adjustment && record.Adjustment == null) throw new InvalidDataException($"Adjustment layer \"{record.Name}\" has no settings.");
+            else if (record.Kind == LayerKind.Raster) throw new InvalidDataException($"图层「{record.Name}」没有图像。");
+            if (record.Kind == LayerKind.Adjustment && record.Adjustment == null) throw new InvalidDataException($"调整图层「{record.Name}」没有设置。");
             if (record.MaskFile != null) layer.Mask = Fetch(record.MaskFile, mask: true);
             if (record.Kind == LayerKind.Group && record.Children != null)
                 foreach (var child in record.Children) layer.Children.Add(Build(child, depth + 1));
@@ -222,15 +222,15 @@ public static class ProjectFile
     {
         using var gray = new SKBitmap(new SKImageInfo(mask.Width, mask.Height, SKColorType.Gray8, SKAlphaType.Opaque));
         CopyRows(mask, gray);
-        using var data = gray.Encode(SKEncodedImageFormat.Png, 100) ?? throw new IOException("A mask could not be encoded.");
+        using var data = gray.Encode(SKEncodedImageFormat.Png, 100) ?? throw new IOException("无法编码蒙版。");
         return data.ToArray();
     }
 
     private static SKBitmap DecodeMask(Stream stream)
     {
-        using var codec = SKCodec.Create(stream) ?? throw new InvalidDataException("A mask inside the project is damaged.");
+        using var codec = SKCodec.Create(stream) ?? throw new InvalidDataException("项目内的蒙版已损坏。");
         using var gray = new SKBitmap(new SKImageInfo(codec.Info.Width, codec.Info.Height, SKColorType.Gray8, SKAlphaType.Opaque));
-        if (codec.GetPixels(gray.Info, gray.GetPixels()) != SKCodecResult.Success) throw new InvalidDataException("A mask inside the project is damaged.");
+        if (codec.GetPixels(gray.Info, gray.GetPixels()) != SKCodecResult.Success) throw new InvalidDataException("项目内的蒙版已损坏。");
         var mask = Pixels.NewMask(gray.Width, gray.Height);
         CopyRows(gray, mask);
         return mask;

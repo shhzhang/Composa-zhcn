@@ -26,7 +26,7 @@ public static class Upscaler
     {
         int width = source.Width, height = source.Height;
         if ((long)width * scale * height * scale > Model.DocumentLimits.MaxSurfacePixels)
-            throw new InvalidOperationException($"Enlarging {width}×{height} pixels {scale} times would make a layer of more than {Model.DocumentLimits.MaxSurfaceMegapixels} megapixels, which is the most a layer can hold.");
+            throw new InvalidOperationException($"将 {width}×{height} 像素放大 {scale} 倍将产生超过 {Model.DocumentLimits.MaxSurfaceMegapixels} 百万像素的图层，这已是图层所能容纳的上限。");
         var (rgb, alpha, hasAlpha) = Straighten(source);
         var tiles = Upscaling.PlanTiles(width, height);
         int outWidth = width * scale, outHeight = height * scale;
@@ -39,7 +39,7 @@ public static class Upscaler
             var window = Matting.PackNchw(Crop(rgb, width, tile), tile.PadWidth, tile.PadHeight, tile.PadWidth * 4, [0f, 0f, 0f], [1f, 1f, 1f]);
             var planes = run(window, tile.PadWidth, tile.PadHeight, cancellation);
             int planeW = tile.PadWidth * scale, planeH = tile.PadHeight * scale;
-            if (planes.Length != planeW * planeH * 3) throw new InvalidDataException($"The model answered a {tile.PadWidth}×{tile.PadHeight} tile with {planes.Length} values instead of {planeW * planeH * 3}.");
+            if (planes.Length != planeW * planeH * 3) throw new InvalidDataException($"模型对 {tile.PadWidth}×{tile.PadHeight} 的分块返回了 {planes.Length} 个值，而非 {planeW * planeH * 3} 个。");
             Upscaling.PlanesToRgb(planes, planeW, planeH, (tile.CoreX - tile.PadX) * scale, (tile.CoreY - tile.PadY) * scale, tile.CoreWidth * scale, tile.CoreHeight * scale,
                 outRgb, outWidth * 3, tile.CoreX * scale, tile.CoreY * scale);
             progress?.Report((++done, tiles.Count));
@@ -152,7 +152,7 @@ public static class Upscaler
     private static SKBitmap Resize(SKBitmap mask, int width, int height)
     {
         var result = Pixels.NewMask(width, height);
-        if (!mask.ScalePixels(result, new SKSamplingOptions(SKCubicResampler.CatmullRom))) throw new InvalidOperationException("The alpha could not be resampled.");
+        if (!mask.ScalePixels(result, new SKSamplingOptions(SKCubicResampler.CatmullRom))) throw new InvalidOperationException("无法重新取样 alpha 通道。");
         return result;
     }
 }

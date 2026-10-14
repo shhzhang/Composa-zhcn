@@ -31,7 +31,7 @@ public sealed class History
     public int MaxEntries { get; set; } = 100;
 
     /// <summary>How the document began, which names the first row: "New Canvas", "Open". Once older steps are dropped the first row is named after the last one dropped.</summary>
-    public string BaseName { get; set; } = "Open";
+    public string BaseName { get; set; } = "打开";
     /// <summary>Whether steps were dropped from the start of the list, so the first row is no longer where the document began.</summary>
     public bool EarlierStepsDropped { get; private set; }
 

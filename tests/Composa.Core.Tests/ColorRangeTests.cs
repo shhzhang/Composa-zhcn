@@ -69,7 +69,7 @@ public class ColorRangeTests
         Assert.Equal(50 * 50 - 10 * 10, session.ColorRange!.Count);
         Assert.NotNull(session.ColorRange.Preview);
         Assert.Equal(255, session.Selection!.GetPixel(10, 10).Alpha);
-        Assert.Equal("Rectangular Marquee", session.History.UndoName);      // Previews do not undo.
+        Assert.Equal("矩形选框", session.History.UndoName);      // Previews do not undo.
         session.SampleColorRange(70, 10, ColorRangeSample.Add);             // Shift-click adds green: both halves but the blue square.
         Assert.Equal(100 * 50 - 20 * 10, session.ColorRange.Count);
         session.SampleColorRange(45, 25, ColorRangeSample.Add);
@@ -90,7 +90,7 @@ public class ColorRangeTests
         Assert.True(changes > 5);
         session.CommitColorRange();
         Assert.Null(session.ColorRange);
-        Assert.Equal("Color Range", session.History.UndoName);
+        Assert.Equal("色彩范围", session.History.UndoName);
         Assert.Equal(255, session.Selection!.GetPixel(10, 10).Alpha);
         Assert.Equal(0, session.Selection.GetPixel(70, 10).Alpha);
         session.Undo();
@@ -123,7 +123,7 @@ public class ColorRangeTests
         Assert.Null(session.Selection);
         session.CommitColorRange();
         Assert.Null(session.Selection);
-        Assert.Equal("Color Range", session.History.UndoName);
+        Assert.Equal("色彩范围", session.History.UndoName);
         // Another edit beginning while the panel is open keeps the selection shown.
         session.BeginColorRange();
         session.SampleColorRange(10, 10);
@@ -132,6 +132,6 @@ public class ColorRangeTests
         session.Undo();
         Assert.Equal(255, session.Selection!.GetPixel(10, 10).Alpha);
         Assert.Equal(0, session.Selection.GetPixel(70, 10).Alpha);
-        Assert.Equal("Color Range", session.History.UndoName);
+        Assert.Equal("色彩范围", session.History.UndoName);
     }
 }

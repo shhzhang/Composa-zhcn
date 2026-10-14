@@ -14,5 +14,5 @@ public sealed partial class EditorSession
     /// centered on <paramref name="center"/> when given, as one undoable step. Its guides stay behind.
     /// </summary>
     public Layer PlaceGimp(XcfImport import, string name, SKPoint? center = null) =>
-        PlaceImported(import.Layers, name, "Import GIMP File", center, XcfException.TooLarge);
+        PlaceImported(import.Layers, name, "导入 GIMP 文件", center, XcfException.TooLarge);
 }

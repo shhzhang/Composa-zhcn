@@ -1,4 +1,4 @@
-TITLE "Standard Slide"
+TITLE "标准反转片"
 # A film look bundled with Composa's Color Lookup adjustment.
 # Derived from sguyader/FilmSim "Provia_Std" at 1453b2b (CC0 1.0, https://github.com/sguyader/FilmSim),
 # resampled from the 144-point HaldCLUT to 33 points by scripts/make-looks.sh. Public domain; see THIRD-PARTY-NOTICES.txt.

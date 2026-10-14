@@ -52,7 +52,7 @@ public class ToolRailTests
 
         Assert.True(lasso.IsGroupOpen);
         var items = lasso.GroupItems;
-        Assert.Equal(["Freehand Lasso", "Polygonal Lasso"], items.Select(i => (string)i.Header!));
+        Assert.Equal(["套索", "多边形套索"], items.Select(i => (string)i.Header!));
         Assert.All(items, i => Assert.Equal(new KeyGesture(Key.L), i.InputGesture));
         Assert.All(items, i => Assert.NotNull(i.Icon));
         Assert.Equal([true, false], items.Select(i => i.IsChecked));
@@ -77,10 +77,10 @@ public class ToolRailTests
         Assert.Equal(Tool.Lasso, session.Tool);
         Assert.Equal(LassoKind.Polygonal, session.LassoKind);
         Assert.True(lasso.IsChecked);
-        Assert.Equal("Polygonal Lasso", lasso.Current!.Name);
-        Assert.StartsWith("Polygonal Lasso (L)", ToolTip.GetTip(lasso) as string);
+        Assert.Equal("多边形套索", lasso.Current!.Name);
+        Assert.StartsWith("多边形套索 (L)", ToolTip.GetTip(lasso) as string);
         // The bar names the lasso in use and has no box to switch it.
-        Assert.Contains("Polygonal Lasso", BarTexts());
+        Assert.Contains("多边形套索", BarTexts());
         Assert.Empty(window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Classes.Contains("options")).GetVisualDescendants().OfType<ComboBox>());
     }
 
@@ -93,7 +93,7 @@ public class ToolRailTests
         Assert.Equal(Tool.Move, session.Tool);
 
         var ellipse = marquee.GroupItems[1];
-        Assert.Equal("Ellipse Marquee", ellipse.Header);
+        Assert.Equal("椭圆选框", ellipse.Header);
         window.MouseMove(InWindow(ellipse), RawInputModifiers.LeftMouseButton);
         Dispatcher.UIThread.RunJobs();
         Assert.True(ellipse.IsSelected);
@@ -104,7 +104,7 @@ public class ToolRailTests
         Assert.False(marquee.IsGroupOpen);
         Assert.Equal(Tool.Marquee, session.Tool);
         Assert.Equal(MarqueeKind.Ellipse, session.MarqueeKind);
-        Assert.Contains("Ellipse Marquee", BarTexts());
+        Assert.Contains("椭圆选框", BarTexts());
     }
 
     [AvaloniaFact]
@@ -117,7 +117,7 @@ public class ToolRailTests
 
         Assert.True(shape.IsGroupOpen);
         Assert.Equal(Tool.Move, session.Tool);
-        Assert.Equal(["Rectangle", "Rounded Rectangle", "Ellipse", "Line"], shape.GroupItems.Select(i => (string)i.Header!));
+        Assert.Equal(["矩形", "圆角矩形", "椭圆", "直线"], shape.GroupItems.Select(i => (string)i.Header!));
         Assert.All(shape.GroupItems, i => Assert.Equal(new KeyGesture(Key.U), i.InputGesture));
     }
 
@@ -152,25 +152,25 @@ public class ToolRailTests
         window.KeyPressQwerty(PhysicalKey.R, RawInputModifiers.None);
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(SmearMode.Blur, session.SmearMode);
-        Assert.Equal("Blur", smear.Current!.Name);
-        Assert.Contains("Blur", BarTexts());
+        Assert.Equal("模糊", smear.Current!.Name);
+        Assert.Contains("模糊", BarTexts());
 
         var brush = window.RailButton(Tool.Brush);
         window.KeyPressQwerty(PhysicalKey.E, RawInputModifiers.None);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal("Eraser", brush.Current!.Name);
-        Assert.Contains("Eraser", BarTexts());
+        Assert.Equal("橡皮擦", brush.Current!.Name);
+        Assert.Contains("橡皮擦", BarTexts());
 
         smear.OpenGroup(fromKeyboard: true);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(["Liquify", "Blur", "Smudge", "Dodge", "Burn"], smear.GroupItems.Select(i => (string)i.Header!));
+        Assert.Equal(["液化", "模糊", "抹擦", "减淡", "加深"], smear.GroupItems.Select(i => (string)i.Header!));
         // Opened from the keyboard, the arrow keys start from the current mode.
         Assert.Equal([false, true, false, false, false], smear.GroupItems.Select(i => i.IsSelected));
         Screenshots.Save(TopLevel.GetTopLevel(smear.GroupItems[0])!, "tool-group-smear");
 
         brush.OpenGroup();
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(["Brush", "Eraser"], brush.GroupItems.Select(i => (string)i.Header!));
+        Assert.Equal(["画笔", "橡皮擦"], brush.GroupItems.Select(i => (string)i.Header!));
         Assert.Equal([new KeyGesture(Key.B), new KeyGesture(Key.E)], brush.GroupItems.Select(i => i.InputGesture));
         Assert.Equal([false, true], brush.GroupItems.Select(i => i.IsChecked));
     }

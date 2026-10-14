@@ -54,7 +54,7 @@ public class EffectsUiTests
         window.MouseUp(point, MouseButton.Left);
         Dispatcher.UIThread.RunJobs();
         var dialog = Assert.Single(window.OwnedWindows);
-        Assert.Equal("Stroke", dialog.Title);
+        Assert.Equal("描边", dialog.Title);
         Screenshots.Save(dialog, "23-stroke-dialog");
         dialog.Close(false);
         Dispatcher.UIThread.RunJobs();
@@ -66,7 +66,7 @@ public class EffectsUiTests
         Dispatcher.UIThread.RunJobs();
         Assert.Null(session.Document.Find(layer.Id)!.Effects!.Stroke);
         Assert.NotNull(session.Document.Find(layer.Id));
-        Assert.Equal("Remove Stroke", session.History.UndoName);
+        Assert.Equal("移除 描边", session.History.UndoName);
     }
 
     [AvaloniaFact]
@@ -91,6 +91,6 @@ public class EffectsUiTests
         window.MouseUp(to, MouseButton.Left, RawInputModifiers.Alt);
         Dispatcher.UIThread.RunJobs();
         Assert.NotNull(session.Document.Find(second.Id)!.Effects?.ColorOverlay);
-        Assert.Equal("Copy Color Overlay", session.History.UndoName);
+        Assert.Equal("复制 颜色叠加", session.History.UndoName);
     }
 }

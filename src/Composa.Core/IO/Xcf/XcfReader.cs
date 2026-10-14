@@ -110,10 +110,10 @@ internal static class XcfReader
         file.Width = width;
         file.Height = height;
         if (version >= 4)
-            file.Precision = XcfPrecision.FromCode(version, cursor.U32()) ?? throw new XcfException("This GIMP file stores its pixels in a precision Composa can't read.");
+            file.Precision = XcfPrecision.FromCode(version, cursor.U32()) ?? throw new XcfException("该 GIMP 文件存储像素的精度 Composa 无法读取。");
 
         ReadProperties(ref cursor, (id, payload) => ImageProperty(file, id, payload));
-        if (file.Compression is < 0 or > 2) throw new XcfException("This GIMP file uses a tile compression Composa can't read.");
+        if (file.Compression is < 0 or > 2) throw new XcfException("该 GIMP 文件使用的分块压缩方式 Composa 无法读取。");
 
         var pointers = new List<long>();
         while (true)

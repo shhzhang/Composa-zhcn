@@ -55,7 +55,7 @@ public sealed partial class EditorSession
     /// </summary>
     public string? PaintStroke(IReadOnlyList<SKPoint> points, BrushSettings brush, SKColor color, BrushMode mode = BrushMode.Paint)
     {
-        if (points.Count == 0) return "A stroke needs at least one point.";
+        if (points.Count == 0) return "一笔笔画至少需要一个点。";
         var (savedBrush, savedForeground) = (Brush, Foreground);
         Brush = brush with { Smoothing = 0 };                             // The points are the stroke; nothing to smooth.
         Foreground = color;
@@ -83,7 +83,7 @@ public sealed partial class EditorSession
             if (problem != null) return (painted, problem);
             painted++;
             // A stroke that touched nothing left no entry; every other one folds into the first.
-            if (painted > 1 && History.Count == entries + 1) FoldLastStep("Brush Strokes");
+            if (painted > 1 && History.Count == entries + 1) FoldLastStep("画笔笔触");
         }
         return (painted, null);
     }
@@ -93,25 +93,25 @@ public sealed partial class EditorSession
     public bool BeginStroke(SKPoint point, out string? problem, bool lineFromLast = false, BrushMode? mode = null)
     {
         problem = null;
-        if (ActiveLayer is not { } layer) { problem = "Select a layer to paint on."; return false; }
-        if (!IsEditingMask && layer.Pixels == null) { problem = layer.IsGroup ? "Folders can't be painted on. Select a layer inside." : "Adjustment layers have no pixels. Add a mask to paint on."; return false; }
-        if (!IsEditingMask && layer.IsLive) { problem = $"This is live {(layer.Text != null ? "text" : "shape")}. Rasterize it (Layer menu) to paint on it."; return false; }
-        if (!document.IsEffectivelyVisible(layer)) { problem = "The layer is hidden."; return false; }
+        if (ActiveLayer is not { } layer) { problem = "请选择要绘画的图层。"; return false; }
+        if (!IsEditingMask && layer.Pixels == null) { problem = layer.IsGroup ? "无法在文件夹上绘画。请选择其中的图层。" : "调整图层没有像素。请添加蒙版后再绘画。"; return false; }
+        if (!IsEditingMask && layer.IsLive) { problem = $"这是实时的{(layer.Text != null ? "文字" : "形状")}。请先栅格化（图层菜单）才能在上面绘画。"; return false; }
+        if (!document.IsEffectivelyVisible(layer)) { problem = "该图层已隐藏。"; return false; }
         mode ??= CurrentBrushMode;
-        if (mode == BrushMode.Clone && cloneSource == null) { problem = "Alt-click to set the clone source first."; return false; }
-        if (mode == BrushMode.Heal && IsEditingMask) { problem = "The Spot Healing Brush works on pixels, not masks."; return false; }
+        if (mode == BrushMode.Clone && cloneSource == null) { problem = "请先按住 Alt 单击设置仿制源。"; return false; }
+        if (mode == BrushMode.Heal && IsEditingMask) { problem = "污点修复画笔只作用于像素，不适用于蒙版。"; return false; }
 
         Begin(mode.Value switch
         {
-            BrushMode.Erase => "Eraser", BrushMode.Clone => "Clone Stamp", BrushMode.Heal => "Spot Healing Brush",
-            BrushMode.Liquify => "Liquify", BrushMode.Blur => "Blur", BrushMode.Smudge => "Smudge", BrushMode.Dodge => "Dodge", BrushMode.Burn => "Burn", _ => "Brush"
+            BrushMode.Erase => "橡皮擦", BrushMode.Clone => "仿制图章", BrushMode.Heal => "污点修复画笔",
+            BrushMode.Liquify => "液化", BrushMode.Blur => "模糊", BrushMode.Smudge => "抹擦", BrushMode.Dodge => "减淡", BrushMode.Burn => "加深", _ => "画笔"
         });
         // A brush on a mask can paint anywhere on the canvas, as Photoshop's does, growing the mask past its layer. The
         // smearing brushes work the mask's own pixels and stay within it.
         if (!IsEditingMask || mode is BrushMode.Paint or BrushMode.Erase) GrowToCanvas(layer);
         var target = Target(layer);
         var matrix = TargetMatrix(layer);
-        if (!matrix.TryInvert(out strokeToLayer)) { Cancel(); problem = "The layer is too small to paint on."; return false; }
+        if (!matrix.TryInvert(out strokeToLayer)) { Cancel(); problem = "图层太小，无法绘画。"; return false; }
         var scale = Math.Sqrt(Math.Abs(matrix.ScaleX * matrix.ScaleY - matrix.SkewX * matrix.SkewY));
 
         SKBitmap? source = null;
@@ -213,7 +213,7 @@ public sealed partial class EditorSession
             {
                 CloseStroke();
                 Cancel();
-                Problem?.Invoke("That area is too large to heal in one stroke. Heal it in smaller strokes.");
+                Problem?.Invoke("该区域太大，无法一笔修复。请用更小的笔画分次修复。");
                 return;
             }
             var selection = SelectionInTargetSpace(layer);

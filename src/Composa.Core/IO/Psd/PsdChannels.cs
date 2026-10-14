@@ -67,7 +67,7 @@ internal static class PsdChannels
                 return plane;
             }
             default:
-                throw new PsdException("This Photoshop file uses a layer compression method that isn't supported.");
+                throw new PsdException("该 Photoshop 文件使用的图层压缩方法不受支持。");
         }
     }
 

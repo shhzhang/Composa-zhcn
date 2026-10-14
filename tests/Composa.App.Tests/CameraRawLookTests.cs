@@ -34,7 +34,7 @@ public class CameraRawLookTests
             _ = CameraRawDialog.Show(window, new CameraRawSettings { VignetteAmount = -40 }, photo, _ => { }, () => photo, () => Task.FromResult<string?>(path), "Sunset");
             Dispatcher.UIThread.RunJobs();
             var dialog = window.OwnedWindows.Last();
-            Button Save() => dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Save Look…");
+            Button Save() => dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "存储外观…");
             Assert.False(Save().IsEnabled);
             dialog.Close();
             Dispatcher.UIThread.RunJobs();
@@ -45,12 +45,12 @@ public class CameraRawLookTests
             dialog = window.OwnedWindows.Last();
             Assert.True(Save().IsEnabled);
             Save().RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            await Settle(() => File.Exists(path) && dialog.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.StartsWith("Saved Sunset.cube") == true));
+            await Settle(() => File.Exists(path) && dialog.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.StartsWith("已存储 Sunset.cube") == true));
             Screenshots.Save(dialog, "33-camera-raw-save-look");
-            Assert.Contains(dialog.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Saved Sunset.cube without Effects");
+            Assert.Contains(dialog.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "已存储 Sunset.cube，不含 效果");
             var lattice = ColorLattice.Load(path);
             Assert.Equal(("Sunset", 33), (lattice.Title, lattice.Size));
-            Assert.Contains("without Effects, which a table cannot hold", File.ReadAllText(path));
+            Assert.Contains("不含 效果（查找表无法容纳此项）", File.ReadAllText(path));
             // The table is the grade's color stages: brighter and more saturated than the identity, vignette and grain aside.
             var (r, g, b) = lattice.Sample(0.5f, 0.4f, 0.4f);
             Assert.True(r > 0.5f && r - b > 0.1f, $"{(r, g, b)}");

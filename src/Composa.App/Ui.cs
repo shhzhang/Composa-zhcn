@@ -86,7 +86,7 @@ public static class Ui
         label.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.SizeWestEast);
         // Only what a control draws is hit; a label without a background would take the pointer on its glyphs alone.
         if (label is TextBlock { Background: null } text) text.Background = Brushes.Transparent;
-        ToolTip.SetTip(label, "Drag to change the value (Alt: finer)");
+        ToolTip.SetTip(label, "拖动可更改数值（按住 Alt 微调）");
         ToolTip.SetShowDelay(label, 450);
         double pressX = 0, lastX = 0, start = 0, travel = 0;
         bool pressed = false, dragging = false;

@@ -92,7 +92,7 @@ public sealed record CameraRawCurve
 /// <summary>Eight color families, each with hue, saturation and luminance shifts of -100…100.</summary>
 public sealed record CameraRawMixer
 {
-    public static readonly string[] Names = ["Reds", "Oranges", "Yellows", "Greens", "Aquas", "Blues", "Purples", "Magentas"];
+    public static readonly string[] Names = ["红色", "橙色", "黄色", "绿色", "青色", "蓝色", "紫色", "洋红"];
     public static readonly double[] Centers = [0, 30, 60, 120, 180, 240, 270, 300];
     public double[] Hue { get; init; } = new double[8];
     public double[] Saturation { get; init; } = new double[8];
@@ -153,7 +153,7 @@ public sealed record CameraRawGrading
     /// <summary>-100…100. Negative favors shadows, positive favors highlights.</summary>
     public double Balance { get; init; }
 
-    public static readonly string[] Names = ["Shadows", "Midtones", "Highlights", "Global"];
+    public static readonly string[] Names = ["阴影", "中间调", "高光", "全局"];
     [JsonIgnore] public CameraRawWheel[] Wheels => [Shadows, Midtones, Highlights, Global];
     [JsonIgnore] public bool Adjusts => Wheels.Any(w => w.Adjusts);
 
@@ -260,12 +260,12 @@ public sealed record CameraRawCalibration
 
     public static string ProcessSummary(int process) => process switch
     {
-        1 => "Earliest response. Hue, saturation and shadow tint move about half as far as Version 6.",
-        2 => "A little stronger than Version 1. The sliders below still fall well short of the current look.",
-        3 => "Firmer color than Version 2. Primary shifts stay gentler than the current process.",
-        4 => "The 2012 response. Calibration reaches most of the strength used by Version 6.",
-        5 => "Close to the current process, with slightly softer primary and shadow shifts.",
-        _ => "Current default. The calibration sliders below apply at full strength."
+        1 => "最早的响应。色相、饱和度和阴影色调的移动幅度约为版本 6 的一半。",
+        2 => "比版本 1 略强。但下列滑块仍远达不到当前的视觉效果。",
+        3 => "颜色比版本 2 更稳固。原色偏移仍比当前处理温和。",
+        4 => "2012 年的响应。校准已能达到版本 6 的大部分强度。",
+        5 => "接近当前处理，原色和阴影偏移略柔和一些。",
+        _ => "当前默认值。下列校准滑块以全强度生效。"
     };
 
     public CameraRawCalibration Normalized() => new()

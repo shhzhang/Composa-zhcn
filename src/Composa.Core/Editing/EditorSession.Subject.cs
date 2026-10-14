@@ -64,7 +64,7 @@ public sealed partial class EditorSession
         var state = History.CurrentId;
         var matte = await FindSubjectAsync(wholePicture: true, cancellation);
         if (matte == null || History.CurrentId != state || IsInteracting) return false;
-        Select(Pixels.Clone(matte), mode, "Select Subject");
+        Select(Pixels.Clone(matte), mode, "选择主体");
         return true;
     }
 
@@ -80,7 +80,7 @@ public sealed partial class EditorSession
         if (History.CurrentId != state || IsInteracting) return;
         var shape = matte == null ? null : ObjectSelection.FromMatte(matte, x, y, ObjectEdgeOffset);
         if (shape == null) { if (mode == SelectionMode.Replace) Deselect(); return; }
-        Select(shape, mode, "Object Selection");
+        Select(shape, mode, "对象选择");
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public sealed partial class EditorSession
         {
             var shape = Pixels.NewMask(document.Width, document.Height);
             Place(matte, shape, box.Left, box.Top);
-            Select(shape, mode, "Object Selection");
+            Select(shape, mode, "对象选择");
         }
     }
 

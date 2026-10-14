@@ -214,7 +214,7 @@ public sealed partial class ComposaTools
             if (how == SelectionMode.Replace) s.Deselect();
             return "No pixels are near those colors. " + Selected(s);
         }
-        s.Select(mask, how, "Color Range");
+        s.Select(mask, how, "色彩范围");
         return Selected(s);
     });
 

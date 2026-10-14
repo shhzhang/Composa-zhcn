@@ -12,7 +12,7 @@ namespace Composa.App.Dialogs;
 /// <summary>Editors for every adjustment and filter. Each reports changes live so the canvas can preview them.</summary>
 public static class AdjustmentDialogs
 {
-    private static readonly string[] Channels = ["RGB", "Red", "Green", "Blue"];
+    private static readonly string[] Channels = ["RGB", "红", "绿", "蓝"];
 
     /// <summary>
     /// Shows the editor for an adjustment. <paramref name="changed"/> runs (debounced) on every edit; returns the accepted
@@ -35,29 +35,29 @@ public static class AdjustmentDialogs
             HueSaturationAdjustment hue => HueEditor(hue, Update),
             // Reset puts a slider back to the value a new adjustment starts with, not to what the dialog opened with.
             ExposureAdjustment exposure => Sliders(
-                ("Exposure", exposure.Exposure, -5, 5, 0.01, "0.00", v => Update(exposure = exposure with { Exposure = v }), new ExposureAdjustment().Exposure),
-                ("Offset", exposure.Offset, -0.5, 0.5, 0.001, "0.000", v => Update(exposure = exposure with { Offset = v }), new ExposureAdjustment().Offset),
-                ("Gamma", exposure.Gamma, 0.1, 5, 0.01, "0.00", v => Update(exposure = exposure with { Gamma = v }), new ExposureAdjustment().Gamma)),
+                ("曝光度", exposure.Exposure, -5, 5, 0.01, "0.00", v => Update(exposure = exposure with { Exposure = v }), new ExposureAdjustment().Exposure),
+                ("位移", exposure.Offset, -0.5, 0.5, 0.001, "0.000", v => Update(exposure = exposure with { Offset = v }), new ExposureAdjustment().Offset),
+                ("灰度系数", exposure.Gamma, 0.1, 5, 0.01, "0.00", v => Update(exposure = exposure with { Gamma = v }), new ExposureAdjustment().Gamma)),
             BrightnessContrastAdjustment bc => Sliders(
-                ("Brightness", bc.Brightness, -100, 100, 1, "0", v => Update(bc = bc with { Brightness = v }), new BrightnessContrastAdjustment().Brightness),
-                ("Contrast", bc.Contrast, -100, 100, 1, "0", v => Update(bc = bc with { Contrast = v }), new BrightnessContrastAdjustment().Contrast)),
+                ("亮度", bc.Brightness, -100, 100, 1, "0", v => Update(bc = bc with { Brightness = v }), new BrightnessContrastAdjustment().Brightness),
+                ("对比度", bc.Contrast, -100, 100, 1, "0", v => Update(bc = bc with { Contrast = v }), new BrightnessContrastAdjustment().Contrast)),
             GrainAdjustment grain => Sliders(
-                ("Amount", grain.Amount, 0, 100, 1, "0", v => Update(grain = grain with { Amount = v }), new GrainAdjustment().Amount),
-                ("Size", grain.Size, 0.5, 20, 0.1, "0.0", v => Update(grain = grain with { Size = v }), new GrainAdjustment().Size),
-                ("Roughness", grain.Roughness, 0, 100, 1, "0", v => Update(grain = grain with { Roughness = v }), new GrainAdjustment().Roughness)),
+                ("数量", grain.Amount, 0, 100, 1, "0", v => Update(grain = grain with { Amount = v }), new GrainAdjustment().Amount),
+                ("大小", grain.Size, 0.5, 20, 0.1, "0.0", v => Update(grain = grain with { Size = v }), new GrainAdjustment().Size),
+                ("粗糙度", grain.Roughness, 0, 100, 1, "0", v => Update(grain = grain with { Roughness = v }), new GrainAdjustment().Roughness)),
             GaussianBlurAdjustment blur => Sliders(
-                ("Radius", blur.Radius, GaussianBlurAdjustment.MinRadius, GaussianBlurAdjustment.MaxRadius, 0.1, "0.0", v => Update(blur = blur with { Radius = v }), new GaussianBlurAdjustment().Radius)),
+                ("半径", blur.Radius, GaussianBlurAdjustment.MinRadius, GaussianBlurAdjustment.MaxRadius, 0.1, "0.0", v => Update(blur = blur with { Radius = v }), new GaussianBlurAdjustment().Radius)),
             MotionBlurAdjustment motion => Ui.Column(8,
-                Ui.AngleField("Angle", motion.Angle, -180, 180, v => Update(motion = motion with { Angle = v }), FieldWidth, Controls.AngleDialStyle.Line, new MotionBlurAdjustment().Angle),
-                Ui.SliderField("Distance", motion.Distance, MotionBlurAdjustment.MinDistance, 500, v => Update(motion = motion with { Distance = v }), 1, "0", FieldWidth, reset: new MotionBlurAdjustment().Distance)),
+                Ui.AngleField("角度", motion.Angle, -180, 180, v => Update(motion = motion with { Angle = v }), FieldWidth, Controls.AngleDialStyle.Line, new MotionBlurAdjustment().Angle),
+                Ui.SliderField("距离", motion.Distance, MotionBlurAdjustment.MinDistance, 500, v => Update(motion = motion with { Distance = v }), 1, "0", FieldWidth, reset: new MotionBlurAdjustment().Distance)),
             AddNoiseAdjustment noise => NoiseEditor(noise, Update),
             GradientMapAdjustment map => GradientMapEditor(owner, map, foreground, background, Update),
             BlackAndWhiteAdjustment bw => BlackAndWhiteEditor(bw, Update),
             ColorBalanceAdjustment balance => ColorBalanceEditor(balance, Update),
             ColorLookupAdjustment lookup => ColorLookupEditor(owner, lookup, picture, pickFile, Update),
-            _ => Ui.Label("This adjustment has no settings.", Palette.Secondary)
+            _ => Ui.Label("此调整没有设置。", Palette.Secondary)
         };
-        var previewBox = Ui.Check("Preview", true, v => { preview = v; timer.Stop(); timer.Start(); });
+        var previewBox = Ui.Check("预览", true, v => { preview = v; timer.Stop(); timer.Start(); });
         var dialog = new DialogWindow(initial.DisplayName, Ui.Column(12, body, previewBox));
         dialog.Opened += (_, _) => changed(current);
         var accepted = await dialog.Ask(owner);
@@ -87,14 +87,14 @@ public static class AdjustmentDialogs
         return panel;
     }
 
-    private static readonly string[] NoiseDistributions = ["Uniform", "Gaussian"];
+    private static readonly string[] NoiseDistributions = ["平均分布", "高斯分布"];
 
     private static Control NoiseEditor(AddNoiseAdjustment noise, Action<Adjustment> update)
     {
-        var amount = Ui.SliderField("Amount", noise.Amount, AddNoiseAdjustment.MinAmount, 100, v => update(noise = noise with { Amount = v }), 0.1, "0.0", FieldWidth, reset: new AddNoiseAdjustment().Amount);
-        var distribution = Ui.Combo(NoiseDistributions, noise.Gaussian ? "Gaussian" : "Uniform", d => d, d => update(noise = noise with { Gaussian = d == "Gaussian" }), 120);
-        var mono = Ui.Check("Monochromatic", noise.Monochromatic, v => update(noise = noise with { Monochromatic = v }));
-        return Ui.Column(10, amount, Ui.Row(10, Ui.Label("Distribution", Palette.Secondary), distribution), mono);
+        var amount = Ui.SliderField("数量", noise.Amount, AddNoiseAdjustment.MinAmount, 100, v => update(noise = noise with { Amount = v }), 0.1, "0.0", FieldWidth, reset: new AddNoiseAdjustment().Amount);
+        var distribution = Ui.Combo(NoiseDistributions, noise.Gaussian ? "高斯分布" : "平均分布", d => d, d => update(noise = noise with { Gaussian = d == "高斯分布" }), 120);
+        var mono = Ui.Check("单色", noise.Monochromatic, v => update(noise = noise with { Monochromatic = v }));
+        return Ui.Column(10, amount, Ui.Row(10, Ui.Label("分布", Palette.Secondary), distribution), mono);
     }
 
     private static Control LevelsEditor(LevelsAdjustment levels, Histogram? histogram, Action<Adjustment> update)
@@ -107,22 +107,22 @@ public static class AdjustmentDialogs
             rows.Children.Clear();
             var range = levels.Ranges[channel];
             void Set(LevelsRange next) { range = next; update(levels = levels.WithRange(channel, next)); }
-            rows.Children.Add(Ui.SliderField("Input black", range.InputBlack, 0, 253, v => Set(range with { InputBlack = Math.Min(v, range.InputWhite - 2) }), 1, "0", FieldWidth));
-            rows.Children.Add(Ui.SliderField("Midtones", range.Gamma, 0.1, 5, v => Set(range with { Gamma = v }), 0.01, "0.00", FieldWidth));
-            rows.Children.Add(Ui.SliderField("Input white", range.InputWhite, 2, 255, v => Set(range with { InputWhite = Math.Max(v, range.InputBlack + 2) }), 1, "0", FieldWidth));
-            rows.Children.Add(Ui.SliderField("Output black", range.OutputBlack, 0, 255, v => Set(range with { OutputBlack = v }), 1, "0", FieldWidth));
-            rows.Children.Add(Ui.SliderField("Output white", range.OutputWhite, 0, 255, v => Set(range with { OutputWhite = v }), 1, "0", FieldWidth));
+            rows.Children.Add(Ui.SliderField("输入黑场", range.InputBlack, 0, 253, v => Set(range with { InputBlack = Math.Min(v, range.InputWhite - 2) }), 1, "0", FieldWidth));
+            rows.Children.Add(Ui.SliderField("中间调", range.Gamma, 0.1, 5, v => Set(range with { Gamma = v }), 0.01, "0.00", FieldWidth));
+            rows.Children.Add(Ui.SliderField("输入白场", range.InputWhite, 2, 255, v => Set(range with { InputWhite = Math.Max(v, range.InputBlack + 2) }), 1, "0", FieldWidth));
+            rows.Children.Add(Ui.SliderField("输出黑场", range.OutputBlack, 0, 255, v => Set(range with { OutputBlack = v }), 1, "0", FieldWidth));
+            rows.Children.Add(Ui.SliderField("输出白场", range.OutputWhite, 0, 255, v => Set(range with { OutputWhite = v }), 1, "0", FieldWidth));
         }
         var picker = Ui.Combo(Channels, "RGB", c => c, c => { channel = Array.IndexOf(Channels, c); graph.Channel = channel == 0 ? 3 : channel - 1; Build(); });
-        var auto = Ui.TextButton("Auto", () =>
+        var auto = Ui.TextButton("自动", () =>
         {
             if (histogram == null) return;
             update(levels = LevelsAdjustment.Auto(histogram));
             Build();
         });
-        var reset = Ui.TextButton("Reset", () => { update(levels = new LevelsAdjustment()); Build(); });
+        var reset = Ui.TextButton("重置", () => { update(levels = new LevelsAdjustment()); Build(); });
         Build();
-        return Ui.Column(10, Ui.Row(10, Ui.Label("Channel", Palette.Secondary), picker, auto, reset), graph, rows);
+        return Ui.Column(10, Ui.Row(10, Ui.Label("通道", Palette.Secondary), picker, auto, reset), graph, rows);
     }
 
     private static Control CurvesEditor(CurvesAdjustment curves, Histogram? histogram, Action<Adjustment> update)
@@ -130,9 +130,9 @@ public static class AdjustmentDialogs
         var editor = new CurveEditor { Width = 300, Height = 300, Curves = curves, Histogram = histogram };
         editor.Changed += value => update(curves = value);
         var picker = Ui.Combo(Channels, "RGB", c => c, c => editor.Channel = Array.IndexOf(Channels, c));
-        var reset = Ui.TextButton("Reset", () => { editor.Curves = curves = new CurvesAdjustment(); update(curves); });
-        return Ui.Column(10, Ui.Row(10, Ui.Label("Channel", Palette.Secondary), picker, reset), editor,
-            Ui.Label("Click to add a point, drag to move it, drag it off the graph to remove it.", Palette.Secondary));
+        var reset = Ui.TextButton("重置", () => { editor.Curves = curves = new CurvesAdjustment(); update(curves); });
+        return Ui.Column(10, Ui.Row(10, Ui.Label("通道", Palette.Secondary), picker, reset), editor,
+            Ui.Label("点击可添加点，拖动可移动，将其拖出图表即可删除。", Palette.Secondary));
     }
 
     private static Control HueEditor(HueSaturationAdjustment hue, Action<Adjustment> update)
@@ -150,19 +150,19 @@ public static class AdjustmentDialogs
             // the range's color, or to the tint being picked. Reset is no shift; colorizing at zero is Photoshop's starting tint.
             var rangeHue = Math.Max(0, (int)range - 1) * 60.0;
             Controls.SliderField saturation = null!;
-            var hueField = Ui.SliderField("Hue", shift.Hue, colorizing ? 0 : -180, colorizing ? 360 : 180, v =>
+            var hueField = Ui.SliderField("色相", shift.Hue, colorizing ? 0 : -180, colorizing ? 360 : 180, v =>
             {
                 Set(shift with { Hue = v });
                 if (colorizing) saturation.Track = Controls.SliderTracks.Saturation(v);
             }, 1, "0", FieldWidth, Controls.SliderTracks.Spectrum(colorizing ? 180 : rangeHue), reset: 0);
-            saturation = Ui.SliderField("Saturation", shift.Saturation, -100, 100, v => Set(shift with { Saturation = v }), 1, "0", FieldWidth,
+            saturation = Ui.SliderField("饱和度", shift.Saturation, -100, 100, v => Set(shift with { Saturation = v }), 1, "0", FieldWidth,
                 Controls.SliderTracks.Saturation(colorizing ? shift.Hue : rangeHue), reset: 0);
             rows.Children.Add(hueField);
             rows.Children.Add(saturation);
-            rows.Children.Add(Ui.SliderField("Lightness", shift.Lightness, -100, 100, v => Set(shift with { Lightness = v }), 1, "0", FieldWidth, Controls.SliderTracks.Lightness, reset: 0));
+            rows.Children.Add(Ui.SliderField("明度", shift.Lightness, -100, 100, v => Set(shift with { Lightness = v }), 1, "0", FieldWidth, Controls.SliderTracks.Lightness, reset: 0));
         }
-        var picker = Ui.Combo(Enum.GetValues<HueRange>(), HueRange.Master, r => r.ToString(), r => { range = r; Build(); });
-        var colorize = Ui.Check("Colorize", hue.Colorize, v =>
+        var picker = Ui.Combo(Enum.GetValues<HueRange>(), HueRange.Master, r => r.DisplayName(), r => { range = r; Build(); });
+        var colorize = Ui.Check("着色", hue.Colorize, v =>
         {
             var master = hue.Shifts[0];
             hue = (hue with { Colorize = v }).WithShift(HueRange.Master, master with { Hue = v ? Math.Max(0, master.Hue) : Math.Min(180, master.Hue) });
@@ -170,10 +170,10 @@ public static class AdjustmentDialogs
             Build();
         });
         Build();
-        return Ui.Column(10, Ui.Row(10, Ui.Label("Range", Palette.Secondary), picker, colorize), rows);
+        return Ui.Column(10, Ui.Row(10, Ui.Label("编辑", Palette.Secondary), picker, colorize), rows);
     }
 
-    private static readonly string[] ColorFamilies = ["Reds", "Yellows", "Greens", "Cyans", "Blues", "Magentas"];
+    private static readonly string[] ColorFamilies = ["红色", "黄色", "绿色", "青色", "蓝色", "洋红"];
 
     /// <summary>Each slider says how bright that family of colors becomes, as Photoshop's do; the tint colors the gray.</summary>
     private static Control BlackAndWhiteEditor(BlackAndWhiteAdjustment bw, Action<Adjustment> update)
@@ -189,17 +189,17 @@ public static class AdjustmentDialogs
         }
         var tintRows = new StackPanel { Spacing = 8, IsVisible = bw.Tint, Margin = new Thickness(0, 4, 0, 0) };
         Controls.SliderField tintSaturation = null!;
-        tintRows.Children.Add(Ui.SliderField("Hue", bw.TintHue, 0, 360, v =>
+        tintRows.Children.Add(Ui.SliderField("色相", bw.TintHue, 0, 360, v =>
         {
             update(bw = bw with { TintHue = v });
             tintSaturation.Track = Controls.SliderTracks.Saturation(v);
         }, 1, "0", FieldWidth, Controls.SliderTracks.Spectrum(180), reset: defaults.TintHue));
-        tintSaturation = Ui.SliderField("Saturation", bw.TintSaturation, 0, 100, v => update(bw = bw with { TintSaturation = v }), 1, "0", FieldWidth,
+        tintSaturation = Ui.SliderField("饱和度", bw.TintSaturation, 0, 100, v => update(bw = bw with { TintSaturation = v }), 1, "0", FieldWidth,
             Controls.SliderTracks.Saturation(bw.TintHue), reset: defaults.TintSaturation);
         tintRows.Children.Add(tintSaturation);
-        var tint = Ui.Check("Tint", bw.Tint, v => { tintRows.IsVisible = v; update(bw = bw with { Tint = v }); });
-        ToolTip.SetTip(tint, "Color the result while keeping its tones, for a sepia or a cyanotype");
-        var reset = Ui.TextButton("Reset", () =>
+        var tint = Ui.Check("色调", bw.Tint, v => { tintRows.IsVisible = v; update(bw = bw with { Tint = v }); });
+        ToolTip.SetTip(tint, "在保持色调层次的同时为结果着色，适合棕调或青调效果");
+        var reset = Ui.TextButton("重置", () =>
         {
             update(bw = new BlackAndWhiteAdjustment { Tint = bw.Tint, TintHue = bw.TintHue, TintSaturation = bw.TintSaturation });
             for (var i = 0; i < ColorFamilies.Length; i++) ((Controls.SliderField)weights.Children[i]).Value = bw.Weights[i];
@@ -207,8 +207,8 @@ public static class AdjustmentDialogs
         return Ui.Column(10, weights, Ui.Row(12, tint, reset), tintRows);
     }
 
-    private static readonly string[] BalanceRanges = ["Shadows", "Midtones", "Highlights"];
-    private static readonly string[] BalancePairs = ["Cyan / Red", "Magenta / Green", "Yellow / Blue"];
+    private static readonly string[] BalanceRanges = ["阴影", "中间调", "高光"];
+    private static readonly string[] BalancePairs = ["青色 / 红色", "洋红 / 绿色", "黄色 / 蓝色"];
     private static readonly IReadOnlyList<Color>[] BalanceTracks = [Controls.SliderTracks.CyanRed, Controls.SliderTracks.MagentaGreen, Controls.SliderTracks.YellowBlue];
 
     /// <summary>Three shifts each for the shadows, midtones and highlights, with Preserve Luminosity.</summary>
@@ -225,8 +225,8 @@ public static class AdjustmentDialogs
                     v => update(balance = balance.WithShift(r, c, v)), 1, "0", FieldWidth, BalanceTracks[channel], reset: 0));
             }
         }
-        var preserve = Ui.Check("Preserve Luminosity", balance.PreserveLuminosity, v => update(balance = balance with { PreserveLuminosity = v }));
-        ToolTip.SetTip(preserve, "Put each pixel's brightness back afterwards, so only the color moves");
+        var preserve = Ui.Check("保留明度", balance.PreserveLuminosity, v => update(balance = balance with { PreserveLuminosity = v }));
+        ToolTip.SetTip(preserve, "之后恢复每个像素的亮度，只移动颜色");
         preserve.Margin = new Thickness(0, 6, 0, 0);
         panel.Children.Add(preserve);
         return panel;
@@ -257,15 +257,15 @@ public static class AdjustmentDialogs
             };
             return button;
         }
-        var shadows = Swatch("Shadows…", () => map.Shadows, v => map = map with { Shadows = v });
-        var highlights = Swatch("Highlights…", () => map.Highlights, v => map = map with { Highlights = v });
-        var useColors = Ui.TextButton("Use Foreground/Background", () =>
+        var shadows = Swatch("阴影…", () => map.Shadows, v => map = map with { Shadows = v });
+        var highlights = Swatch("高光…", () => map.Highlights, v => map = map with { Highlights = v });
+        var useColors = Ui.TextButton("使用前景色/背景色", () =>
         {
             map = map with { Shadows = (uint)foreground, Highlights = (uint)background };
             Paint();
             update(map);
         });
-        var reversed = Ui.Check("Reverse", map.Reversed, v => { map = map with { Reversed = v }; Paint(); update(map); });
+        var reversed = Ui.Check("反向", map.Reversed, v => { map = map with { Reversed = v }; Paint(); update(map); });
         Paint();
         return Ui.Column(10, bar, Ui.Row(8, shadows, highlights, useColors), reversed);
     }
@@ -327,14 +327,14 @@ public static class AdjustmentDialogs
         }
         if (lookup.Lattice is { } own && Looks.Names.All(name => Looks.Find(name)!.Id != own.Id)) ShowFile(lookup.Source, own);
 
-        var load = Ui.TextButton("Load File…", async () =>
+        var load = Ui.TextButton("载入文件…", async () =>
         {
             if (pickFile == null || await pickFile() is not { } path) return;
             ColorLattice lattice;
             try { lattice = ColorLattice.Load(path); }
             catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
             {
-                await Prompts.Alert(owner, "Color Lookup", $"{Path.GetFileName(path)} could not be read. {error.Message}");
+                await Prompts.Alert(owner, "颜色查找", $"{Path.GetFileName(path)} 无法读取。{error.Message}");
                 return;
             }
             var name = Path.GetFileName(path);
@@ -342,7 +342,7 @@ public static class AdjustmentDialogs
             update(lookup = lookup with { Lattice = lattice, Source = name });
             Refresh();
         });
-        var amount = Ui.SliderField("Amount", lookup.Amount, 0, 100, v => update(lookup = lookup with { Amount = v }), 1, "0", FieldWidth, reset: new ColorLookupAdjustment().Amount);
+        var amount = Ui.SliderField("数量", lookup.Amount, 0, 100, v => update(lookup = lookup with { Amount = v }), 1, "0", FieldWidth, reset: new ColorLookupAdjustment().Amount);
         Refresh();
         return Ui.Column(10, tiles, Ui.Row(8, load, fileName), amount);
     }
@@ -385,77 +385,77 @@ public static class AdjustmentDialogs
         switch (initial.Kind)
         {
             case FilterKind.GaussianBlur:
-                Slider("Radius", initial.Radius, 0.1, 250, v => current with { Radius = v }, 0.1, "0.0");
+                Slider("半径", initial.Radius, 0.1, 250, v => current with { Radius = v }, 0.1, "0.0");
                 break;
             case FilterKind.MotionBlur:
                 // The blur runs along a line, so its dial is a line rather than a light. It turns the full circle as Photoshop's field
                 // allows, although 200 blurs the same as 20, because a dial that turns half way feels stuck.
-                panel.Children.Add(Ui.AngleField("Angle", initial.Angle, -180, 180, v => Update(current with { Angle = v }), FieldWidth, Controls.AngleDialStyle.Line, initial.Angle));
-                Slider("Distance", initial.Radius, 1, 500, v => current with { Radius = v });
+                panel.Children.Add(Ui.AngleField("角度", initial.Angle, -180, 180, v => Update(current with { Angle = v }), FieldWidth, Controls.AngleDialStyle.Line, initial.Angle));
+                Slider("距离", initial.Radius, 1, 500, v => current with { Radius = v });
                 break;
             case FilterKind.Sharpen:
-                Slider("Amount", initial.Amount, 0, 200, v => current with { Amount = v });
-                Slider("Radius", initial.Radius, 0.5, 20, v => current with { Radius = v }, 0.1, "0.0");
+                Slider("数量", initial.Amount, 0, 200, v => current with { Amount = v });
+                Slider("半径", initial.Radius, 0.5, 20, v => current with { Radius = v }, 0.1, "0.0");
                 break;
             case FilterKind.AddNoise:
-                Slider("Amount", initial.Amount, 0, 100, v => current with { Amount = v });
-                panel.Children.Add(Ui.Row(10, Ui.Label("Distribution", Palette.Secondary),
-                    Ui.Combo(NoiseDistributions, initial.Gaussian ? "Gaussian" : "Uniform", d => d, d => Update(current with { Gaussian = d == "Gaussian" }), 120)));
-                panel.Children.Add(Ui.Check("Monochromatic", initial.Monochrome, v => Update(current with { Monochrome = v })));
+                Slider("数量", initial.Amount, 0, 100, v => current with { Amount = v });
+                panel.Children.Add(Ui.Row(10, Ui.Label("分布", Palette.Secondary),
+                    Ui.Combo(NoiseDistributions, initial.Gaussian ? "高斯分布" : "平均分布", d => d, d => Update(current with { Gaussian = d == "高斯分布" }), 120)));
+                panel.Children.Add(Ui.Check("单色", initial.Monochrome, v => Update(current with { Monochrome = v })));
                 break;
             case FilterKind.Vignette:
                 var swatch = new Border { Width = 44, Height = 24, CornerRadius = new CornerRadius(3), BorderBrush = Brushes.White, BorderThickness = new Thickness(1), Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand) };
                 void PaintSwatch() => swatch.Background = new SolidColorBrush(new SKColor(current.VignetteColor).ToAvalonia());
                 PaintSwatch();
-                ToolTip.SetTip(swatch, "Choose the vignette color");
+                ToolTip.SetTip(swatch, "选择暗角颜色");
                 swatch.PointerPressed += async (_, _) =>
                 {
-                    if (await Prompts.Color(owner, "Vignette Color", new SKColor(current.VignetteColor)) is not { } picked) return;
+                    if (await Prompts.Color(owner, "暗角颜色", new SKColor(current.VignetteColor)) is not { } picked) return;
                     Update(current with { VignetteColor = (uint)picked | 0xFF000000 });
                     PaintSwatch();
                 };
-                var colorLabel = Ui.Label("Color", Palette.Secondary);
+                var colorLabel = Ui.Label("颜色", Palette.Secondary);
                 colorLabel.Width = 90;
                 panel.Children.Add(Ui.Row(8, colorLabel, swatch));
-                Slider("Amount", initial.VignetteAmount, 0, 100, v => current with { VignetteAmount = v });
-                Slider("Midpoint", initial.VignetteMidpoint, 0, 100, v => current with { VignetteMidpoint = v });
-                Slider("Roundness", initial.VignetteRoundness, -100, 100, v => current with { VignetteRoundness = v });
-                Slider("Feather", initial.VignetteFeather, 0, 100, v => current with { VignetteFeather = v });
-                Slider("Highlights", initial.VignetteHighlights, 0, 100, v => current with { VignetteHighlights = v });
+                Slider("数量", initial.VignetteAmount, 0, 100, v => current with { VignetteAmount = v });
+                Slider("中点", initial.VignetteMidpoint, 0, 100, v => current with { VignetteMidpoint = v });
+                Slider("圆度", initial.VignetteRoundness, -100, 100, v => current with { VignetteRoundness = v });
+                Slider("羽化", initial.VignetteFeather, 0, 100, v => current with { VignetteFeather = v });
+                Slider("高光", initial.VignetteHighlights, 0, 100, v => current with { VignetteHighlights = v });
                 panel.Children.Add(new TextBlock
                 {
-                    Text = "Blends the color into the edges while keeping the center. On an empty layer it paints across the whole canvas.",
+                    Text = "在保持中心的同时将颜色融入边缘。在空图层上则会覆盖整个画布。",
                     Foreground = Palette.Secondary, MaxWidth = 380, TextWrapping = TextWrapping.Wrap
                 });
                 break;
             case FilterKind.BloomGlow:
-                Slider("Amount", initial.BloomAmount, 0, 100, v => current with { BloomAmount = v });
-                Slider("Radius", initial.BloomRadius, 1, 150, v => current with { BloomRadius = v });
+                Slider("数量", initial.BloomAmount, 0, 100, v => current with { BloomAmount = v });
+                Slider("半径", initial.BloomRadius, 1, 150, v => current with { BloomRadius = v });
                 break;
             case FilterKind.TonalContrast:
-                Slider("Amount", initial.TonalAmount, 0, 100, v => current with { TonalAmount = v });
-                Slider("Shadows", initial.TonalShadows, -100, 100, v => current with { TonalShadows = v });
-                Slider("Midtones", initial.TonalMidtones, -100, 100, v => current with { TonalMidtones = v });
-                Slider("Highlights", initial.TonalHighlights, -100, 100, v => current with { TonalHighlights = v });
-                Slider("Radius", initial.TonalRadius, 1, 100, v => current with { TonalRadius = v });
+                Slider("数量", initial.TonalAmount, 0, 100, v => current with { TonalAmount = v });
+                Slider("阴影", initial.TonalShadows, -100, 100, v => current with { TonalShadows = v });
+                Slider("中间调", initial.TonalMidtones, -100, 100, v => current with { TonalMidtones = v });
+                Slider("高光", initial.TonalHighlights, -100, 100, v => current with { TonalHighlights = v });
+                Slider("半径", initial.TonalRadius, 1, 100, v => current with { TonalRadius = v });
                 break;
             case FilterKind.LensCorrection:
-                Slider("Remove Distortion", initial.Distortion, -100, 100, v => current with { Distortion = v });
+                Slider("移除扭曲", initial.Distortion, -100, 100, v => current with { Distortion = v });
                 panel.Children.Add(new TextBlock
                 {
-                    Text = "Positive straightens lines that bow outward (barrel); negative, lines that bow inward (pincushion).",
+                    Text = "正值拉直向外弯曲的线条（桶形失真）；负值拉直向内弯曲的线条（枕形失真）。",
                     Foreground = Palette.Secondary, MaxWidth = 380, TextWrapping = TextWrapping.Wrap
                 });
                 break;
             case FilterKind.Painterly:
-                panel.Children.Add(Ui.Row(10, Ui.Label("Style", Palette.Secondary),
+                panel.Children.Add(Ui.Row(10, Ui.Label("样式", Palette.Secondary),
                     Ui.Combo(Enum.GetValues<PainterlyStyle>(), initial.Painterly.Style, PainterlySettings.DisplayName, v => Update(current with { Painterly = current.Painterly with { Style = v } }), 140)));
-                Slider("Brush Size", initial.Painterly.BrushSize, 0, 200, v => current with { Painterly = current.Painterly with { BrushSize = v } });
-                Slider("Passes", initial.Painterly.Passes, 1, 4, v => current with { Painterly = current.Painterly with { Passes = (int)Math.Round(v) } });
-                Slider("Detail", initial.Painterly.Detail, 0, 100, v => current with { Painterly = current.Painterly with { Detail = v } });
+                Slider("画笔大小", initial.Painterly.BrushSize, 0, 200, v => current with { Painterly = current.Painterly with { BrushSize = v } });
+                Slider("次数", initial.Painterly.Passes, 1, 4, v => current with { Painterly = current.Painterly with { Passes = (int)Math.Round(v) } });
+                Slider("细节", initial.Painterly.Detail, 0, 100, v => current with { Painterly = current.Painterly with { Detail = v } });
                 panel.Children.Add(new TextBlock
                 {
-                    Text = "Repaints the layer in brush strokes that follow the picture's edges, the largest brush first and each smaller one only where the picture still differs. A brush size of 0 fits the brush to the picture. Gaps between strokes stay transparent.",
+                    Text = "以跟随图像边缘的笔触重绘画层，先用最大的画笔，再仅在图像仍有差异处使用更小的画笔。画笔大小为 0 时自动适配图像。笔触之间的间隙保持透明。",
                     Foreground = Palette.Secondary, MaxWidth = 380, TextWrapping = TextWrapping.Wrap
                 });
                 break;
@@ -486,71 +486,71 @@ public static class AdjustmentDialogs
                         var swatch = new Border { Width = 44, Height = 24, CornerRadius = new CornerRadius(3), BorderBrush = Brushes.White, BorderThickness = new Thickness(1), Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand) };
                         void Paint() => swatch.Background = new SolidColorBrush(new SKColor(get(current.Dither)).ToAvalonia());
                         Paint();
-                        ToolTip.SetTip(swatch, $"Choose the {title.ToLowerInvariant()} color");
+                        ToolTip.SetTip(swatch, $"选择{title.ToLowerInvariant()}的颜色");
                         swatch.PointerPressed += async (_, _) =>
                         {
                             // The picker shows on the layer as it goes; Cancel puts the color back.
                             var before = current.Dither;
-                            var picked = await Prompts.Color(owner, title + " Color", new SKColor(get(before)), color => { Set(dd => apply((uint)color | 0xFF000000, dd)); Paint(); });
+                            var picked = await Prompts.Color(owner, title + "", new SKColor(get(before)), color => { Set(dd => apply((uint)color | 0xFF000000, dd)); Paint(); });
                             Set(_ => picked is { } color ? apply((uint)color | 0xFF000000, before) : before);
                             Paint();
                         };
                         return swatch;
                     }
 
-                    section.Children.Add(Ui.Row(10, Ui.Label("Style", Palette.Secondary),
+                    section.Children.Add(Ui.Row(10, Ui.Label("样式", Palette.Secondary),
                         Ui.Combo(styles, d.Style, DitherSettings.DisplayName, v => { Set(dd => dd with { Style = v }); Rebuild(); }, 200)));
-                    if (d.Style != DitherStyle.Ascii) DitherSlider("Pixel Size", d.PixelSize, DitherSettings.MinPixelSize, DitherSettings.MaxPixelSize, (v, dd) => dd with { PixelSize = (int)Math.Round(v) }, defaults.PixelSize);
-                    else DitherSlider("Text Size", d.TextSize, DitherSettings.MinTextSize, DitherSettings.MaxTextSize, (v, dd) => dd with { TextSize = (int)Math.Round(v) }, defaults.TextSize);
+                    if (d.Style != DitherStyle.Ascii) DitherSlider("像素大小", d.PixelSize, DitherSettings.MinPixelSize, DitherSettings.MaxPixelSize, (v, dd) => dd with { PixelSize = (int)Math.Round(v) }, defaults.PixelSize);
+                    else DitherSlider("文字大小", d.TextSize, DitherSettings.MinTextSize, DitherSettings.MaxTextSize, (v, dd) => dd with { TextSize = (int)Math.Round(v) }, defaults.TextSize);
                     if (d.IsHalftone)
                     {
-                        DitherSlider("Cell Size", d.CellSize, DitherSettings.MinCellSize, DitherSettings.MaxCellSize, (v, dd) => dd with { CellSize = (int)Math.Round(v) }, defaults.CellSize);
-                        section.Children.Add(Ui.AngleField("Angle", d.Angle, -90, 90, v => Set(dd => dd with { Angle = v }), FieldWidth, Controls.AngleDialStyle.Line, defaults.Angle));
+                        DitherSlider("单元大小", d.CellSize, DitherSettings.MinCellSize, DitherSettings.MaxCellSize, (v, dd) => dd with { CellSize = (int)Math.Round(v) }, defaults.CellSize);
+                        section.Children.Add(Ui.AngleField("角度", d.Angle, -90, 90, v => Set(dd => dd with { Angle = v }), FieldWidth, Controls.AngleDialStyle.Line, defaults.Angle));
                     }
                     if (d.Style == DitherStyle.Ascii)
                     {
                         var characters = new TextBox { Text = d.Characters, Width = FieldWidth - 90, FontFamily = new FontFamily("monospace") };
-                        ToolTip.SetTip(characters, "The characters to draw with, in any order: each spot gets the one whose ink best matches its tone");
+                        ToolTip.SetTip(characters, "用于绘制的字符，顺序不限：每个位置采用墨色最贴合其色调的字符");
                         // The property rather than TextChanged, which the box raises only after it has been through the input loop.
                         characters.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) Set(dd => dd with { Characters = characters.Text ?? "" }); };
-                        section.Children.Add(Ui.Row(10, Ui.Label("Characters", Palette.Secondary), characters));
+                        section.Children.Add(Ui.Row(10, Ui.Label("字符", Palette.Secondary), characters));
                     }
-                    if (d.HasTones) DitherSlider("Tones", d.Levels, DitherSettings.MinLevels, DitherSettings.MaxLevels, (v, dd) => dd with { Levels = (int)Math.Round(v) }, defaults.Levels);
-                    if (d.Diffuses) DitherSlider("Diffusion", d.Diffusion, 0, 100, (v, dd) => dd with { Diffusion = v }, defaults.Diffusion);
-                    DitherSlider("Density", d.Density, -100, 100, (v, dd) => dd with { Density = v }, defaults.Density);
-                    DitherSlider("Contrast", d.Contrast, -100, 100, (v, dd) => dd with { Contrast = v }, defaults.Contrast);
+                    if (d.HasTones) DitherSlider("色阶数", d.Levels, DitherSettings.MinLevels, DitherSettings.MaxLevels, (v, dd) => dd with { Levels = (int)Math.Round(v) }, defaults.Levels);
+                    if (d.Diffuses) DitherSlider("扩散", d.Diffusion, 0, 100, (v, dd) => dd with { Diffusion = v }, defaults.Diffusion);
+                    DitherSlider("密度", d.Density, -100, 100, (v, dd) => dd with { Density = v }, defaults.Density);
+                    DitherSlider("对比度", d.Contrast, -100, 100, (v, dd) => dd with { Contrast = v }, defaults.Contrast);
                     var colorsRow = new List<Control>
                     {
-                        Ui.Label("Colors", Palette.Secondary),
+                        Ui.Label("颜色", Palette.Secondary),
                         Ui.Combo(Enum.GetValues<DitherColors>(), d.Colors, DitherSettings.DisplayName, v => { Set(dd => dd with { Colors = v }); Rebuild(); }, 140)
                     };
                     if (d.Colors == DitherColors.TwoColors)
                     {
-                        colorsRow.Add(Ui.Label("Dark", Palette.Secondary));
-                        colorsRow.Add(Swatch("Dark", dd => dd.Dark, (c, dd) => dd with { Dark = c }));
-                        colorsRow.Add(Ui.Label("Light", Palette.Secondary));
-                        colorsRow.Add(Swatch("Light", dd => dd.Light, (c, dd) => dd with { Light = c }));
+                        colorsRow.Add(Ui.Label("深色", Palette.Secondary));
+                        colorsRow.Add(Swatch("深色", dd => dd.Dark, (c, dd) => dd with { Dark = c }));
+                        colorsRow.Add(Ui.Label("浅色", Palette.Secondary));
+                        colorsRow.Add(Swatch("浅色", dd => dd.Light, (c, dd) => dd with { Light = c }));
                     }
                     section.Children.Add(Ui.Row(10, colorsRow.ToArray()));
                     if (d.Style != DitherStyle.Ascii)
                     {
-                        shapeRow = Ui.Row(10, Ui.Label("Pixel Shape", Palette.Secondary),
+                        shapeRow = Ui.Row(10, Ui.Label("像素形状", Palette.Secondary),
                             Ui.Combo(Enum.GetValues<DitherPixelShape>(), d.PixelShape, DitherSettings.DisplayName, v => Set(dd => dd with { PixelShape = v }), 140));
-                        ToolTip.SetTip(shapeRow, "Draw each chunky pixel as a solid square, or as a round dot like a dot-matrix screen");
+                        ToolTip.SetTip(shapeRow, "将大像素画成实心方块，或如点阵屏幕般的圆点");
                         shapeRow.IsEnabled = d.PixelSize > 1;
                         section.Children.Add(shapeRow);
                     }
                     if (d.DrawsMarks)
                     {
-                        var lightOnDark = Ui.Check("Light on Dark", d.LightOnDark, v => Set(dd => dd with { LightOnDark = v }));
-                        ToolTip.SetTip(lightOnDark, "Draw the marks for the light tones on the dark color, like a glowing screen");
+                        var lightOnDark = Ui.Check("暗底亮纹", d.LightOnDark, v => Set(dd => dd with { LightOnDark = v }));
+                        ToolTip.SetTip(lightOnDark, "在暗色上绘制亮色调的标记，如同发光的屏幕");
                         section.Children.Add(lightOnDark);
                     }
                 }
                 Rebuild();
                 panel.Children.Add(new TextBlock
                 {
-                    Text = "Turns the layer into dithered pixels. Diffusion and Bayer styles quantize to a number of tones; halftone shapes, Mac patterns and ASCII draw marks that cover as much of each cell as the tone calls for. Pixel Size makes chunky pixels. Density adds or removes ink before dithering.",
+                    Text = "将图层转换为抖动像素。扩散与 Bayer 样式量化为若干色阶；半调形状、Mac 图案和 ASCII 绘制的标记按色调覆盖每个单元的相应面积。像素大小用于生成大像素。密度在抖动前增减墨量。",
                     Foreground = Palette.Secondary, MaxWidth = 380, TextWrapping = TextWrapping.Wrap
                 });
                 break;
@@ -558,21 +558,21 @@ public static class AdjustmentDialogs
             case FilterKind.RemoveBackground:
             {
                 var detects = new[] { Composa.Vision.SubjectDetect.Any, Composa.Vision.SubjectDetect.Person, Composa.Vision.SubjectDetect.Backdrop };
-                var tolerance = Ui.SliderField("Tolerance", initial.Amount, 1, 100, v => Update(current with { Amount = v }), 1, "0", FieldWidth, reset: initial.Amount);
+                var tolerance = Ui.SliderField("容差", initial.Amount, 1, 100, v => Update(current with { Amount = v }), 1, "0", FieldWidth, reset: initial.Amount);
                 var note = new TextBlock { Foreground = Palette.Secondary, MaxWidth = 380, TextWrapping = TextWrapping.Wrap };
                 void Describe()
                 {
                     var plain = Composa.Vision.SubjectFinder.Resolve(current.Detect) == Composa.Vision.SubjectDetect.Backdrop;
                     tolerance.IsEnabled = plain;
                     note.Text = plain
-                        ? "Removes the plain backdrop connected to the layer's edges by making it transparent. Raise the tolerance to take more."
-                        : "A model run on this machine finds the subject and hides everything else behind a layer mask, so a wrong edge can be painted back.";
+                        ? "将连接到图层边缘的纯色背景设为透明来移除。调高容差可移除更多。"
+                        : "在本机运行的模型会找到主体，并用图层蒙版隐藏其余内容，因此错误的边缘可以用画笔涂回。";
                     if (!plain && Composa.Vision.SubjectFinder.FallbackReason(current.Detect) is { } reason) note.Text = reason;
                 }
                 var detect = Ui.Combo(detects, initial.Detect, Composa.Vision.SubjectFinder.DisplayName, v => { Update(current with { Detect = v }); Describe(); }, 160);
                 detect.IsEnabled = canDetect;
-                ToolTip.SetTip(detect, canDetect ? "A model for any subject or for a person, or the plain backdrop touching the layer's edges" : "A mask is edited by erasing, so only the plain backdrop applies");
-                panel.Children.Add(Ui.Row(10, Ui.Label("Detect", Palette.Secondary), detect));
+                ToolTip.SetTip(detect, canDetect ? "用于任意主体或人物的模型，或接触图层边缘的纯色背景" : "蒙版通过擦除来编辑，因此只适用于纯色背景");
+                panel.Children.Add(Ui.Row(10, Ui.Label("检测", Palette.Secondary), detect));
                 panel.Children.Add(tolerance);
                 panel.Children.Add(note);
                 Describe();

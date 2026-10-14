@@ -28,7 +28,7 @@ public sealed class Shortcut(string id, string title, string group, KeyGesture? 
     /// <summary>What the shortcut reads as in a menu or the shortcuts window.</summary>
     public static string Label(KeyGesture? gesture)
     {
-        if (gesture == null) return "None";
+        if (gesture == null) return "无";
         var key = gesture.Key switch
         {
             Key.OemPlus => "+", Key.OemMinus => "-", Key.OemOpenBrackets => "[", Key.OemCloseBrackets => "]", Key.OemQuotes => "'", Key.OemSemicolon => ";",
@@ -57,7 +57,7 @@ public static class ShortcutsDialog
         var problem = Ui.Label("", new SolidColorBrush(Color.Parse("#FFB454")));
         problem.TextWrapping = TextWrapping.Wrap;
         problem.MaxWidth = 560;
-        var search = new TextBox { PlaceholderText = "Search shortcuts", Width = 300 };
+        var search = new TextBox { PlaceholderText = "搜索快捷键", Width = 300 };
         var rows = new StackPanel { Spacing = 2 };
         DialogWindow? dialog = null;
 
@@ -69,7 +69,7 @@ public static class ShortcutsDialog
                 var gesture = draft[shortcut.Id];
                 if (gesture == null) continue;
                 var key = gesture.ToString();
-                if (seen.TryGetValue(key, out var other)) return $"{Shortcut.Label(gesture)} is assigned to both {other} and {shortcut.Title}.";
+                if (seen.TryGetValue(key, out var other)) return $"{Shortcut.Label(gesture)} 已同时分配给 {other} 和 {shortcut.Title}。";
                 seen[key] = shortcut.Title;
             }
             return null;
@@ -80,7 +80,7 @@ public static class ShortcutsDialog
             foreach (var shortcut in listed)
             {
                 var button = buttons[shortcut.Id];
-                button.Content = recording == shortcut ? "Press keys…" : Shortcut.Label(draft[shortcut.Id]);
+                button.Content = recording == shortcut ? "请按下按键…" : Shortcut.Label(draft[shortcut.Id]);
                 button.Classes.Set("accent", recording == shortcut);
             }
             var text = Problem();
@@ -93,7 +93,7 @@ public static class ShortcutsDialog
         {
             rows.Children.Clear();
             var filter = search.Text?.Trim() ?? "";
-            foreach (var group in new[] { "Menus", "Tools and Canvas" })
+            foreach (var group in new[] { "菜单", "工具与画布" })
             {
                 var matching = listed.Where(s => s.Group == group && (filter.Length == 0 || s.Title.Contains(filter, StringComparison.OrdinalIgnoreCase))).ToList();
                 if (matching.Count == 0) continue;
@@ -118,15 +118,15 @@ public static class ShortcutsDialog
         search.TextChanged += (_, _) => Build();
 
         var scroll = new ScrollViewer { Content = rows, Height = 420, Width = 590, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
-        var restore = Ui.TextButton("Restore Defaults", () => { foreach (var shortcut in listed) draft[shortcut.Id] = shortcut.Default; recording = null; Refresh(); });
+        var restore = Ui.TextButton("恢复默认", () => { foreach (var shortcut in listed) draft[shortcut.Id] = shortcut.Default; recording = null; Refresh(); });
         var notes = new TextBlock
         {
-            Text = "Click a shortcut, then press its new key combination; Escape stops recording and Backspace clears it. Brush size and hardness ([ ] and { }), the opacity digits, Space to pan and the modifier-and-mouse gestures are fixed.",
+            Text = "单击一个快捷键，然后按下新的组合键；按 Escape 结束录制，按 Backspace 清除。画笔大小与硬度（[ ] 和 { }）、不透明度数字键、平移画布的空格键以及修饰键加鼠标的手势均不可更改。",
             Foreground = Palette.Secondary, TextWrapping = TextWrapping.Wrap, MaxWidth = 590
         };
         var body = Ui.Column(10, notes, Ui.Row(10, search, restore), scroll, problem);
         Build();
-        dialog = new DialogWindow("Keyboard Shortcuts", body, "Save");
+        dialog = new DialogWindow("键盘快捷键", body, "保存");
         dialog.AddHandler(InputElement.KeyDownEvent, (_, e) =>
         {
             if (recording == null) return;

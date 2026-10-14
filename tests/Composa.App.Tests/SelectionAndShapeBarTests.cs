@@ -48,7 +48,7 @@ public class SelectionAndShapeBarTests
 
         // The bar's Expand button works by its amount field.
         var buttons = window.GetVisualDescendants().OfType<Button>().ToList();
-        var expand = buttons.Single(b => b.Content as string == "Expand");
+        var expand = buttons.Single(b => b.Content as string == "扩展");
         Assert.True(expand.IsEnabled);
         session.SelectionExpandAmount = 5;
         expand.Command?.Execute(null);
@@ -61,7 +61,7 @@ public class SelectionAndShapeBarTests
         window.KeyPressQwerty(PhysicalKey.D, RawInputModifiers.Control);
         window.KeyPressQwerty(PhysicalKey.A, RawInputModifiers.Control | RawInputModifiers.Alt);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal("Select Subject", session.History.UndoName);
+        Assert.Equal("选择主体", session.History.UndoName);
         Assert.True(session.Selection!.GetPixel(300, 200).Alpha > 200);
     }
 

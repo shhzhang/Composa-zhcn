@@ -116,7 +116,7 @@ public sealed partial class EditorSession
         document.Selection = edit.Original;
         EndColorRange(edit);
         if (!edit.HasColors) { SelectionChanged?.Invoke(); return; }
-        SetSelection("Color Range", result);
+        SetSelection("色彩范围", result);
         if (result == null) SelectionChanged?.Invoke();
     }
 

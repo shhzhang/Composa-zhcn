@@ -44,7 +44,7 @@ public static class SubjectModels
     /// <summary>U²-Net lite: a saliency net for any subject, 4.6 MB at 320², and the default. Edges are soft, and busy or low-contrast backgrounds can confuse it.</summary>
     public static readonly SubjectModel U2NetP = new(
         Id: "u2netp",
-        Name: "Any subject",
+        Name: "任何主体",
         File: "u2netp.onnx",
         Sha256: "309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8",
         Bytes: 4_574_861,
@@ -56,12 +56,12 @@ public static class SubjectModels
         Mean: ImageNetMean,
         Std: ImageNetStd,
         Activation: MaskActivation.MinMax,
-        Note: "Works on any subject. Edges are soft, and busy or low-contrast backgrounds can confuse it.");
+        Note: "适用于任何主体。边缘柔和，繁杂或低对比度的背景可能使其混淆。");
 
     /// <summary>MODNet: a portrait matting net, 26 MB, run at 512². Follows hair and soft edges; weaker on anything that is not a person.</summary>
     public static readonly SubjectModel ModNet = new(
         Id: "modnet",
-        Name: "Person",
+        Name: "人物",
         File: "modnet.onnx",
         Sha256: "07c308cf0fc7e6e8b2065a12ed7fc07e1de8febb7dc7839d7b7f15dd66584df9",
         Bytes: 25_888_640,
@@ -73,7 +73,7 @@ public static class SubjectModels
         Mean: [0.5f, 0.5f, 0.5f],
         Std: [0.5f, 0.5f, 0.5f],
         Activation: MaskActivation.MinMax,
-        Note: "Tuned for people: soft hair and edges. Weaker on anything that is not a person.");
+        Note: "针对人物调校：头发与边缘柔和。对非人物对象效果较弱。");
 
     public static readonly IReadOnlyList<SubjectModel> All = [U2NetP, ModNet];
 

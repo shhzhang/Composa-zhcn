@@ -33,7 +33,7 @@ public class SubjectSessionTests
         var session = Scene(out _);
         session.Detect = SubjectDetect.Any;
         Assert.True(await session.SelectSubjectAsync());
-        Assert.Equal("Select Subject", session.History.UndoName);
+        Assert.Equal("选择主体", session.History.UndoName);
         Assert.True(session.Selection!.GetPixel(160, 100).Alpha > 200);
         Assert.True(session.Selection.GetPixel(10, 10).Alpha < 40, $"corner {session.Selection.GetPixel(10, 10).Alpha}");
         var bounds = SelectionMask.Bounds(session.Selection, 128);
@@ -47,7 +47,7 @@ public class SubjectSessionTests
         Assert.Same(first, await session.FindSubjectAsync());
         session.Deselect();
         await session.SelectObjectAsync(160, 100);
-        Assert.Equal("Object Selection", session.History.UndoName);
+        Assert.Equal("对象选择", session.History.UndoName);
         Assert.True(session.Selection!.GetPixel(160, 100).Alpha > 200);
         Assert.True(session.Selection.GetPixel(10, 10).Alpha == 0);
         await session.SelectObjectAsync(10, 10); // The backdrop: nothing to select.
@@ -66,7 +66,7 @@ public class SubjectSessionTests
         session.AddImageLayer("late", Pixels.NewColor(4, 4), new SKPoint(0, 0));
         Assert.False(await running);
         Assert.Null(session.Selection);
-        Assert.Equal("Add Image", session.History.UndoName);
+        Assert.Equal("添加图像", session.History.UndoName);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class SubjectSessionTests
         cancelled.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.SelectSubjectAsync(SelectionMode.Replace, cancelled.Token));
         Assert.Null(session.Selection);
-        Assert.False(session.CanUndo && session.History.UndoName == "Select Subject");
+        Assert.False(session.CanUndo && session.History.UndoName == "选择主体");
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class SubjectSessionTests
         var session = Scene(out var photo);
         var layer = session.ActiveLayer!;
         Assert.True(await session.ApplyRemoveBackgroundAsync(new FilterSettings { Kind = FilterKind.RemoveBackground, Detect = SubjectDetect.Any }));
-        Assert.Equal("Remove Background", session.History.UndoName);
+        Assert.Equal("移除背景", session.History.UndoName);
         Assert.Same(photo, layer.Pixels); // The pixels are untouched; the mask does the hiding.
         Assert.NotNull(layer.Mask);
         Assert.True(layer.MaskEnabled);
@@ -152,6 +152,6 @@ public class SubjectSessionTests
         layer = session.ActiveLayer!; // Cancel restores a snapshot, whose layers are other objects.
         Assert.Null(layer.Mask);
         Assert.Same(photo, layer.Pixels);
-        Assert.False(session.CanUndo && session.History.UndoName == "Remove Background");
+        Assert.False(session.CanUndo && session.History.UndoName == "移除背景");
     }
 }

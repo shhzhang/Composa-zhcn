@@ -33,13 +33,13 @@ public class XcfImportUiTests
             var opening = window.OpenPaths([path]);
             await Pump(() => window.OwnedWindows.Count > 0);
             var dialog = Assert.Single(window.OwnedWindows);
-            Assert.Equal("Open " + Path.GetFileName(path) + "?", dialog.Title);
+            Assert.Equal("打开 " + Path.GetFileName(path) + "？", dialog.Title);
             var text = string.Join("\n", dialog.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text));
-            Assert.Contains("GIMP features", text);
+            Assert.Contains("GIMP 特性", text);
             Assert.Contains("Headline", text);
-            Assert.Contains("retyped", text);
-            Assert.Contains("effect", text);
-            Assert.Contains("Dissolve", text);
+            Assert.Contains("重新键入", text);
+            Assert.Contains("效果（GIMP 滤镜）", text);
+            Assert.Contains("溶解", text);
             Screenshots.Save(dialog, "42-xcf-conversions");
 
             // Cancel: nothing opens.
@@ -68,7 +68,7 @@ public class XcfImportUiTests
             Assert.True(folder.IsGroup);
             Assert.Equal(Path.GetFileNameWithoutExtension(path), folder.Name);
             Assert.Equal(3, folder.Children.Count);
-            Assert.Equal("Import GIMP File", session.History.UndoName);
+            Assert.Equal("导入 GIMP 文件", session.History.UndoName);
             Assert.Single(session.Document.Guides);   // Placing does not bring the file's guides.
         }
         finally { TempFiles.Delete(path); }

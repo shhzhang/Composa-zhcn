@@ -62,7 +62,7 @@ public class SubjectDetectUiTests
         Assert.Equal(WandMode.Object, session.WandMode);
         Assert.Equal(SubjectDetect.Any, session.Detect);
         var combo = window.GetVisualDescendants().OfType<ComboBox>().Single(c => c.Width == 128);
-        Assert.Equal(["Any subject", "Person", "Plain backdrop"], ((IEnumerable<string>)combo.ItemsSource!).ToList());
+        Assert.Equal(["任何主体", "人物", "纯色背景"], ((IEnumerable<string>)combo.ItemsSource!).ToList());
         Assert.Equal(0, combo.SelectedIndex);
         Screenshots.Save(window, "80-object-selection-detect");
         combo.SelectedIndex = 2;
@@ -81,10 +81,10 @@ public class SubjectDetectUiTests
     public void Remove_background_sits_in_the_image_menu_and_not_among_the_filters()
     {
         var items = window.GetLogicalDescendants().OfType<MenuItem>().ToList();
-        var removeBackground = items.Single(m => m.Header as string == "Remove Background…");
-        Assert.Equal("_Image", (removeBackground.Parent as MenuItem)?.Header as string);
-        var filter = items.Single(m => m.Header as string == "F_ilter");
-        Assert.DoesNotContain(filter.Items.OfType<MenuItem>(), m => (m.Header as string)?.StartsWith("Remove Background") == true);
+        var removeBackground = items.Single(m => m.Header as string == "移除背景…");
+        Assert.Equal("图像(_I)", (removeBackground.Parent as MenuItem)?.Header as string);
+        var filter = items.Single(m => m.Header as string == "滤镜(_I)");
+        Assert.DoesNotContain(filter.Items.OfType<MenuItem>(), m => (m.Header as string)?.StartsWith("移除背景") == true);
     }
 
     [AvaloniaFact]
@@ -96,7 +96,7 @@ public class SubjectDetectUiTests
         window.MouseDown(At(160, 100), MouseButton.Left);
         window.MouseUp(At(160, 100), MouseButton.Left);
         PumpUntil(() => session.Selection != null);
-        Assert.Equal("Object Selection", session.History.UndoName);
+        Assert.Equal("对象选择", session.History.UndoName);
         var bounds = SelectionMask.Bounds(session.Selection!, 128);
         Assert.InRange(bounds.Left, 85, 115);
         Assert.InRange(bounds.Right, 205, 235);
@@ -122,7 +122,7 @@ public class SubjectDetectUiTests
         Screenshots.Save(window, "86-object-box-drag");
         window.MouseUp(At(230, 170), MouseButton.Left);
         PumpUntil(() => session.Selection != null);
-        Assert.Equal("Object Selection", session.History.UndoName);
+        Assert.Equal("对象选择", session.History.UndoName);
         var bounds = SelectionMask.Bounds(session.Selection!, 128);
         Assert.InRange(bounds.Left, 85, 115);
         Assert.InRange(bounds.Right, 205, 235);
@@ -142,7 +142,7 @@ public class SubjectDetectUiTests
             PumpUntil(() => window.OwnedWindows.OfType<ProgressWindow>().Any(w => w.IsVisible), 5);
             Screenshots.Save(window.OwnedWindows.OfType<ProgressWindow>().Single(), "82-finding-the-subject");
             PumpUntil(() => session.Selection != null);
-            Assert.Equal("Select Subject", session.History.UndoName);
+            Assert.Equal("选择主体", session.History.UndoName);
             Assert.True(session.Selection!.GetPixel(160, 100).Alpha > 200);
             Assert.True(session.Selection.GetPixel(10, 10).Alpha < 40);
             Assert.Empty(window.OwnedWindows.OfType<ProgressWindow>());
@@ -167,7 +167,7 @@ public class SubjectDetectUiTests
             Thread.Sleep(1500);
             Dispatcher.UIThread.RunJobs();
             Assert.Null(session.Selection);
-            Assert.False(session.CanUndo && session.History.UndoName == "Select Subject");
+            Assert.False(session.CanUndo && session.History.UndoName == "选择主体");
         }
         finally { ProgressWindow.Delay = delay; }
     }

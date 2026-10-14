@@ -86,7 +86,7 @@ public class RawTests
             using (var color = Solid(12, 8, new SKColor(200, 100, 50))) ImageFiles.Save(color, png, ExportFormat.Png);
             RawImage raw;
             try { raw = RawImporter.Decode(png); }
-            catch (InvalidDataException error) when (error.Message.Contains("not installed")) { return; }
+            catch (InvalidDataException error) when (error.Message.Contains("未安装")) { return; }
             Assert.Equal((12, 8), (raw.Width, raw.Height));
             Assert.Equal(200 * 257, raw.Samples[0]);
             using var developed = raw.Develop(new RawDevelopSettings());

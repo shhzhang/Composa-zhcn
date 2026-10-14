@@ -43,7 +43,7 @@ internal static class PsdVector
         var size = PixelSize(new SKRect(left, top, right, bottom), remainingPixels);
         if (size == null) return null;
         var bounds = new SKRectI(left, top, left + size.Value.Width, top + size.Value.Height);
-        if (strokeEnabled) notes.Insert(0, "The Photoshop stroke isn't supported on shape layers and was omitted.");
+        if (strokeEnabled) notes.Insert(0, "Photoshop 的描边在形状图层上不受支持，已被省略。");
         var style = new ShapeStyle(radius > 0 && kind == ShapeKind.Rectangle ? ShapeKind.RoundedRectangle : kind, fill, radius);
         return new Live(style, bounds, notes);
     }
@@ -124,7 +124,7 @@ internal static class PsdVector
             if (corners.All(c => c != null))
             {
                 double low = corners.Min(c => c!.Value), high = corners.Max(c => c!.Value);
-                if (high - low > 0.5) notes.Add("The rounded rectangle's corners differ; the largest radius was used for all four.");
+                if (high - low > 0.5) notes.Add("圆角矩形各角的圆角半径不同；四个角均已采用最大半径。");
                 radius = Math.Max(0, high);
             }
         }

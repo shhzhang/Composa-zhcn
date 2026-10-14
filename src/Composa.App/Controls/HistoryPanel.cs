@@ -24,7 +24,7 @@ public sealed class HistoryPanel : UserControl
     private EditorSession? session;
     private readonly StackPanel rows = new() { Background = Brushes.Transparent };
     private readonly ScrollViewer scroll;
-    private readonly TextBlock dropped = new() { Text = "Older steps are no longer kept", Foreground = Palette.Secondary, FontSize = 11, Margin = new Thickness(10, 0, 10, 4), IsVisible = false };
+    private readonly TextBlock dropped = new() { Text = "较早的步骤已不再保留", Foreground = Palette.Secondary, FontSize = 11, Margin = new Thickness(10, 0, 10, 4), IsVisible = false };
     private bool scrubbing;
     private int? pendingIndex;
     private bool pendingPosted;
@@ -136,7 +136,7 @@ public sealed class HistoryPanel : UserControl
             var disk = Icons.Create(Icons.Disk, 12, Palette.Secondary);
             // The icon itself ignores the pointer, so the tip sits on a box around it.
             var mark = new Border { Background = Brushes.Transparent, Child = disk, Margin = new Thickness(6, 0, 0, 0) };
-            ToolTip.SetTip(mark, "This is the state in the file");
+            ToolTip.SetTip(mark, "这是文件中保存的状态");
             Grid.SetColumn(mark, 2);
             grid.Children.Add(mark);
         }
@@ -153,7 +153,7 @@ public sealed class HistoryPanel : UserControl
         return row;
     }
 
-    private static readonly HashSet<string> AdjustmentNames = Enum.GetValues<AdjustmentKind>().Select(k => Adjustment.Create(k).DisplayName).Append("Auto Levels").ToHashSet();
+    private static readonly HashSet<string> AdjustmentNames = Enum.GetValues<AdjustmentKind>().Select(k => Adjustment.Create(k).DisplayName).Append("自动色阶").ToHashSet();
     private static readonly HashSet<string> FilterNames = Enum.GetValues<FilterKind>().Select(FilterSettings.DisplayName).ToHashSet();
     private static readonly string[] EffectNames = Enum.GetValues<LayerEffectKind>().Select(LayerEffects.DisplayName).ToArray();
 
@@ -163,39 +163,39 @@ public sealed class HistoryPanel : UserControl
     /// </summary>
     public static Icons.Icon IconFor(string name) => name switch
     {
-        "Brush" or "Brush Strokes" => Icons.Brush,
-        "Eraser" => Icons.Eraser,
-        "Clone Stamp" => Icons.Stamp,
-        "Spot Healing Brush" or "Content-Aware Fill" => Icons.Heal,
-        "Liquify" => Icons.Liquify,
-        "Blur" or "Fill" => Icons.Drop,
-        "Smudge" => Icons.Smudge,
-        "Dodge" => Icons.Dodge,
-        "Burn" => Icons.Burn,
-        "Gradient" => Icons.Gradient,
-        "Rectangle" => Icons.Rectangle,
-        "Rounded Rectangle" => Icons.RoundedRectangle,
-        "Ellipse" => Icons.Ellipse,
-        "Line" => Icons.Line,
-        "Rectangular Marquee" => Icons.Marquee,
-        "Elliptical Marquee" => Icons.MarqueeEllipse,
-        "Lasso" => Icons.Lasso,
-        "Magic Wand" => Icons.Wand,
-        "Object Selection" or "Select Subject" => Icons.ObjectSelect,
-        "Move Selection Pixels" or "Duplicate Selection" => Icons.Move,
-        "Deselect" or "Color Range" => Icons.Marquee,
-        "Crop" or "Trim" or "Canvas Size" or "Image Size" or "Reveal All" or "Enhance Resolution" => Icons.Crop,
-        "Move" or "Nudge" or "Scale" or "Rotate" or "Distort" or "Transform" => Icons.Move,
-        _ when name.StartsWith("Select", StringComparison.Ordinal) || name.EndsWith("Selection", StringComparison.Ordinal) => Icons.Marquee,
-        _ when name.Contains("Text", StringComparison.Ordinal) => Icons.Text,
-        _ when name.Contains("Guide", StringComparison.Ordinal) => Icons.Ruler,
-        _ when name.Contains("Mask", StringComparison.Ordinal) => Icons.Mask,
-        _ when name.StartsWith("Rotate Canvas", StringComparison.Ordinal) || name.StartsWith("Flip Canvas", StringComparison.Ordinal) => Icons.Crop,
-        _ when name.StartsWith("Rotate Layer", StringComparison.Ordinal) || name.StartsWith("Flip Layer", StringComparison.Ordinal) => Icons.Move,
+        "画笔" or "画笔笔触" => Icons.Brush,
+        "橡皮擦" => Icons.Eraser,
+        "仿制图章" => Icons.Stamp,
+        "污点修复画笔" or "内容识别填充" => Icons.Heal,
+        "液化" => Icons.Liquify,
+        "模糊" or "填充" => Icons.Drop,
+        "抹擦" => Icons.Smudge,
+        "减淡" => Icons.Dodge,
+        "加深" => Icons.Burn,
+        "渐变" => Icons.Gradient,
+        "矩形" => Icons.Rectangle,
+        "圆角矩形" => Icons.RoundedRectangle,
+        "椭圆" => Icons.Ellipse,
+        "直线" => Icons.Line,
+        "矩形选框" => Icons.Marquee,
+        "椭圆选框" => Icons.MarqueeEllipse,
+        "套索" => Icons.Lasso,
+        "魔棒" => Icons.Wand,
+        "对象选择" or "选择主体" => Icons.ObjectSelect,
+        "移动选区像素" or "复制选区" => Icons.Move,
+        "全选" or "取消选择" or "反选" or "色彩范围" => Icons.Marquee,
+        "裁剪" or "修边" or "画布大小" or "图像大小" or "显示全部" or "增强分辨率" => Icons.Crop,
+        "移动" or "轻移" or "缩放" or "旋转" or "扭曲" or "变换" or "调整图层顺序" => Icons.Move,
+        _ when name.StartsWith("选择", StringComparison.Ordinal) || name.EndsWith("选区", StringComparison.Ordinal) => Icons.Marquee,
+        _ when name.Contains("文字", StringComparison.Ordinal) => Icons.Text,
+        _ when name.Contains("参考线", StringComparison.Ordinal) => Icons.Ruler,
+        _ when name.Contains("蒙版", StringComparison.Ordinal) => Icons.Mask,
+        _ when name.Contains("旋转画布", StringComparison.Ordinal) || name.Contains("翻转画布", StringComparison.Ordinal) => Icons.Crop,
+        _ when name.Contains("旋转图层", StringComparison.Ordinal) || name.Contains("翻转图层", StringComparison.Ordinal) => Icons.Move,
         // Blurs and noise are adjustment layers too, but as a step of their own name they are always the filter: a new
-        // adjustment layer is "New Adjustment Layer".
+        // adjustment layer is "新建调整图层".
         _ when FilterNames.Contains(name) || EffectNames.Any(effect => name.EndsWith(effect, StringComparison.Ordinal)) => Icons.Effects,
-        _ when name.Contains("Adjustment", StringComparison.Ordinal) || AdjustmentNames.Contains(name) => Icons.Adjust,
+        _ when name.Contains("调整", StringComparison.Ordinal) || AdjustmentNames.Contains(name) => Icons.Adjust,
         _ => Icons.Layers
     };
 }

@@ -89,7 +89,7 @@ public class TextEditingTests
         window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.Control);
         Dispatcher.UIThread.RunJobs();
         Assert.False(session.IsEditingText);
-        Assert.Equal("Text", session.History.UndoName);
+        Assert.Equal("文字", session.History.UndoName);
         Assert.Equal("Composa for Linux", session.Document.Find(layer.Id)!.Name);
         Screenshots.Save(window, "20-text-layer");
         Assert.Equal(1, session.History.Count);
@@ -151,7 +151,7 @@ public class TextEditingTests
         var layer = session.TextEditLayer!;
         Assert.Equal(0xFFFFC857u, layer.Text!.Color);
 
-        PressSwatch("Text color");
+        PressSwatch("文字颜色");
         await Pump(() => window.OwnedWindows.Count > 0);
         var dialog = Assert.Single(window.OwnedWindows);
         dialog.GetVisualDescendants().OfType<ColorView>().First().Color = Avalonia.Media.Color.FromRgb(0x20, 0xC0, 0xFF);
@@ -166,7 +166,7 @@ public class TextEditingTests
         Dispatcher.UIThread.RunJobs();
         Assert.Equal("Color!", layer.Text!.Text);
 
-        PressSwatch("Foreground color");
+        PressSwatch("前景色");
         await Pump(() => window.OwnedWindows.Count > 0);
         dialog = Assert.Single(window.OwnedWindows);
         dialog.GetVisualDescendants().OfType<ColorView>().First().Color = Avalonia.Media.Color.FromRgb(0x10, 0x80, 0x30);
@@ -195,9 +195,9 @@ public class TextEditingTests
         Dispatcher.UIThread.RunJobs();
         var layer = session.TextEditLayer!;
         Assert.Equal("or", session.TextEdit!.SelectedText);
-        Avalonia.Media.Color Swatch() => ((Avalonia.Media.SolidColorBrush)window.GetVisualDescendants().OfType<Border>().First(b => ToolTip.GetTip(b) as string == "Text color").Background!).Color;
+        Avalonia.Media.Color Swatch() => ((Avalonia.Media.SolidColorBrush)window.GetVisualDescendants().OfType<Border>().First(b => ToolTip.GetTip(b) as string == "文字颜色").Background!).Color;
 
-        PressSwatch("Text color");
+        PressSwatch("文字颜色");
         await Pump(() => window.OwnedWindows.Count > 0);
         var dialog = Assert.Single(window.OwnedWindows);
         dialog.GetVisualDescendants().OfType<ColorView>().First().Color = Avalonia.Media.Color.FromRgb(0x20, 0xC0, 0xFF);
@@ -209,7 +209,7 @@ public class TextEditingTests
         Assert.Null(layer.Text!.ColorRuns);                                  // Cancel: every letter back as it was.
         Assert.Equal("or", session.TextEdit!.SelectedText);
 
-        PressSwatch("Text color");
+        PressSwatch("文字颜色");
         await Pump(() => window.OwnedWindows.Count > 0);
         dialog = Assert.Single(window.OwnedWindows);
         dialog.GetVisualDescendants().OfType<ColorView>().First().Color = Avalonia.Media.Color.FromRgb(0x10, 0x80, 0x30);
@@ -249,7 +249,7 @@ public class TextEditingTests
         var layer = session.TextEditLayer!;
         Assert.Equal("es", session.TextEdit!.SelectedText);
         var family = layer.Text!.FontFamily;
-        CheckBox Bold() => window.GetVisualDescendants().OfType<CheckBox>().First(c => c.Content as string == "Bold");
+        CheckBox Bold() => window.GetVisualDescendants().OfType<CheckBox>().First(c => c.Content as string == "粗体");
         ComboBox Font() => window.GetVisualDescendants().OfType<ComboBox>().First(c => c.MaxWidth == 190);
         Bold().IsChecked = true;
         Dispatcher.UIThread.RunJobs();
@@ -275,7 +275,7 @@ public class TextEditingTests
         Dispatcher.UIThread.RunJobs();
         Assert.Equal("aces", session.TextEdit!.SelectedText);
         Assert.Equal(-1, Font().SelectedIndex);
-        Assert.Equal("(Multiple)", Font().PlaceholderText);
+        Assert.Equal("(多种)", Font().PlaceholderText);
         window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.Control);
         Dispatcher.UIThread.RunJobs();
         Assert.False(session.IsEditingText);
@@ -297,7 +297,7 @@ public class TextEditingTests
         Assert.True(session.IsModified);
         Assert.Equal("Keep", session.Document.Find(layer.Id)!.Text!.Text);
         var prompt = Assert.Single(window.OwnedWindows);
-        Assert.Equal("Unsaved Changes", prompt.Title);
+        Assert.Equal("未保存的更改", prompt.Title);
         prompt.Close();                                                  // Cancel: the window stays open.
         await Pump(() => window.OwnedWindows.Count == 0);
         Assert.True(window.IsVisible);
@@ -312,7 +312,7 @@ public class TextEditingTests
         Dispatcher.UIThread.RunJobs();
         var steps = session.History.Count;
 
-        PressSwatch("Text color");
+        PressSwatch("文字颜色");
         await Pump(() => window.OwnedWindows.Count > 0);
         var dialog = Assert.Single(window.OwnedWindows);
         dialog.GetVisualDescendants().OfType<ColorView>().First().Color = Avalonia.Media.Color.FromRgb(0x20, 0xC0, 0xFF);
@@ -324,7 +324,7 @@ public class TextEditingTests
         Assert.Equal(0xFF000000u, session.Document.Find(layer.Id)!.Text!.Color); // Cancel: back to its own color.
         Assert.Equal(steps, session.History.Count);                       // And no step left behind.
 
-        PressSwatch("Text color");
+        PressSwatch("文字颜色");
         await Pump(() => window.OwnedWindows.Count > 0);
         dialog = Assert.Single(window.OwnedWindows);
         dialog.GetVisualDescendants().OfType<ColorView>().First().Color = Avalonia.Media.Color.FromRgb(0x10, 0x80, 0x30);
@@ -337,7 +337,7 @@ public class TextEditingTests
         Assert.Equal(new SKColor(0x10, 0x80, 0x40), session.Foreground);   // OK: the text color is the foreground color.
         Assert.False(session.IsEditingText);
         Assert.Equal(steps + 1, session.History.Count);                   // The whole pick is one step.
-        Assert.Equal("Change Text Style", session.History.UndoName);
+        Assert.Equal("更改文字样式", session.History.UndoName);
         session.Undo();
         Assert.Equal(0xFF000000u, session.Document.Find(layer.Id)!.Text!.Color);
     }
@@ -359,8 +359,8 @@ public class TextEditingTests
         Assert.Equal(layer.Id, session.TextEditLayer!.Id);
         Assert.Equal(Tool.Text, session.Tool);
         Assert.Equal(5, session.TextEdit!.Caret);
-        var typeButton = window.GetVisualDescendants().OfType<ToggleButton>().Single(b => (ToolTip.GetTip(b) as string)?.StartsWith("Type", StringComparison.Ordinal) == true);
-        var moveButton = window.GetVisualDescendants().OfType<ToggleButton>().Single(b => (ToolTip.GetTip(b) as string)?.StartsWith("Move", StringComparison.Ordinal) == true);
+        var typeButton = window.GetVisualDescendants().OfType<ToggleButton>().Single(b => (ToolTip.GetTip(b) as string)?.StartsWith("文字", StringComparison.Ordinal) == true);
+        var moveButton = window.GetVisualDescendants().OfType<ToggleButton>().Single(b => (ToolTip.GetTip(b) as string)?.StartsWith("移动", StringComparison.Ordinal) == true);
         Assert.True(typeButton.IsChecked);
         Assert.False(moveButton.IsChecked);
         window.KeyTextInput("!");
@@ -368,7 +368,7 @@ public class TextEditingTests
         Assert.Equal("Hello!", session.TextEditLayer.Text!.Text);
         window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.Control);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal("Edit Text", session.History.UndoName);
+        Assert.Equal("编辑文字", session.History.UndoName);
     }
 
     [AvaloniaFact]
@@ -388,7 +388,7 @@ public class TextEditingTests
         Assert.Equal("Hello", layer.Text!.Text);
         Assert.Equal(61, layer.Text.Size);
         Assert.Same(box, window.FocusManager!.GetFocusedElement()); // The keyboard stays in the field.
-        Assert.Equal("Change Text Style", session.History.UndoName);
+        Assert.Equal("更改文字样式", session.History.UndoName);
         session.Undo();
         Assert.Equal(73, session.Document.Find(layer.Id)!.Text!.Size);
     }
@@ -410,7 +410,7 @@ public class TextEditingTests
         window.SelectTool(Tool.Move);
         Assert.False(session.IsEditingText);
         Assert.Equal("Oh Hello", session.Document.Find(layer.Id)!.Text!.Text);
-        Assert.Equal("Edit Text", session.History.UndoName);
+        Assert.Equal("编辑文字", session.History.UndoName);
         session.Undo();
         Assert.Equal("Hello", session.Document.Find(layer.Id)!.Text!.Text);
     }

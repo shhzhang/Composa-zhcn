@@ -77,10 +77,10 @@ public class DialogTests
         Dispatcher.UIThread.RunJobs();
         var dialog = window.OwnedWindows.Last();
         SliderField Field(string label) => dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == label);
-        Assert.Equal(13, Field("Hue").Track!.Count);                       // The hue circle.
-        Assert.Equal(SliderTracks.Lightness, Field("Lightness").Track);
-        Assert.All(new[] { "Hue", "Saturation", "Lightness" }, label => Assert.Equal(0, Field(label).Reset));
-        Assert.Equal(40, Field("Hue").Value);
+        Assert.Equal(13, Field("色相").Track!.Count);                       // The hue circle.
+        Assert.Equal(SliderTracks.Lightness, Field("明度").Track);
+        Assert.All(new[] { "色相", "饱和度", "明度" }, label => Assert.Equal(0, Field(label).Reset));
+        Assert.Equal(40, Field("色相").Value);
         dialog.Close();
         Dispatcher.UIThread.RunJobs();
 
@@ -88,11 +88,11 @@ public class DialogTests
         _ = AdjustmentDialogs.Edit(window, bw, reported.Add, null, SKColors.Black, SKColors.White);
         Dispatcher.UIThread.RunJobs();
         dialog = window.OwnedWindows.Last();
-        Assert.Equal(new BlackAndWhiteAdjustment().Reds, Field("Reds").Reset);
-        Assert.Equal(250, Field("Reds").Value);
-        var tintSaturation = Field("Saturation");
+        Assert.Equal(new BlackAndWhiteAdjustment().Reds, Field("红色").Reset);
+        Assert.Equal(250, Field("红色").Value);
+        var tintSaturation = Field("饱和度");
         Assert.Equal(SliderTracks.Saturation(200), tintSaturation.Track);
-        Field("Hue").Value = 30;                                            // Set from code: the track waits for the user's change.
+        Field("色相").Value = 30;                                            // Set from code: the track waits for the user's change.
         Assert.Equal(SliderTracks.Saturation(200), tintSaturation.Track);
         dialog.Close();
         Dispatcher.UIThread.RunJobs();
@@ -100,7 +100,7 @@ public class DialogTests
         _ = AdjustmentDialogs.Edit(window, new ColorBalanceAdjustment(), reported.Add, null, SKColors.Black, SKColors.White);
         Dispatcher.UIThread.RunJobs();
         dialog = window.OwnedWindows.Last();
-        var pairs = dialog.GetVisualDescendants().OfType<SliderField>().Where(f => f.Label == "Cyan / Red").ToList();
+        var pairs = dialog.GetVisualDescendants().OfType<SliderField>().Where(f => f.Label == "青色 / 红色").ToList();
         Assert.Equal(3, pairs.Count);
         Assert.All(pairs, f => { Assert.Equal(SliderTracks.CyanRed, f.Track); Assert.Equal(0, f.Reset); });
         dialog.Close();
@@ -203,11 +203,11 @@ public class CameraRawDialogTests
         var task = CameraRawDialog.Show(window, new CameraRawSettings { Exposure = 0.5 }, original, s => result = s, () => session.ActiveLayer?.Pixels);
         Dispatcher.UIThread.RunJobs();
         var dialog = Assert.Single(window.OwnedWindows);
-        Assert.Equal("Camera Raw Filter", dialog.Title);
+        Assert.Equal("Camera Raw 滤镜", dialog.Title);
         var groups = dialog.GetVisualDescendants().OfType<Expander>().ToList();
         Assert.Equal(9, groups.Count);
         var headers = groups.Select(g => ((Grid)g.Header!).Children.OfType<TextBlock>().Single().Text).ToList();
-        Assert.Equal(["Light", "Color", "Color Grading", "Effects", "Curve", "Color Mixer", "Detail", "Optics", "Calibration"], headers);
+        Assert.Equal(["光线", "颜色", "颜色分级", "效果", "曲线", "颜色混合器", "细节", "光学", "校准"], headers);
         Assert.True(groups[0].IsExpanded && groups[1].IsExpanded && groups[2].IsExpanded && !groups[3].IsExpanded); // Light, Color and Color Grading open, as upstream opens them.
         // The Light group's eye is shown because Exposure is set; clicking it renders without the group.
         var eye = ((Grid)groups[0].Header!).Children.OfType<Button>().Single();
@@ -217,12 +217,12 @@ public class CameraRawDialogTests
         groups[5].IsExpanded = groups[6].IsExpanded = true;                 // A collapsed group keeps its sliders out of the tree.
         Dispatcher.UIThread.RunJobs();
         var fields = dialog.GetVisualDescendants().OfType<SliderField>().ToList();
-        Assert.Equal(SliderTracks.Temperature, fields.Single(f => f.Label == "Temperature").Track);
-        Assert.Null(fields.Single(f => f.Label == "Exposure").Track);
-        Assert.Equal(0, fields.Single(f => f.Label == "Exposure").Reset);
-        Assert.Equal(0.5, fields.Single(f => f.Label == "Exposure").Value);
-        Assert.Equal(new CameraRawDetail().SharpenRadius, fields.Single(f => f.Label == "Radius").Reset);
-        Assert.Equal(SliderTracks.Hue(CameraRawMixer.Centers[3]), fields.Single(f => f.Label == "Greens").Track);
+        Assert.Equal(SliderTracks.Temperature, fields.Single(f => f.Label == "色温").Track);
+        Assert.Null(fields.Single(f => f.Label == "曝光度").Track);
+        Assert.Equal(0, fields.Single(f => f.Label == "曝光度").Reset);
+        Assert.Equal(0.5, fields.Single(f => f.Label == "曝光度").Value);
+        Assert.Equal(new CameraRawDetail().SharpenRadius, fields.Single(f => f.Label == "半径").Reset);
+        Assert.Equal(SliderTracks.Hue(CameraRawMixer.Centers[3]), fields.Single(f => f.Label == "绿色").Track);
         groups[5].IsExpanded = groups[6].IsExpanded = false;
         Dispatcher.UIThread.RunJobs();
         Screenshots.Save(dialog, "30-camera-raw");
@@ -236,7 +236,7 @@ public class CameraRawDialogTests
 
         // Through the menu, the grade previews live and commits as one undo step named after the filter.
         session.ApplyFilter(new FilterSettings { Kind = FilterKind.CameraRaw, CameraRaw = new CameraRawSettings { Exposure = 1 } });
-        Assert.Equal("Camera Raw Filter", session.History.UndoName);
+        Assert.Equal("Camera Raw 滤镜", session.History.UndoName);
         Assert.True(session.ActiveLayer!.Pixels!.GetPixel(10, 10).Red > 160);
         _ = result;
     }
@@ -254,9 +254,9 @@ public class CameraRawDialogTests
         // The default size is the 1080p preset; a typed size matching another preset selects that one, anything else is Custom.
         Assert.Equal("1080p", ((string)preset.SelectedItem!)[..5]);
         boxes[0].Value = 1080; boxes[1].Value = 1080;
-        Assert.StartsWith("Instagram Square", (string)preset.SelectedItem!);
+        Assert.StartsWith("Instagram 正方形", (string)preset.SelectedItem!);
         boxes[1].Value = 1081;
-        Assert.Equal("Custom", (string)preset.SelectedItem!);
+        Assert.Equal("自定义", (string)preset.SelectedItem!);
         // Choosing a preset fills in the size.
         preset.SelectedIndex = Array.FindIndex(CanvasDialogs.Presets, p => p.Name == "4K");
         Assert.Equal(3840, (double)boxes[0].Value!);
@@ -278,16 +278,16 @@ public class CameraRawDialogTests
         var preset = dialog.GetVisualDescendants().OfType<ComboBox>().First();
         var boxes = dialog.GetVisualDescendants().OfType<NumericUpDown>().ToList();
         Assert.Equal(0, preset.SelectedIndex);
-        Assert.Equal("Clipboard  1234 × 567", (string)preset.SelectedItem!);
+        Assert.Equal("剪贴板  1234 × 567", (string)preset.SelectedItem!);
         Assert.Equal((1234, 567), ((int)boxes[0].Value!, (int)boxes[1].Value!));
         Screenshots.Save(dialog, "15b-new-canvas-clipboard");
         // Another preset replaces the size; typing the clipboard's size again finds its entry, anything else is Custom.
         preset.SelectedIndex = preset.Items.Cast<string>().ToList().FindIndex(i => i.StartsWith("4K"));
         Assert.Equal((3840, 2160), ((int)boxes[0].Value!, (int)boxes[1].Value!));
         boxes[0].Value = 1234;
-        Assert.Equal("Custom", (string)preset.SelectedItem!);
+        Assert.Equal("自定义", (string)preset.SelectedItem!);
         boxes[1].Value = 567;
-        Assert.StartsWith("Clipboard", (string)preset.SelectedItem!);
+        Assert.StartsWith("剪贴板", (string)preset.SelectedItem!);
         dialog.Close(true);
         Dispatcher.UIThread.RunJobs();
         Assert.Equal((1234, 567), (task.Result!.Width, task.Result.Height));
@@ -302,7 +302,7 @@ public class CameraRawDialogTests
         Dispatcher.UIThread.RunJobs();
         var dialog = window.OwnedWindows.Last();
         var preset = dialog.GetVisualDescendants().OfType<ComboBox>().First();
-        Assert.DoesNotContain(preset.Items.Cast<string>(), i => i.StartsWith("Clipboard"));
+        Assert.DoesNotContain(preset.Items.Cast<string>(), i => i.StartsWith("剪贴板"));
         Assert.StartsWith("1080p", (string)preset.SelectedItem!);
         dialog.Close();
         Dispatcher.UIThread.RunJobs();
@@ -321,10 +321,10 @@ public class CameraRawDialogTests
             for (var i = 0; i < 5; i++) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
         }
 
-        Click("Copy Merged");
-        Click("New Canvas…");
+        Click("合并拷贝");
+        Click("新建画布…");
         var dialog = window.OwnedWindows.Last();
-        Assert.Equal("Clipboard  320 × 200", (string)dialog.GetVisualDescendants().OfType<ComboBox>().First().SelectedItem!);
+        Assert.Equal("剪贴板  320 × 200", (string)dialog.GetVisualDescendants().OfType<ComboBox>().First().SelectedItem!);
         dialog.Close(true);
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(2, window.Sessions.Count);
@@ -345,28 +345,28 @@ public class CameraRawDialogTests
         // A slider field carries a text box of its own for typing, and so does a combo box; the Characters box is the one outside them.
         List<TextBox> Boxes() => dialog.GetVisualDescendants().OfType<TextBox>().Where(t => !t.GetVisualAncestors().Any(a => a is SliderField or ComboBox)).ToList();
         // Atkinson: chunky pixels, tones and diffusion; no halftone cell, no characters.
-        Assert.Equal(["Pixel Size", "Tones", "Diffusion", "Density", "Contrast"], Labels());
+        Assert.Equal(["像素大小", "色阶数", "扩散", "密度", "对比度"], Labels());
         Assert.Empty(Boxes());
         Assert.Empty(dialog.GetVisualDescendants().OfType<CheckBox>()); // Tones have no marks to swap.
         Screenshots.Save(dialog, "32-dither");
         // Halftone: a cell size and an angle dial; the pixel shape row is enabled because the pixels are chunky.
         Combos()[0].SelectedIndex = DitherSettings.Groups.SelectMany(g => g).ToList().IndexOf(DitherStyle.HalftoneDots);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(["Pixel Size", "Cell Size", "Angle", "Density", "Contrast"], Labels());
+        Assert.Equal(["像素大小", "单元大小", "角度", "密度", "对比度"], Labels());
         Assert.Single(dialog.GetVisualDescendants().OfType<AngleDial>());
-        Assert.Equal("Light on Dark", dialog.GetVisualDescendants().OfType<CheckBox>().Single().Content);
-        var shape = Combos().Single(c => (c.SelectedItem as string) == "Square");
+        Assert.Equal("暗底亮纹", dialog.GetVisualDescendants().OfType<CheckBox>().Single().Content);
+        var shape = Combos().Single(c => (c.SelectedItem as string) == "方形");
         Assert.True(shape.IsEnabled);
-        dialog.GetVisualDescendants().OfType<SliderField>().First(f => f.Label == "Pixel Size").Value = 1;
+        dialog.GetVisualDescendants().OfType<SliderField>().First(f => f.Label == "像素大小").Value = 1;
         // ASCII: text size and the characters, at full resolution so no pixel size or shape.
         Combos()[0].SelectedIndex = DitherSettings.Groups.SelectMany(g => g).ToList().IndexOf(DitherStyle.Ascii);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(["Text Size", "Density", "Contrast"], Labels());
+        Assert.Equal(["文字大小", "密度", "对比度"], Labels());
         var characters = Boxes().Single();
         Assert.Equal(DitherSettings.DefaultCharacters, characters.Text);
         characters.Text = "#. ";
         // Two Colors adds the swatches beside the menu.
-        var colors = Combos().Single(c => (c.SelectedItem as string) == "Black & White");
+        var colors = Combos().Single(c => (c.SelectedItem as string) == "黑白");
         colors.SelectedIndex = (int)DitherColors.TwoColors;
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(2, dialog.GetVisualDescendants().OfType<Border>().Count(b => b.Width == 44 && b.Height == 24));

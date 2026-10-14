@@ -65,7 +65,7 @@ public class HistoryPanelTests
     [AvaloniaFact]
     public void The_panel_lists_every_step_under_the_layers_and_goes_back_several_at_once()
     {
-        Assert.Equal(["New Canvas", "Red", "New Layer", "Rectangular Marquee", "Blue", "Deselect"], Names());
+        Assert.Equal(["新建画布", "Red", "新建图层", "矩形选框", "Blue", "取消选择"], Names());
         Screenshots.Save(window, "40-history-panel");
 
         var restores = 0;
@@ -84,7 +84,7 @@ public class HistoryPanelTests
         Assert.Equal(2, session.Document.Layers.Count);
         session.Fill(SKColors.Green, "Green");
         Pump();
-        Assert.Equal(["New Canvas", "Red", "New Layer", "Rectangular Marquee", "Blue", "Green"], Names());
+        Assert.Equal(["新建画布", "Red", "新建图层", "矩形选框", "Blue", "Green"], Names());
     }
 
     [AvaloniaFact]
@@ -125,7 +125,7 @@ public class HistoryPanelTests
         Pump();
         Click(2);
         Assert.False(session.IsEditingText);
-        Assert.Equal("Text", session.History.Steps[^1].Name);
+        Assert.Equal("文字", session.History.Steps[^1].Name);
         Assert.Equal(2, session.History.CurrentIndex);
     }
 
@@ -134,7 +134,7 @@ public class HistoryPanelTests
     {
         session.MarkSaved(Path.Combine(Path.GetTempPath(), "history-panel.cmps"));
         Pump();
-        bool Marked(int row) => Rows()[row].GetVisualDescendants().OfType<Border>().Any(b => ToolTip.GetTip(b) is "This is the state in the file");
+        bool Marked(int row) => Rows()[row].GetVisualDescendants().OfType<Border>().Any(b => ToolTip.GetTip(b) is "这是文件中保存的状态");
         Assert.True(Marked(5));
         Assert.False(session.IsModified);
         Click(2);
@@ -151,22 +151,22 @@ public class HistoryPanelTests
         var other = EditorSession.NewCanvas(100, 100, SKColors.White);
         window.AddSession(other);
         Pump();
-        Assert.Equal(["New Canvas"], Names());
+        Assert.Equal(["新建画布"], Names());
         other.Fill(SKColors.Red);
         Pump();
-        Assert.Equal(["New Canvas", "Fill"], Names());
+        Assert.Equal(["新建画布", "填充"], Names());
     }
 
     [AvaloniaFact]
     public void The_window_menu_shows_and_hides_the_panel_and_the_header_collapses_it_and_both_are_remembered()
     {
-        Menu("History");
+        Menu("历史记录");
         Assert.Empty(window.GetVisualDescendants().OfType<HistoryPanel>());
         Assert.False(window.Settings.Dock["History"].Visible);
-        Menu("History");
+        Menu("历史记录");
         Assert.Single(window.GetVisualDescendants().OfType<HistoryPanel>());
 
-        var header = window.GetVisualDescendants().OfType<Border>().Single(b => ToolTip.GetTip(b) is "Collapse History");
+        var header = window.GetVisualDescendants().OfType<Border>().Single(b => ToolTip.GetTip(b) is "折叠 历史记录");
         var point = header.TranslatePoint(new Point(20, 10), window)!.Value;
         window.MouseDown(point, MouseButton.Left);
         window.MouseUp(point, MouseButton.Left);
@@ -179,17 +179,17 @@ public class HistoryPanelTests
     [AvaloniaFact]
     public void Every_step_gets_the_icon_of_what_it_did()
     {
-        Assert.Equal(Icons.Marquee, HistoryPanel.IconFor("Rectangular Marquee"));
-        Assert.Equal(Icons.Marquee, HistoryPanel.IconFor("Feather Selection"));
-        Assert.Equal(Icons.Marquee, HistoryPanel.IconFor("Color Range"));
-        Assert.Equal(Icons.Drop, HistoryPanel.IconFor("Blur"));
-        Assert.Equal(Icons.Effects, HistoryPanel.IconFor("Gaussian Blur"));
-        Assert.Equal(Icons.Effects, HistoryPanel.IconFor("Add Drop Shadow"));
-        Assert.Equal(Icons.Adjust, HistoryPanel.IconFor("Curves"));
-        Assert.Equal(Icons.Adjust, HistoryPanel.IconFor("New Adjustment Layer"));
-        Assert.Equal(Icons.Text, HistoryPanel.IconFor("Change Text Style"));
-        Assert.Equal(Icons.Mask, HistoryPanel.IconFor("Add Layer Mask"));
-        Assert.Equal(Icons.Crop, HistoryPanel.IconFor("Rotate Canvas 90° Clockwise"));
-        Assert.Equal(Icons.Layers, HistoryPanel.IconFor("Rename Layer"));
+        Assert.Equal(Icons.Marquee, HistoryPanel.IconFor("矩形选框"));
+        Assert.Equal(Icons.Marquee, HistoryPanel.IconFor("羽化选区"));
+        Assert.Equal(Icons.Marquee, HistoryPanel.IconFor("色彩范围"));
+        Assert.Equal(Icons.Drop, HistoryPanel.IconFor("模糊"));
+        Assert.Equal(Icons.Effects, HistoryPanel.IconFor("高斯模糊"));
+        Assert.Equal(Icons.Effects, HistoryPanel.IconFor("投影"));
+        Assert.Equal(Icons.Adjust, HistoryPanel.IconFor("曲线"));
+        Assert.Equal(Icons.Adjust, HistoryPanel.IconFor("新建调整图层"));
+        Assert.Equal(Icons.Text, HistoryPanel.IconFor("更改文字样式"));
+        Assert.Equal(Icons.Mask, HistoryPanel.IconFor("添加图层蒙版"));
+        Assert.Equal(Icons.Crop, HistoryPanel.IconFor("顺时针旋转画布 90°"));
+        Assert.Equal(Icons.Layers, HistoryPanel.IconFor("重命名图层"));
     }
 }

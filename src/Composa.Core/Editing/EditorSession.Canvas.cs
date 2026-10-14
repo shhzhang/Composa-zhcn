@@ -10,7 +10,7 @@ public enum Anchor { TopLeft, Top, TopRight, Left, Center, Right, BottomLeft, Bo
 public sealed partial class EditorSession
 {
     /// <summary>Crops (or extends) the canvas to a document-space rectangle. Layer pixels outside it are kept.</summary>
-    public void Crop(SKRectI rect, string name = "Crop")
+    public void Crop(SKRectI rect, string name = "裁剪")
     {
         rect = new SKRectI(rect.Left, rect.Top, rect.Left + Math.Clamp(rect.Width, 1, Document.MaxSide), rect.Top + Math.Clamp(rect.Height, 1, Document.MaxSide));
         if (rect == document.Bounds) return;
@@ -51,10 +51,10 @@ public sealed partial class EditorSession
         if (area == document.Bounds) return false;
         if (!DocumentLimits.FitsSurface(area.Width, area.Height))
         {
-            Problem?.Invoke($"Revealing every layer would make the canvas {area.Width:N0} × {area.Height:N0}, more than the {DocumentLimits.MaxSide:N0} pixels a side and {DocumentLimits.MaxSurfaceMegapixels} megapixels a canvas can be.");
+            Problem?.Invoke($"显示全部图层将使画布达到 {area.Width:N0} × {area.Height:N0}，超过了画布每边 {DocumentLimits.MaxSide:N0} 像素、总计 {DocumentLimits.MaxSurfaceMegapixels} 百万像素的上限。");
             return false;
         }
-        Crop(area, "Reveal All");
+        Crop(area, "显示全部");
         return true;
     }
 
@@ -65,7 +65,7 @@ public sealed partial class EditorSession
         var row = (int)anchor / 3;
         var left = column == 0 ? 0 : column == 1 ? dx / 2 : dx;
         var top = row == 0 ? 0 : row == 1 ? dy / 2 : dy;
-        Crop(new SKRectI(left, top, left + width, top + height), "Canvas Size");
+        Crop(new SKRectI(left, top, left + width, top + height), "画布大小");
     }
 
     /// <summary>
@@ -78,11 +78,11 @@ public sealed partial class EditorSession
         height = Math.Clamp(height, 1, Document.MaxSide);
         if (width == document.Width && height == document.Height)
         {
-            if (resolution is { } only && only != document.Resolution) Apply("Image Size", () => document.Resolution = Math.Clamp(only, 1, 9600));
+            if (resolution is { } only && only != document.Resolution) Apply("图像大小", () => document.Resolution = Math.Clamp(only, 1, 9600));
             return;
         }
         double sx = (double)width / document.Width, sy = (double)height / document.Height;
-        Apply("Image Size", () =>
+        Apply("图像大小", () =>
         {
             var scale = SKMatrix.CreateScale((float)sx, (float)sy);
             foreach (var layer in document.AllLayers())
@@ -172,7 +172,7 @@ public sealed partial class EditorSession
             : width < source.Width || height < source.Height
             ? new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear)
             : new SKSamplingOptions(SKCubicResampler.CatmullRom);
-        if (!source.ScalePixels(result, sampling)) throw new InvalidOperationException("The image could not be resampled.");
+        if (!source.ScalePixels(result, sampling)) throw new InvalidOperationException("无法重新取样图像。");
         return result;
     }
 
@@ -188,7 +188,7 @@ public sealed partial class EditorSession
 
     public void FlipCanvas(bool horizontally)
     {
-        Apply(horizontally ? "Flip Canvas Horizontal" : "Flip Canvas Vertical", () =>
+        Apply(horizontally ? "水平翻转画布" : "垂直翻转画布", () =>
         {
             var mirror = horizontally
                 ? SKMatrix.CreateScale(-1, 1, document.Width / 2f, 0)
@@ -210,7 +210,7 @@ public sealed partial class EditorSession
     public void RotateCanvas(bool clockwise)
     {
         int width = document.Width, height = document.Height;
-        Apply(clockwise ? "Rotate Canvas 90° Clockwise" : "Rotate Canvas 90° Counterclockwise", () =>
+        Apply(clockwise ? "顺时针旋转画布 90°" : "逆时针旋转画布 90°", () =>
         {
             // Clockwise: (x, y) → (height - y, x). Counterclockwise: (x, y) → (y, width - x).
             var turn = clockwise ? new SKMatrix(0, -1, height, 1, 0, 0, 0, 0, 1) : new SKMatrix(0, 1, 0, -1, 0, width, 0, 0, 1);
@@ -243,7 +243,7 @@ public sealed partial class EditorSession
     {
         var layers = SelectedRoots().SelectMany(r => Document.Flatten([r])).Where(l => l.Pixels != null).ToList();
         if (layers.Count == 0) return;
-        Apply("Rotate Layer", () =>
+        Apply("旋转图层", () =>
         {
             foreach (var layer in layers)
             {
@@ -262,7 +262,7 @@ public sealed partial class EditorSession
     {
         var layers = SelectedRoots().SelectMany(r => Document.Flatten([r])).Where(l => l.Pixels != null).ToList();
         if (layers.Count == 0) return;
-        Apply(horizontally ? "Flip Layer Horizontal" : "Flip Layer Vertical", () =>
+        Apply(horizontally ? "水平翻转图层" : "垂直翻转图层", () =>
         {
             foreach (var layer in layers)
             {

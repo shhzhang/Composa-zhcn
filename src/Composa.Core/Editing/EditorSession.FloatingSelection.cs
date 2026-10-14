@@ -23,7 +23,7 @@ public sealed partial class EditorSession
     public bool BeginMovePixels(bool duplicate)
     {
         if (!CanMovePixels || ActiveLayer is not { } layer) return false;
-        Begin(duplicate ? "Duplicate Selection" : "Move Selection Pixels");
+        Begin(duplicate ? "复制选区" : "移动选区像素");
         EnsureCoversCanvas(layer);
         var original = layer.Pixels!;
         using var selection = SelectionInLayerSpace(layer)!;

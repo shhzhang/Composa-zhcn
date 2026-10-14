@@ -76,10 +76,10 @@ public class ColorLookupUiTests
         Click(dialog, tiles[3]);
         await Settle(() => reported.Count > count);
         var picked = Assert.IsType<ColorLookupAdjustment>(reported.Last());
-        Assert.Equal(("Vivid Slide", Looks.Find("Vivid Slide")!.Id, 100d), (picked.Source, picked.LatticeId, picked.Amount));
+        Assert.Equal(("鲜艳反转片", Looks.Find("鲜艳反转片")!.Id, 100d), (picked.Source, picked.LatticeId, picked.Amount));
         Assert.Equal(Palette.Accent, tiles[3].BorderBrush);
         Assert.Equal(Brushes.Transparent, tiles[0].BorderBrush);
-        var amount = dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == "Amount");
+        var amount = dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == "数量");
         Assert.Equal(100, amount.Reset);
         Screenshots.Save(dialog, "29-color-lookup-picked");
         dialog.Close();
@@ -90,7 +90,7 @@ public class ColorLookupUiTests
         Pump();
         dialog = window.OwnedWindows.Last();
         Assert.Equal(Palette.Accent, Tiles(dialog)[3].BorderBrush);
-        Assert.Equal(40, dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == "Amount").Value);
+        Assert.Equal(40, dialog.GetVisualDescendants().OfType<SliderField>().Single(f => f.Label == "数量").Value);
         Assert.Equal(48, ((Avalonia.Media.Imaging.Bitmap)Tiles(dialog)[0].GetVisualDescendants().OfType<Image>().Single().Source!).PixelSize.Height);
         dialog.Close();
         Pump();
@@ -115,7 +115,7 @@ public class ColorLookupUiTests
             _ = AdjustmentDialogs.Edit(window, new ColorLookupAdjustment(), reported.Add, null, SKColors.Black, SKColors.White, () => picture, () => Task.FromResult<string?>(next));
             Pump();
             var dialog = window.OwnedWindows.Last();
-            Press(dialog, "Load File…");
+            Press(dialog, "载入文件…");
             await Settle(() => reported.Count > 1);
             var tiles = Tiles(dialog);
             Assert.Equal(5, tiles.Count);
@@ -130,11 +130,11 @@ public class ColorLookupUiTests
             // A file that cannot be read says which line, and the look stays what it was.
             next = broken;
             var before = reported.Count;
-            Press(dialog, "Load File…");
+            Press(dialog, "载入文件…");
             await Settle(() => window.OwnedWindows.Count > 1);
             var alert = window.OwnedWindows.Last();
             Assert.NotSame(dialog, alert);
-            Assert.Contains(alert.GetVisualDescendants().OfType<TextBlock>(), t => t.Text?.Contains("broken.cube could not be read. Line 3:") == true);
+            Assert.Contains(alert.GetVisualDescendants().OfType<TextBlock>(), t => t.Text?.Contains("broken.cube 无法读取。第 3 行：") == true);
             alert.Close();
             Pump();
             Assert.Equal(before, reported.Count);
@@ -142,14 +142,14 @@ public class ColorLookupUiTests
 
             // Loading another file replaces the file's tile rather than adding one.
             next = good;
-            Press(dialog, "Load File…");
+            Press(dialog, "载入文件…");
             await Settle(() => reported.Count > before);
             Assert.Equal(5, Tiles(dialog).Count);
 
             // Choosing nothing in the picker changes nothing.
             next = null!;
             var again = reported.Count;
-            Press(dialog, "Load File…");
+            Press(dialog, "载入文件…");
             for (var i = 0; i < 10; i++) { await Task.Delay(10); Dispatcher.UIThread.RunJobs(); }
             Assert.Equal(again, reported.Count);
             Assert.Equal(loaded.LatticeId, Assert.IsType<ColorLookupAdjustment>(reported.Last()).LatticeId);
@@ -174,14 +174,14 @@ public class ColorLookupUiTests
         var steps = session.History.Count;
 
         void NewLookupLayer() => window.GetLogicalDescendants().OfType<MenuItem>()
-            .Single(m => m.Header as string == "Color Lookup…" && (m.Parent as MenuItem)?.Header as string == "New Adjustment Layer")
+            .Single(m => m.Header as string == "颜色查找…" && (m.Parent as MenuItem)?.Header as string == "新建调整图层")
             .RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
 
         NewLookupLayer();
         Pump();
         var dialog = window.OwnedWindows.Last();
         Assert.Equal(2, session.Document.Layers.Count);                                       // the layer exists while the dialog is open
-        Press(dialog, "Cancel");
+        Press(dialog, "取消");
         Pump();
         Assert.Single(session.Document.Layers);
         Assert.Equal(steps, session.History.Count);
@@ -191,13 +191,13 @@ public class ColorLookupUiTests
         dialog = window.OwnedWindows.Last();
         Click(dialog, Tiles(dialog)[0]);
         await Settle(() => (session.Document.Layers[1].Adjustment as ColorLookupAdjustment)?.Lattice != null);   // the preview reached the layer
-        Press(dialog, "OK");
+        Press(dialog, "确定");
         Pump();
         var layer = session.Document.Layers[1];
-        Assert.Equal("Fine Mono", layer.Name);
-        Assert.Equal(Looks.Find("Fine Mono")!.Id, Assert.IsType<ColorLookupAdjustment>(layer.Adjustment).LatticeId);
+        Assert.Equal("精致黑白", layer.Name);
+        Assert.Equal(Looks.Find("精致黑白")!.Id, Assert.IsType<ColorLookupAdjustment>(layer.Adjustment).LatticeId);
         Assert.Equal(steps + 1, session.History.Count);
-        Assert.Equal("New Adjustment Layer", session.History.UndoName);
+        Assert.Equal("新建调整图层", session.History.UndoName);
         using var flat = Composa.Rendering.DocumentRenderer.Flatten(session.Document);
         var pixel = flat.GetPixel(10, 10);
         Assert.True(Math.Abs(pixel.Red - pixel.Green) <= 3 && Math.Abs(pixel.Green - pixel.Blue) <= 3, $"{pixel} should be neutral");
@@ -205,15 +205,15 @@ public class ColorLookupUiTests
 
         // The Image menu's command works on the pixels themselves and is one step named for the adjustment.
         session.SelectLayer(session.Document.Layers[0].Id);
-        window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "Color Lookup…" && (m.Parent as MenuItem)?.Header as string != "New Adjustment Layer")
+        window.GetLogicalDescendants().OfType<MenuItem>().Single(m => m.Header as string == "颜色查找…" && (m.Parent as MenuItem)?.Header as string != "新建调整图层")
             .RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Pump();
         dialog = window.OwnedWindows.Last();
         Assert.Equal(72 * 80 / 120, ((Avalonia.Media.Imaging.Bitmap)Tiles(dialog)[0].GetVisualDescendants().OfType<Image>().Single().Source!).PixelSize.Height);   // drawn on the layer
         Click(dialog, Tiles(dialog)[3]);
-        Press(dialog, "OK");
+        Press(dialog, "确定");
         Pump();
-        Assert.Equal("Color Lookup", session.History.UndoName);
+        Assert.Equal("颜色查找", session.History.UndoName);
         Assert.Equal(2, session.Document.Layers.Count);
     }
 }

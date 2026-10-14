@@ -245,7 +245,7 @@ public sealed partial class EditorSession
     public List<Layer> TransformTargets() =>
         SelectedRoots().SelectMany(r => Document.Flatten([r])).Where(l => l.Pixels != null).Distinct().ToList();
 
-    public TransformEdit? BeginTransform(string name = "Transform")
+    public TransformEdit? BeginTransform(string name = "变换")
     {
         var targets = TransformTargets();
         var maskOwners = SelectedRoots().SelectMany(r => Document.Flatten([r])).Where(l => l.Pixels == null && l.Mask != null).Distinct().ToList();
@@ -295,12 +295,12 @@ public sealed partial class EditorSession
     /// <summary>Nudges the selected layers with the arrow keys.</summary>
     public void Nudge(int dx, int dy)
     {
-        if (BeginTransform("Nudge") is not { } edit) return;
+        if (BeginTransform("轻移") is not { } edit) return;
         edit.MoveBy(dx, dy);
         CommitTransform();
     }
 
-    private const string InspectorEditName = "Transform";
+    private const string InspectorEditName = "变换";
     private (Guid LayerId, int Revision)? inspectorEdit;
 
     /// <summary>

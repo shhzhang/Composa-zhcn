@@ -37,9 +37,9 @@ public sealed class UpdateDownload(HttpMessageHandler? handler = null, TimeSpan?
     public async Task<DownloadResult> Run(ReleaseInfo release, ReleaseAsset asset, string folder, IProgress<DownloadProgress>? progress, CancellationToken cancel)
     {
         if (!ReleaseAsset.IsOwnAsset(asset.Url))
-            return Failed($"{asset.Name} does not come from Composa's own release page, so it was not downloaded.");
+            return Failed($"{asset.Name} 并非来自 Composa 的官方发布页，因此未下载。");
         if (release.Checksums is not { } sums || !ReleaseAsset.IsOwnAsset(sums.Url))
-            return Failed("This release has no list of checksums, so a download could not be checked. Download it from the release page instead.");
+            return Failed("此版本没有校验和列表，无法核验下载文件。请改为从发布页下载。");
 
         using var client = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
         client.Timeout = Timeout.InfiniteTimeSpan; // Stalls are caught instead; see StallTimeout.
@@ -53,7 +53,7 @@ public sealed class UpdateDownload(HttpMessageHandler? handler = null, TimeSpan?
             stall.CancelAfter(stallAfter);
             var listed = Checksums.Parse(await client.GetStringAsync(sums.Url, either.Token));
             if (!listed.TryGetValue(asset.Name, out var expected))
-                return Failed($"The release's list of checksums does not mention {asset.Name}, so it could not be checked. Download it from the release page instead.");
+                return Failed($"此版本的校验和列表未包含 {asset.Name}，无法核验。请改为从发布页下载。");
 
             // Nothing is asked of the network while files already there are hashed, which on a slow or
             // cloud-backed folder may take a while and is no stall.
@@ -72,7 +72,7 @@ public sealed class UpdateDownload(HttpMessageHandler? handler = null, TimeSpan?
                 actual = await Fetch(client, asset, file, progress, stall, either.Token, cancel);
             }
             if (actual != expected)
-                return Failed("The downloaded file did not match the release's checksum, so it was deleted. Try again, or download it from the release page.");
+                return Failed("下载的文件与发布版校验和不符，已将其删除。请重试，或从发布页下载。");
             await MoveIntoPlace(part, target);
             part = null;
             return new DownloadResult(DownloadOutcome.Downloaded, target);
@@ -83,7 +83,7 @@ public sealed class UpdateDownload(HttpMessageHandler? handler = null, TimeSpan?
         }
         catch (OperationCanceledException) when (stall.IsCancellationRequested)
         {
-            return Failed($"The download stalled: nothing arrived for {stallAfter.TotalSeconds:0} seconds. Try again later.");
+            return Failed($"下载停滞：已有 {stallAfter.TotalSeconds:0} 秒未收到任何数据。请稍后重试。");
         }
         catch (Exception error) when (Describe(error, folder) is { } problem)
         {
@@ -205,14 +205,14 @@ public sealed class UpdateDownload(HttpMessageHandler? handler = null, TimeSpan?
     public static string? Describe(Exception error, string folder) => error switch
     {
         HttpRequestException { StatusCode: HttpStatusCode.NotFound } =>
-            "GitHub no longer has this file. The release page may have a newer one.",
+            "GitHub 已不再提供此文件，发布页上可能有更新的版本。",
         HttpRequestException { StatusCode: { } status } =>
-            $"GitHub refused the download ({(int)status} {status}). Try again later.",
-        HttpRequestException => "Could not reach GitHub. Check the connection and try again.",
-        HttpIOException => "The connection broke off before the download finished. Try again.",
-        IOException io when IsDiskFull(io) => $"There is not enough space in {folder} for the download.",
-        UnauthorizedAccessException or DirectoryNotFoundException => $"Composa cannot write to {folder}.",
-        IOException io => $"Composa could not write the download to {folder}: {io.Message}",
+            $"GitHub 拒绝了下载（{(int)status} {status}）。请稍后重试。",
+        HttpRequestException => "无法连接到 GitHub。请检查网络连接后重试。",
+        HttpIOException => "连接在下载完成前中断。请重试。",
+        IOException io when IsDiskFull(io) => $"{folder} 的剩余空间不足以容纳下载内容。",
+        UnauthorizedAccessException or DirectoryNotFoundException => $"Composa 无法写入 {folder}。",
+        IOException io => $"Composa 无法将下载内容写入 {folder}：{io.Message}",
         _ => null,
     };
 

@@ -117,14 +117,24 @@ public sealed record GridAppearance
 
     public static string DisplayName(GridColorPreset preset) => preset switch
     {
-        GridColorPreset.LightGray => "Light Gray",
-        GridColorPreset.LightBlue => "Light Blue",
-        GridColorPreset.LightRed => "Light Red",
-        GridColorPreset.MediumBlue => "Medium Blue",
-        _ => preset.ToString()
+        GridColorPreset.LightGray => "浅灰",
+        GridColorPreset.LightBlue => "浅蓝",
+        GridColorPreset.LightRed => "浅红",
+        GridColorPreset.Green => "绿色",
+        GridColorPreset.MediumBlue => "中蓝",
+        GridColorPreset.Yellow => "黄色",
+        GridColorPreset.Magenta => "洋红",
+        GridColorPreset.Cyan => "青色",
+        GridColorPreset.Black => "黑色",
+        _ => "自定义"
     };
 
-    public static string DisplayName(GridStyle style) => style == GridStyle.DashedLines ? "Dashed Lines" : style.ToString();
+    public static string DisplayName(GridStyle style) => style switch
+    {
+        GridStyle.Lines => "实线",
+        GridStyle.DashedLines => "虚线",
+        _ => "点"
+    };
 
     /// <summary>On and off lengths of the major lines in screen points; empty for a solid line.</summary>
     public static float[] Dashes(GridStyle style) => style switch

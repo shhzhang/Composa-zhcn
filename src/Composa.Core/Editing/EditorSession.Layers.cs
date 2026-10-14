@@ -51,8 +51,8 @@ public sealed partial class EditorSession
 
     public Layer AddBlankLayer()
     {
-        var layer = Layer.Raster(document.UniqueName("Layer"), Pixels.NewColor(document.Width, document.Height));
-        Apply("New Layer", () => document.InsertAboveActive(layer));
+        var layer = Layer.Raster(document.UniqueName("图层"), Pixels.NewColor(document.Width, document.Height));
+        Apply("新建图层", () => document.InsertAboveActive(layer));
         LayersChanged?.Invoke();
         return layer;
     }
@@ -68,7 +68,7 @@ public sealed partial class EditorSession
         double w = pixels.Width * scale, h = pixels.Height * scale;
         var c = center ?? new SKPoint(document.Width / 2f, document.Height / 2f);
         layer.Transform = new LayerTransform { Width = w, Height = h, X = Math.Round(c.X - w / 2), Y = Math.Round(c.Y - h / 2) };
-        Apply("Add Image", () => document.InsertAboveActive(layer));
+        Apply("添加图像", () => document.InsertAboveActive(layer));
         Invalidate(AffectedArea(layer));
         LayersChanged?.Invoke();
         return layer;
@@ -79,7 +79,7 @@ public sealed partial class EditorSession
     {
         var layer = Layer.ForAdjustment(adjustment);
         layer.Name = document.UniqueName(adjustment.DisplayName);
-        Begin("New Adjustment Layer");
+        Begin("新建调整图层");
         document.InsertAboveActive(layer);
         if (document.Selection != null) layer.Mask = Pixels.Clone(document.Selection);
         if (commit) Commit();
@@ -99,7 +99,7 @@ public sealed partial class EditorSession
     {
         var roots = SelectedRoots();
         if (roots.Count == 0) return;
-        Apply(roots.Count > 1 ? "Delete Layers" : "Delete Layer", () =>
+        Apply(roots.Count > 1 ? "删除多个图层" : "删除图层", () =>
         {
             Guid? next = null;
             foreach (var layer in roots)
@@ -124,17 +124,17 @@ public sealed partial class EditorSession
     /// in their order, above the topmost original, as Photoshop's do. The copies end up selected, the copy of the
     /// active layer active.
     /// </summary>
-    public void DuplicateSelectedLayers(string name = "Duplicate Layer") => DuplicateLayers(SelectedRoots(), name);
+    public void DuplicateSelectedLayers(string name = "复制图层") => DuplicateLayers(SelectedRoots(), name);
 
     private void DuplicateLayers(List<Layer> roots, string name)
     {
         if (roots.Count == 0) return;
-        Apply(roots.Count > 1 && name == "Duplicate Layer" ? "Duplicate Layers" : name, () =>
+        Apply(roots.Count > 1 && name == "复制图层" ? "复制多个图层" : name, () =>
         {
             var copies = roots.Select(layer =>
             {
                 var copy = layer.Clone(newIds: true);
-                copy.Name = layer.Name + " copy";
+                copy.Name = layer.Name + " 拷贝";
                 return (Original: layer, Copy: copy);
             }).ToList();
             if (copies.Count == 1)
@@ -160,7 +160,7 @@ public sealed partial class EditorSession
     public void SetVisible(Layer layer, bool visible, bool undoable = true)
     {
         if (layer.Visible == visible) return;
-        if (undoable) Apply(visible ? "Show Layer" : "Hide Layer", () => layer.Visible = visible);
+        if (undoable) Apply(visible ? "显示图层" : "隐藏图层", () => layer.Visible = visible);
         else layer.Visible = visible;
         InvalidateAll();
         LayersChanged?.Invoke();
@@ -175,7 +175,7 @@ public sealed partial class EditorSession
     public void SetBlend(Layer layer, BlendMode blend)
     {
         if (layer.Blend == blend) return;
-        Apply("Blend Mode", () => layer.Blend = blend);
+        Apply("混合模式", () => layer.Blend = blend);
         Invalidate(AffectedArea(layer));
         LayersChanged?.Invoke();
     }
@@ -184,7 +184,7 @@ public sealed partial class EditorSession
     {
         name = name.Trim();
         if (name.Length == 0 || name == layer.Name) return;
-        Apply("Rename Layer", () => layer.Name = name);
+        Apply("重命名图层", () => layer.Name = name);
         LayersChanged?.Invoke();
     }
 
@@ -197,7 +197,7 @@ public sealed partial class EditorSession
     public void ToggleClippingMask(Layer layer)
     {
         if (!CanClip(layer)) return;
-        Apply(layer.Clipped ? "Release Clipping Mask" : "Create Clipping Mask", () => layer.Clipped = !layer.Clipped);
+        Apply(layer.Clipped ? "释放剪贴蒙版" : "创建剪贴蒙版", () => layer.Clipped = !layer.Clipped);
         InvalidateAll();
         LayersChanged?.Invoke();
     }
@@ -206,11 +206,11 @@ public sealed partial class EditorSession
     {
         var roots = SelectedRoots();
         if (roots.Count == 0) return;
-        Apply("Group Layers", () =>
+        Apply("图层编组", () =>
         {
             var top = roots[^1];
             var siblings = document.SiblingsOf(top.Id)!;
-            var group = Layer.Group(document.UniqueName("Folder"));
+            var group = Layer.Group(document.UniqueName("文件夹"));
             siblings.Insert(siblings.IndexOf(top) + 1, group);
             foreach (var layer in roots)
             {
@@ -234,7 +234,7 @@ public sealed partial class EditorSession
     public void Ungroup(Layer group)
     {
         if (!group.IsGroup) return;
-        Apply("Ungroup Layers", () =>
+        Apply("取消图层编组", () =>
         {
             var siblings = document.SiblingsOf(group.Id)!;
             var index = siblings.IndexOf(group);
@@ -258,7 +258,7 @@ public sealed partial class EditorSession
     {
         layers = layers.Where(l => target == null || (l.Id != target.Id && !Document.Flatten(l.Children).Any(c => c.Id == target.Id))).ToList();
         if (layers.Count == 0) return;
-        Apply("Reorder Layers", () =>
+        Apply("调整图层顺序", () =>
         {
             foreach (var layer in layers) document.SiblingsOf(layer.Id)!.Remove(layer);
             if (target == null) document.Layers.AddRange(layers);
@@ -285,7 +285,7 @@ public sealed partial class EditorSession
         var index = siblings.IndexOf(layer);
         var target = index + direction;
         if (target < 0 || target >= siblings.Count) return;
-        Apply("Reorder Layers", () =>
+        Apply("调整图层顺序", () =>
         {
             siblings.RemoveAt(index);
             siblings.Insert(target, layer);
@@ -300,8 +300,8 @@ public sealed partial class EditorSession
         get
         {
             var roots = SelectedRoots();
-            if (roots.Count > 1) return "Merge Layers";
-            return roots.Count == 1 && roots[0].IsGroup ? "Merge Group" : "Merge Down";
+            if (roots.Count > 1) return "合并图层";
+            return roots.Count == 1 && roots[0].IsGroup ? "合并组" : "向下合并";
         }
     }
 
@@ -350,7 +350,7 @@ public sealed partial class EditorSession
     /// </summary>
     public void MergeVisible()
     {
-        if (VisibleRoots() is { } roots) Merge("Merge Visible", roots);
+        if (VisibleRoots() is { } roots) Merge("合并可见图层", roots);
     }
 
     /// <summary>
@@ -359,9 +359,9 @@ public sealed partial class EditorSession
     /// </summary>
     public void StampVisible()
     {
-        Apply("Stamp Visible", () =>
+        Apply("盖印可见图层", () =>
         {
-            var stamp = Layer.Raster(document.UniqueName("Merged Layer"), DocumentRenderer.Flatten(document));
+            var stamp = Layer.Raster(document.UniqueName("合并的图层"), DocumentRenderer.Flatten(document));
             document.Layers.Add(stamp);
             document.SetActive(stamp.Id);
             TrimToContent(stamp);
@@ -418,9 +418,9 @@ public sealed partial class EditorSession
     /// <summary>Flattens everything into a single layer.</summary>
     public void FlattenImage()
     {
-        Apply("Flatten Image", () =>
+        Apply("拼合图像", () =>
         {
-            var merged = Layer.Raster("Background", DocumentRenderer.Flatten(document));
+            var merged = Layer.Raster("背景", DocumentRenderer.Flatten(document));
             document.Layers.Clear();
             document.Layers.Add(merged);
             document.SetActive(merged.Id);
@@ -459,7 +459,7 @@ public sealed partial class EditorSession
     public void AddMask(Layer layer, bool hideAll = false)
     {
         if (layer.Mask != null) return;
-        Apply("Add Layer Mask", () =>
+        Apply("添加图层蒙版", () =>
         {
             if (layer.Pixels == null)
                 layer.Mask = document.Selection != null ? Pixels.Clone(document.Selection) : Pixels.NewMask(document.Width, document.Height, hideAll ? (byte)0 : (byte)255);
@@ -475,7 +475,7 @@ public sealed partial class EditorSession
     public void DeleteMask(Layer layer)
     {
         if (layer.Mask == null) return;
-        Apply("Delete Layer Mask", () => layer.Mask = null);
+        Apply("删除图层蒙版", () => layer.Mask = null);
         EditingMask = false;
         Invalidate(AffectedArea(layer));
         LayersChanged?.Invoke();
@@ -485,7 +485,7 @@ public sealed partial class EditorSession
     public void ApplyMask(Layer layer)
     {
         if (layer.Mask == null || layer.Pixels == null) return;
-        Apply("Apply Layer Mask", () =>
+        Apply("应用图层蒙版", () =>
         {
             var pixels = Pixels.Clone(layer.Pixels);
             using (var canvas = new SKCanvas(pixels))
@@ -502,7 +502,7 @@ public sealed partial class EditorSession
     public void SetMaskEnabled(Layer layer, bool enabled)
     {
         if (layer.Mask == null || layer.MaskEnabled == enabled) return;
-        Apply(enabled ? "Enable Layer Mask" : "Disable Layer Mask", () => layer.MaskEnabled = enabled);
+        Apply(enabled ? "启用图层蒙版" : "停用图层蒙版", () => layer.MaskEnabled = enabled);
         Invalidate(AffectedArea(layer));
         LayersChanged?.Invoke();
     }

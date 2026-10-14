@@ -19,7 +19,7 @@ public sealed class ColorRangeWindow : DialogWindow
     private readonly Action refresh;
     private bool ending;
 
-    private ColorRangeWindow(EditorSession session, Control body, Action refresh) : base("Color Range", body)
+    private ColorRangeWindow(EditorSession session, Control body, Action refresh) : base("色彩范围", body)
     {
         this.session = session;
         this.refresh = refresh;
@@ -39,9 +39,9 @@ public sealed class ColorRangeWindow : DialogWindow
             var button = new ToggleButton { Classes = { "tool" }, Width = 36, Height = 26, Content = Eyedropper(mode) };
             ToolTip.SetTip(button, mode switch
             {
-                ColorRangeSample.Sample => "Click the image to select that color",
-                ColorRangeSample.Add => "Click the image to add that color to the selection (or Shift-click with any eyedropper)",
-                _ => "Click the image to take that color out of the selection (or Alt-click with any eyedropper)"
+                ColorRangeSample.Sample => "在图像上单击以选中该颜色",
+                ColorRangeSample.Add => "在图像上单击将该颜色加入选区（或按住 Shift 用任一吸管单击）",
+                _ => "在图像上单击将该颜色移出选区（或按住 Alt 用任一吸管单击）"
             });
             button.Click += (_, _) => session.SetColorRangeSampleMode(mode);
             buttons.Add((mode, button));
@@ -53,11 +53,11 @@ public sealed class ColorRangeWindow : DialogWindow
             Width = ColorRange.PreviewWidth, Height = ColorRange.PreviewHeight, Child = preview, HorizontalAlignment = HorizontalAlignment.Center
         };
         var hint = new TextBlock { Foreground = Palette.Secondary, FontSize = 12, TextWrapping = TextWrapping.Wrap, MaxWidth = ColorRange.PreviewWidth };
-        var fuzziness = Ui.SliderField("Fuzziness", ColorRange.DefaultFuzziness, ColorRange.MinFuzziness, ColorRange.MaxFuzziness,
+        var fuzziness = Ui.SliderField("容差", ColorRange.DefaultFuzziness, ColorRange.MinFuzziness, ColorRange.MaxFuzziness,
             v => session.SetColorRangeFuzziness((int)v), width: ColorRange.PreviewWidth, reset: ColorRange.DefaultFuzziness);
-        ToolTip.SetTip(fuzziness, "How far a color may be from the picked ones and still be selected");
-        var invert = Ui.Check("Invert", false, v => session.SetColorRangeInvert(v));
-        ToolTip.SetTip(invert, "Select everything except those colors, such as all but a green screen");
+        ToolTip.SetTip(fuzziness, "颜色与取样颜色接近到什么程度仍会被选中");
+        var invert = Ui.Check("反相", false, v => session.SetColorRangeInvert(v));
+        ToolTip.SetTip(invert, "选中除这些颜色以外的所有内容，例如绿幕以外的部分");
         var body = Ui.Column(12, Ui.Row(6, buttons.Select(b => (Control)b.Button).ToArray()), frame, hint, fuzziness, invert);
 
         void Refresh()
@@ -66,8 +66,8 @@ public sealed class ColorRangeWindow : DialogWindow
             foreach (var (mode, button) in buttons) button.IsChecked = mode == edit.SampleMode;
             preview.Source = edit.Preview == null ? null : Ui.ToAvaloniaBitmap(edit.Preview, ColorRange.PreviewWidth * 2);
             hint.Text = edit.HasColors
-                ? $"Shift-click adds a color, Alt-click takes one away. {edit.Count:N0} pixels selected."
-                : "Click the image to pick the color to select.";
+                ? $"按住 Shift 单击添加颜色，按住 Alt 单击移除颜色。已选中 {edit.Count:N0} 像素。"
+                : "在图像上单击以选取要选中的颜色。";
             fuzziness.Value = edit.Fuzziness;
             invert.IsChecked = edit.Invert;
         }

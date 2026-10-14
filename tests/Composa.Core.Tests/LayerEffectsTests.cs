@@ -27,7 +27,7 @@ public class LayerEffectsTests
         AssertColor(SKColors.Blue, flat.GetPixel(60, 95));                // Straight below the box: the shadow.
         AssertColor(SKColors.White, flat.GetPixel(60, 30));               // Nothing above it.
         AssertColor(SKColors.White, flat.GetPixel(20, 60));               // Nothing beside it.
-        Assert.Equal("Add Drop Shadow", session.History.UndoName);
+        Assert.Equal("添加 投影", session.History.UndoName);
         session.Undo();
         AssertColor(SKColors.White, session.Composite().GetPixel(60, 95));
     }
@@ -79,7 +79,7 @@ public class LayerEffectsTests
         }
         AssertColor(SKColors.White, flat.GetPixel(60, 12));               // Well beyond its reach.
         Assert.True(layer.VisibleBounds.Top < layer.Bounds.Top);
-        Assert.Equal("Add Outer Glow", session.History.UndoName);
+        Assert.Equal("添加 外发光", session.History.UndoName);
         session.SetEffects(layer, new LayerEffects { OuterGlow = new OuterGlowEffect { Size = 10, Color = 0xFF0000FF, Opacity = 1, Enabled = false } });
         AssertColor(SKColors.White, session.Composite().GetPixel(60, 37));
     }
@@ -100,7 +100,7 @@ public class LayerEffectsTests
         AssertColor(SKColors.Red, flat.GetPixel(60, 60), 8);              // The middle is barely touched.
         AssertColor(SKColors.White, flat.GetPixel(60, 37));               // Nothing spills outside.
         Assert.Equal(2, layer.Effects!.Margin());                          // An inside effect needs no room around the layer.
-        Assert.Equal("Add Inner Glow", session.History.UndoName);
+        Assert.Equal("添加 内发光", session.History.UndoName);
         session.SetEffects(layer, new LayerEffects { InnerGlow = new InnerGlowEffect { Size = 12, Color = 0xFF0000FF, Opacity = 1, Enabled = false } });
         AssertColor(SKColors.Red, session.Composite().GetPixel(60, 41));
     }

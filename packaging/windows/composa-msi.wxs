@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Composa 的 Windows x64 MSI 安装包定义。构建方式（在仓库根目录）：
+
+  1. 发布自包含版本（self-contained，参数细节见 scripts/package/windows.sh）：
+     dotnet publish src/Composa.App -c Release -r win-x64 -p:DebugType=none -p:UpdateChannel=github -o build/msi/publish
+
+  2. 打 MSI：
+     wix build -arch x64 -culture zh-CN -ext WixToolset.UI.wixext -d PublishDir=build/msi/publish -d ProductVersion=1.4.0 -out build/msi/Composa-1.4.0-CN-win-x64.msi packaging/windows/composa-msi.wxs
+
+  PublishDir 是发布输出目录，必须已带上 models/*.onnx、THIRD-PARTY-NOTICES.txt 与
+  ImageMagick-NOTICE.txt（发布本身会带上，脚本会在构建后校验）。
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <!-- ProductName 里带上 -CN，控制面板的「程序和功能」才看得出这是中文版；ProductVersion 必须纯数字。 -->
+  <Package Name="Composa $(var.ProductVersion)-CN"
+           Manufacturer="SHHZHANG"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="3D9BED7E-2C94-450E-A609-E183B1E42ACB"
+           Scope="perMachine"
+           Compressed="yes"
+           Language="2052"
+           Codepage="936">
+
+    <MajorUpgrade DowngradeErrorMessage="已安装了更新版本的 [ProductName]，无法安装旧版本。" />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="ComposaIcon" SourceFile="$(var.PublishDir)\composa.exe" />
+    <Property Id="ARPPRODUCTICON" Value="ComposaIcon" />
+    <!-- 中文试用版的发布者是 Shhzhang，原作者的 issue 跟踪不负责这个包，所以只留项目主页作署名。 -->
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/dvdstelt/Composa" />
+    <Property Id="ARPCOMMENTS" Value="Vibing Coding 翻译的中文试用版，责任作者 Shhzhang；开源协议与原项目一致（MIT）。" />
+
+    <Launch Condition="Installed OR VersionNT &gt;= 601"
+            Message="[ProductName] 需要 Windows 10 或更高版本。" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="$(sys.SOURCEFILEDIR)\license.rtf" />
+    <!--
+      WixUI_FeatureTree 用「功能选择」页取代了 WixUI_InstallDir 的「安装位置」页，桌面快捷方式才有一
+      个可以取消的勾选框：MSI 的完成页出现在安装动作之后，放在那里的复选框读不到，创建不了快捷方式。
+      安装目录仍可在功能选择页用「浏览…」改，默认仍是 Program Files\Composa。
+    -->
+    <ui:WixUI Id="WixUI_FeatureTree" InstallDirectory="INSTALLFOLDER" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="Composa" />
+    </StandardDirectory>
+    <!-- 桌面：per-machine 安装时解析成「公用桌面」。 -->
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature Id="Main" Title="Composa" Description="应用程序本体、文件关联与开始菜单快捷方式（必装）。"
+             Level="1" AllowAbsent="no" ConfigurableDirectory="INSTALLFOLDER">
+      <Files Include="$(var.PublishDir)\**" Directory="INSTALLFOLDER" />
+      <Component Id="ProgramMenuShortcut" Guid="8B2F5C9F-3D4E-4F6A-0B1C-2D3E4F5A6B7C" Directory="ApplicationProgramsFolder">
+        <Shortcut Id="ComposaProgramMenu"
+                  Name="Composa CN"
+                  Description="基于图层的图像编辑器"
+                  Target="[INSTALLFOLDER]composa.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKMU" Key="Software\Composa" Name="ProgramMenuShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+      <Component Id="FileAssociations" Guid="9C3F6D0A-4E5F-4A7B-1C2D-3E4F5A6B7C8D" Directory="INSTALLFOLDER">
+        <!-- .cmps 是 Composa 自己的项目格式，成为它的默认打开方式；图片只进「打开方式」列表，不抢默认。 -->
+        <RegistryValue Root="HKMU" Key="Software\Classes\.cmps" Value="Composa.Project" Type="string" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.cmps\OpenWithProgids" Name="Composa.Project" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Composa.Project" Value="Composa 项目" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Composa.Project\DefaultIcon" Value="[INSTALLFOLDER]composa.exe,0" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Composa.Project\shell\open\command"
+                       Value="&quot;[INSTALLFOLDER]composa.exe&quot; &quot;%1&quot;" Type="string" />
+
+        <RegistryValue Root="HKMU" Key="Software\Classes\Composa.Image" Value="图像" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Composa.Image\DefaultIcon" Value="[INSTALLFOLDER]composa.exe,0" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Composa.Image\shell\open\command"
+                       Value="&quot;[INSTALLFOLDER]composa.exe&quot; &quot;%1&quot;" Type="string" />
+
+        <RegistryValue Root="HKMU" Key="Software\Classes\.png\OpenWithProgids"  Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.jpg\OpenWithProgids"  Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.jpeg\OpenWithProgids" Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.webp\OpenWithProgids" Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.bmp\OpenWithProgids"  Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.gif\OpenWithProgids"  Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.tif\OpenWithProgids"  Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.tiff\OpenWithProgids" Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.heic\OpenWithProgids" Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.heif\OpenWithProgids" Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.avif\OpenWithProgids" Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.svg\OpenWithProgids"  Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.psd\OpenWithProgids"  Name="Composa.Image" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.psb\OpenWithProgids"  Name="Composa.Image" Value="" Type="string" />
+
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\composa.exe" Name="FriendlyAppName" Value="Composa" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\composa.exe\shell\open\command"
+                       Value="&quot;[INSTALLFOLDER]composa.exe&quot; &quot;%1&quot;" Type="string" />
+      </Component>
+    </Feature>
+
+    <!--
+      「功能选择」页上的第二个勾选框：默认勾上，取消就不建桌面快捷方式。快捷方式由 MSI 原生的
+      Shortcut 表在执行阶段创建，所以它只能挂在一个功能（组件）上，勾选状态在 CostFinalize 时读取。
+    -->
+    <Feature Id="DesktopShortcut" Title="创建桌面快捷方式"
+             Description="在桌面放置「Composa CN」快捷方式。" Level="1" AllowAbsent="yes">
+      <Component Id="DesktopShortcut" Guid="A4D7E2C5-5F6A-4B8C-2D3E-4F5A6B7C8D9E" Directory="DesktopFolder">
+        <Shortcut Id="ComposaDesktop"
+                  Name="Composa CN"
+                  Description="基于图层的图像编辑器"
+                  Target="[INSTALLFOLDER]composa.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKMU" Key="Software\Composa" Name="DesktopShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </Feature>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="Composa" />
+    </StandardDirectory>
+
+  </Package>
+</Wix>

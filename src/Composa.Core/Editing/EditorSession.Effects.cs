@@ -30,7 +30,7 @@ public sealed partial class EditorSession
             LayerEffectKind.InnerGlow => effects with { InnerGlow = new InnerGlowEffect() },
             _ => effects with { InnerShadow = new ShadowEffect { Distance = 10, Blur = 10 } }
         };
-        Begin("Add " + LayerEffects.DisplayName(kind));
+        Begin("添加 " + LayerEffects.DisplayName(kind));
         SetEffects(layer, effects);
         if (commit) Commit();
         SelectedEffect = (layer.Id, kind);
@@ -51,14 +51,14 @@ public sealed partial class EditorSession
     {
         if (layer.Effects is not { } effects || !effects.Contains(kind)) return;
         var enabled = effects.IsEnabled(kind);
-        Apply((enabled ? "Hide " : "Show ") + LayerEffects.DisplayName(kind), () => SetEffects(layer, effects.WithEnabled(kind, !enabled)));
+        Apply((enabled ? "隐藏 " : "显示 ") + LayerEffects.DisplayName(kind), () => SetEffects(layer, effects.WithEnabled(kind, !enabled)));
         LayersChanged?.Invoke();
     }
 
     public void RemoveEffect(Layer layer, LayerEffectKind kind)
     {
         if (layer.Effects is not { } effects || !effects.Contains(kind)) return;
-        Apply("Remove " + LayerEffects.DisplayName(kind), () => SetEffects(layer, effects.Without(kind)));
+        Apply("移除 " + LayerEffects.DisplayName(kind), () => SetEffects(layer, effects.Without(kind)));
         if (SelectedEffect is { } selected && selected.LayerId == layer.Id && selected.Kind == kind) SelectedEffect = null;
         LayersChanged?.Invoke();
     }
@@ -78,7 +78,7 @@ public sealed partial class EditorSession
     public void CopyEffect(LayerEffectKind kind, Layer from, Layer to)
     {
         if (!CanCopyEffect(kind, from, to)) return;
-        Apply("Copy " + LayerEffects.DisplayName(kind), () => SetEffects(to, (to.Effects ?? LayerEffects.Empty).WithFrom(kind, from.Effects!)));
+        Apply("复制 " + LayerEffects.DisplayName(kind), () => SetEffects(to, (to.Effects ?? LayerEffects.Empty).WithFrom(kind, from.Effects!)));
         SelectedEffect = (to.Id, kind);
         LayersChanged?.Invoke();
     }

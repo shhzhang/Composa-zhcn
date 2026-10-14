@@ -50,8 +50,8 @@ public sealed class AngleDial : Control
         Width = Height = DefaultSize;
         Focusable = true;
         Cursor = new Cursor(StandardCursorType.Hand);
-        var what = style == AngleDialStyle.Line ? "The line is the direction; the dot marks the end the number counts towards" : "The hand points at the light; the shadow falls the other way";
-        ToolTip.SetTip(this, what + "\nDrag to turn it · Shift snaps to 15° · Arrow keys or scroll wheel turn by 1°");
+        var what = style == AngleDialStyle.Line ? "线条表示方向，圆点标出数值计向的一端" : "指针指向光源，阴影落在相反方向";
+        ToolTip.SetTip(this, what + "\n拖动可旋转 · Shift 吸附到 15° · 方向键或滚轮按 1° 旋转");
         ToolTip.SetShowDelay(this, 450);
     }
 

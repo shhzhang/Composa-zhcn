@@ -48,9 +48,9 @@ public sealed class RawImage
     public static RawImage ParsePam(byte[] data)
     {
         var header = Encoding.ASCII.GetString(data, 0, Math.Min(data.Length, 512));
-        if (!header.StartsWith("P7", StringComparison.Ordinal)) throw new InvalidDataException("The decoded frame was not in the expected format.");
+        if (!header.StartsWith("P7", StringComparison.Ordinal)) throw new InvalidDataException("解码后的帧不是预期的格式。");
         var end = header.IndexOf("ENDHDR\n", StringComparison.Ordinal);
-        if (end < 0) throw new InvalidDataException("The decoded frame was not in the expected format.");
+        if (end < 0) throw new InvalidDataException("解码后的帧不是预期的格式。");
         int width = 0, height = 0, depth = 0, maxValue = 0;
         foreach (var line in header[..end].Split('\n'))
         {
@@ -64,12 +64,12 @@ public sealed class RawImage
                 case "MAXVAL": maxValue = int.Parse(parts[1]); break;
             }
         }
-        if (width <= 0 || height <= 0 || depth is not (3 or 4) || maxValue is not (255 or 65535)) throw new InvalidDataException("The decoded frame was not in the expected format.");
+        if (width <= 0 || height <= 0 || depth is not (3 or 4) || maxValue is not (255 or 65535)) throw new InvalidDataException("解码后的帧不是预期的格式。");
         if (!Model.DocumentLimits.FitsSurface(width, height))
-            throw new InvalidDataException($"The image is larger than the supported {Model.DocumentLimits.MaxSide:N0} pixels a side and {Model.DocumentLimits.MaxSurfaceMegapixels} megapixels.");
+            throw new InvalidDataException($"图像超出了支持的每边 {Model.DocumentLimits.MaxSide:N0} 像素、{Model.DocumentLimits.MaxSurfaceMegapixels} 百万像素上限。");
         var bytesPerSample = maxValue == 65535 ? 2 : 1;
         var offset = end + "ENDHDR\n".Length;
-        if (data.Length - offset < (long)width * height * depth * bytesPerSample) throw new InvalidDataException("The decoded frame was cut short.");
+        if (data.Length - offset < (long)width * height * depth * bytesPerSample) throw new InvalidDataException("解码后的帧不完整。");
         var samples = new ushort[(long)width * height * 3];
         var read = offset;
         for (long pixel = 0, i = 0; pixel < (long)width * height; pixel++)
@@ -159,7 +159,7 @@ public static class RawImporter
     public static RawImage Decode(string path)
     {
         var decoded = ImageMagick.Convert(path, ImageMagickOutput.Pam16)
-            ?? throw new InvalidDataException($"{Path.GetFileName(path)} is a camera RAW file. Opening one needs ImageMagick (with its LibRaw delegate), which is not installed.");
+            ?? throw new InvalidDataException($"{Path.GetFileName(path)} 是相机 RAW 文件。打开它需要安装 ImageMagick（含 LibRaw 委托），而当前未安装。");
         return RawImage.ParsePam(decoded);
     }
 }

@@ -38,7 +38,7 @@ public class SavingTests
             Assert.True(window.IsSaving(session));
             Assert.True(session.IsModified);                                 // Nothing counts as saved until the file is written.
             session.Fill(SKColors.Blue);                                     // Editing goes on while the file writes.
-            Assert.Equal("Fill", session.History.UndoName);
+            Assert.Equal("填充", session.History.UndoName);
             await Pump(() => !window.IsSaving(session));
             Assert.True(File.Exists(path));
             Assert.True(session.IsModified);                                 // The blue fill came after the snapshot.
