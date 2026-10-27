@@ -136,6 +136,11 @@ public static string DefaultFamily => OperatingSystem.IsWindows() ? "Microsoft Y
 
 只要调用方给了值就不再插手 —— 命令行 `-p:MinVerVersionOverride=` 与 CI 写进环境的同名变量优先级都更高，发布时照旧由标签决定版本。
 
+`-R1` 带来一个打包上的连带问题：RPM 的 `Release` 字段不接受连字符，`1.4.0-CN-R1` 直接让 `rpmbuild` 报
+`Illegal char '-'`。已在 `scripts/package/common.sh` 里处理：RPM 取 version `1.4.0` + release `0.CN.R1`；
+Debian 只把第一个 `-` 换成 `~`、其余换成 `.`，得到 `1.4.0~CN.R1` —— 排在 `1.4.0~CN` 之后、`1.4.0` 之前，
+升级顺序正确。
+
 实际产物（有仓库时 MinVer 还会追加提交哈希作为 build metadata，`AppInfo.Version` 在 `+` 处截断）：
 
 ```

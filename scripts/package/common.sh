@@ -73,11 +73,26 @@ app_version() {
 # Debian and RPM both reject a '-' in a version, which every pre-release from MinVer contains.
 # 0.2.1-alpha.0.7 becomes 0.2.1~alpha.0.7 for dpkg, which sorts it *before* 0.2.1 as intended,
 # and 0.2.1 with release 0.alpha.0.7 for rpm, which is that ecosystem's equivalent.
-deb_version() { echo "${1/-/\~}"; }
+#
+# A version carrying more than one '-' (the Chinese edition's 1.4.0-CN-R1) keeps the pre-release
+# mark on the first and turns the rest into dots: 1.4.0~CN.R1 sorts after 1.4.0~CN and still before
+# 1.4.0, which is exactly what an added revision of the same pre-release should do. An rpm Release
+# field takes no '-' at all, so 1.4.0-CN-R1 becomes version 1.4.0 with release 0.CN.R1.
+deb_version() {
+  case "$1" in
+    *-*) printf '%s~%s\n' "${1%%-*}" "$(printf '%s' "${1#*-}" | tr '-' '.')" ;;
+    *)   echo "$1" ;;
+  esac
+}
 # Windows file version resources hold four numbers and nothing else.
 win_file_version() { echo "${1%%-*}.0"; }
 rpm_version() { echo "${1%%-*}"; }
-rpm_release() { case "$1" in *-*) echo "0.${1#*-}" ;; *) echo 1 ;; esac; }
+rpm_release() {
+  case "$1" in
+    *-*) printf '0.%s\n' "$(printf '%s' "${1#*-}" | tr '-' '.')" ;;
+    *)   echo 1 ;;
+  esac
+}
 
 # Paths given on the command line may be relative, and several of these scripts cd elsewhere before
 # using them. Resolving once up front is the difference between writing the package where it was

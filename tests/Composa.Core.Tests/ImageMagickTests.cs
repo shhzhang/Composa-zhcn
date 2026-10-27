@@ -91,7 +91,7 @@ public class ImageMagickTests
             Assert.Equal(0, fitted.GetPixel(4, 4).Alpha);
             using var shrunk = SvgImporter.Render(path, new SKSizeI(20, 40));
             Assert.Equal((20, 10), (shrunk.Width, shrunk.Height));
-            Assert.Contains("room", Assert.Throws<InvalidDataException>(() => SvgImporter.Render(path, null, remainingPixels: 100)).Message);
+            Assert.Contains("超出文档可容纳的大小", Assert.Throws<InvalidDataException>(() => SvgImporter.Render(path, null, remainingPixels: 100)).Message);
         }
         finally { TempFiles.Delete(path); }
     }
