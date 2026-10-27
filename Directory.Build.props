@@ -23,8 +23,22 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- 中文版对外显示的版本号在原版号后加这个后缀：1.4.0 变 1.4.0-CN。 -->
-    <ChineseEditionSuffix>-CN</ChineseEditionSuffix>
+    <!--
+      中文版对外显示的版本号在原版号后加这个后缀：1.4.0 变 1.4.0-CN-R1。
+      -R1 是本版自己的修订号：上游没有这个东西，它只用来区分同一上游版本下先后打包的几次中文修正。
+    -->
+    <ChineseEditionSuffix>-CN-R1</ChineseEditionSuffix>
+  </PropertyGroup>
+
+  <!--
+    本版的版本号钉在这里，而不是交给 MinVer 从标签推：本仓库的中文版标签长成 1.4.0-CN，
+    没有 MinVer 认的 v 前缀，它推不出来（官方发布流程也是显式把版本传进来覆盖它）。
+    所以默认钉 1.4.0，让 InformationalVersion 定成 1.4.0-CN-R1。
+    只要调用方给了值就不再插手：命令行 -p:、CI 写进环境的 MinVerVersionOverride 优先级都更高，
+    发布时照旧由标签决定版本。
+  -->
+  <PropertyGroup Condition="'$(MinVerVersionOverride)' == ''">
+    <MinVerVersionOverride>1.4.0</MinVerVersionOverride>
   </PropertyGroup>
 
   <!--

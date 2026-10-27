@@ -16,7 +16,7 @@ On Linux the XDG environment variables are honoured if you set them. The pipe an
 
 ## Updates
 
-**Withdrawn in this edition.** The Chinese trial edition ships without update checking at all: Help > Check for Updates and its automatic counterpart are still in the menu but greyed out, and nothing reaches the network at launch. This build calls itself `1.4.0-CN`, which reads as a pre-release of the upstream `1.4.0`, so an offered update would announce the original English build as newer — and installing it would replace this one. The feed address behind the check points at `http://localhost` as well, so nothing is fetched even if the check is reached some other way. `UpdateCheck.Offered` records the three things to put back.
+**Withdrawn in this edition.** The Chinese trial edition ships without update checking at all: Help > Check for Updates and its automatic counterpart are still in the menu but greyed out, and nothing reaches the network at launch. This build calls itself `1.4.0-CN-R1`, which reads as a pre-release of the upstream `1.4.0`, so an offered update would announce the original English build as newer — and installing it would replace this one. The feed address behind the check points at `http://localhost` as well, so nothing is fetched even if the check is reached some other way. `UpdateCheck.Offered` records the three things to put back.
 
 Everything below describes how updates work upstream, and is what returns once this edition has a release feed of its own.
 

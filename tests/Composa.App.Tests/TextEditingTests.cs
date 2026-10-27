@@ -5,6 +5,7 @@ using Avalonia.VisualTree;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Input.TextInput;
 using Avalonia.Threading;
 using Composa.Editing;
 using Composa.Model;
@@ -413,5 +414,134 @@ public class TextEditingTests
         Assert.Equal("编辑文字", session.History.UndoName);
         session.Undo();
         Assert.Equal("Hello", session.Document.Find(layer.Id)!.Text!.Text);
+    }
+
+    /// <summary>The platform only turns its IME on for a focused element that returns a client, so the canvas has to offer one while text is open and no longer.</summary>
+    [AvaloniaFact]
+    public void The_canvas_offers_an_input_method_client_only_while_text_is_open()
+    {
+        // Opening and closing an edit has to ask the platform again: it is the request that switches the IME on or off.
+        var asked = 0;
+        window.AddHandler(InputMethod.TextInputMethodClientRequeryRequestedEvent, (_, _) => asked++);
+        Assert.Null(InputMethodClient());
+        Click(80, 120);
+        Assert.True(session.IsEditingText);
+        Assert.True(asked > 0, "opening the text asked the platform for a client again");
+        var client = InputMethodClient();
+        Assert.NotNull(client);
+        Assert.Same(window.Canvas, client!.TextViewVisual);
+        Assert.True(client.SupportsPreedit);
+        Assert.True(client.SupportsSurroundingText);
+        Assert.Equal("", client.SurroundingText);
+
+        window.KeyTextInput("abc");
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("abc", client.SurroundingText);
+        Assert.Equal(new TextSelection(3, 3), client.Selection);
+
+        // The caret rectangle is in canvas units and sits where the caret is drawn, which is what Windows places
+        // the candidate window against.
+        var caret = client.CursorRectangle;
+        var (caretX, caretTop, _) = session.TextEdit!.Layout.CaretAt(3);
+        var expected = window.Canvas.ToScreen(session.TextEditLayer!.Matrix.MapPoint(caretX, caretTop));
+        Assert.Equal(expected.X, caret.X, 2d);
+        Assert.Equal(expected.Y, caret.Y, 2d);
+        Assert.True(caret.Height > 0);
+
+        session.FinishText();
+        Assert.Null(InputMethodClient());
+
+        // Ctrl+Enter closes through the canvas, which is what tells the platform to take the IME away again.
+        Click(80, 120);
+        Assert.NotNull(InputMethodClient());
+        var before = asked;
+        window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.Control);
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(session.IsEditingText);
+        Assert.True(asked > before, "closing the text asked the platform again");
+        Assert.Null(InputMethodClient());
+    }
+
+    /// <summary>While an input method is composing, the keys pick candidates and commit: handling them as typing would put a space in the middle of the composition.</summary>
+    [AvaloniaFact]
+    public void Keys_belong_to_the_input_method_while_it_is_composing()
+    {
+        Click(80, 120);
+        var editor = session.TextEdit!;
+        var client = InputMethodClient()!;
+        client.SetPreeditText("zhong", 0);
+        Dispatcher.UIThread.RunJobs();
+        window.KeyPressQwerty(PhysicalKey.Space, RawInputModifiers.None);
+        window.KeyPressQwerty(PhysicalKey.Digit1, RawInputModifiers.None);
+        window.KeyPressQwerty(PhysicalKey.Backspace, RawInputModifiers.None);
+        window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("", editor.Text);
+        Assert.True(session.IsEditingText);
+
+        // Committing is an ordinary text input: the input method sends the word and clears its composition.
+        window.KeyTextInput("中文");
+        client.SetPreeditText(null, null);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("中文", editor.Text);
+        Assert.Equal(2, editor.Caret);
+        // With nothing composing, the keys are the editor's again.
+        window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("中文\n", editor.Text);
+    }
+
+    /// <summary>The half-typed string is drawn where the commit will land, and stays out of the document until it is committed.</summary>
+    [AvaloniaFact]
+    public void The_composition_is_drawn_in_place_but_not_typed_into_the_document()
+    {
+        session.TextDefaults = new TextStyle { FontFamily = TextStyle.DefaultFamily, Size = 48 };
+        Click(80, 120);
+        var layer = session.TextEditLayer!;
+        var client = InputMethodClient()!;
+        var before = Shot();
+        client.SetPreeditText("zhong", 5);
+        var composing = Shot();
+        Assert.True(Differing(before, composing) > 200, "the composition is drawn");
+        Assert.Equal("", layer.Text!.Text);
+        Assert.Equal("", session.TextEdit!.Text);
+        Screenshots.Save(window, "87-text-composition");
+
+        // Committing replaces the drawn composition with the same letters in the layer.
+        client.SetPreeditText(null, null);
+        window.KeyTextInput("中");
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("中", layer.Text!.Text);
+        Assert.True(Differing(composing, Shot()) > 200, "the composition is gone once it commits");
+    }
+
+    /// <summary>Asks the canvas for its input method client the way the platform does: raise the request and see what comes back.</summary>
+    private TextInputMethodClient? InputMethodClient()
+    {
+        var e = new TextInputMethodClientRequestedEventArgs { RoutedEvent = InputElement.TextInputMethodClientRequestedEvent };
+        window.Canvas.RaiseEvent(e);
+        return e.Client;
+    }
+
+    /// <summary>The window's frame as an image, for the tests that check what is drawn rather than what is stored.</summary>
+    private SKBitmap Shot()
+    {
+        Dispatcher.UIThread.RunJobs();
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        using var frame = window.CaptureRenderedFrame()!;
+        using var stream = new MemoryStream();
+        frame.Save(stream, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+        return SKBitmap.Decode(stream.ToArray());
+    }
+
+    /// <summary>How many pixels two frames differ by.</summary>
+    private static int Differing(SKBitmap a, SKBitmap b)
+    {
+        var left = a.Bytes;
+        var right = b.Bytes;
+        var count = 0;
+        for (var i = 0; i + 3 < Math.Min(left.Length, right.Length); i += 4)
+            if (left[i] != right[i] || left[i + 1] != right[i + 1] || left[i + 2] != right[i + 2] || left[i + 3] != right[i + 3]) count++;
+        return count;
     }
 }

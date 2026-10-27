@@ -59,6 +59,10 @@ public sealed partial class CanvasView : Control
             InvalidateVisual();
         });
         antsTimer.Start();
+        // The window asks the focused element for a text input client whenever it changes what is being typed into;
+        // answering only while a text layer is open is what lets the Type tool have the IME at all.
+        AddHandler(InputElement.TextInputMethodClientRequestedEvent, OnInputMethodClientRequested);
+        TextEditingChanged += SyncTextInput;
         // The Space key-up that ends panning goes wherever focus went, so panning ends with the focus.
         LostFocus += (_, _) =>
         {
@@ -113,6 +117,8 @@ public sealed partial class CanvasView : Control
             outlineStale = true;
             fitPending = true;
             viewStale = true;
+            // Another document has no text open, so the input method goes back to what the new one wants.
+            SyncTextInput();
             UpdateCursor();
             InvalidateVisual();
             ViewChanged?.Invoke();
@@ -154,6 +160,13 @@ public sealed partial class CanvasView : Control
 
     public Point ToScreen(SKPoint p) => new(origin.X + p.X * UnitsPerPixel, origin.Y + p.Y * UnitsPerPixel);
     public SKPoint ToDocument(Point p) => new((float)((p.X - origin.X) / UnitsPerPixel), (float)((p.Y - origin.Y) / UnitsPerPixel));
+
+    /// <summary>Document pixels to control units: what the renderer draws through and what places overlays and the caret.</summary>
+    private SKMatrix ViewMatrix()
+    {
+        var units = (float)UnitsPerPixel;
+        return SKMatrix.CreateScale(units, units).PostConcat(SKMatrix.CreateTranslation((float)origin.X, (float)origin.Y));
+    }
 
     public void Fit()
     {
@@ -276,8 +289,7 @@ public sealed partial class CanvasView : Control
             outlineStale = false;
         }
         // Everything the render thread needs is captured here, on the UI thread.
-        var units = (float)UnitsPerPixel;
-        var view = SKMatrix.CreateScale(units, units).PostConcat(SKMatrix.CreateTranslation((float)origin.X, (float)origin.Y));
+        var view = ViewMatrix();
         var documentRect = new SKRect(0, 0, session.Document.Width, session.Document.Height);
         var (cache, cacheSource, cacheTarget) = UpdateViewCache(view, size);
         var overlay = CaptureOverlay(view);

@@ -428,7 +428,7 @@ public class XcfTests
         Assert.Equal(("Liberation Serif", true, false), XcfText.Face("Liberation Serif Bold"));
         Assert.Equal(("Noto Sans", false, true), XcfText.Face("Noto Sans Italic"));
         Assert.Equal(("Nowhere Grotesk", true, true), XcfText.Face("Nowhere Grotesk Semi-Bold Oblique"));
-        Assert.Equal(("Inter", false, false), XcfText.Face(""));
+        Assert.Equal((new TextStyle().FontFamily, false, false), XcfText.Face(""));   // A description with no family takes the default's.
         Assert.Equal("Comic", XcfText.Face("Comic 12").Family);   // Pango's trailing size is not part of the family.
         Assert.Equal("Bold", XcfText.Face("Bold").Family);        // A lone style word is a family, since nothing else is.
         Assert.False(XcfText.Face("Sans-serif").Family.Contains("serif", StringComparison.OrdinalIgnoreCase) && !EditorSession.FontFamilies.Contains(XcfText.Face("Sans-serif").Family));

@@ -215,7 +215,7 @@ public class SubjectModelTests
         if (!SubjectModels.ModNet.IsInstalled)
         {
             Assert.Equal(SubjectDetect.Backdrop, SubjectFinder.Resolve(SubjectDetect.Person));
-            Assert.Contains("not installed", SubjectFinder.FallbackReason(SubjectDetect.Person));
+            Assert.Contains("未安装", SubjectFinder.FallbackReason(SubjectDetect.Person));
             Assert.Contains("modnet.onnx", SubjectFinder.FallbackReason(SubjectDetect.Person));
             return; // Run scripts/models/fetch.sh to exercise the model itself.
         }

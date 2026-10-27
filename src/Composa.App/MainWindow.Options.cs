@@ -149,7 +149,11 @@ public sealed partial class MainWindow
         }
         var style = s.CurrentTextStyle;
         var families = EditorSession.FontFamilies;
-        var family = families.Contains(style.FontFamily) ? style.FontFamily : families.FirstOrDefault(f => f.Contains("Sans", StringComparison.OrdinalIgnoreCase)) ?? families.FirstOrDefault() ?? style.FontFamily;
+        // The family the system lists, which is not always spelled the way the default is: Microsoft YaHei comes back
+        // from the font manager in whatever case Windows registered it under.
+        var family = families.FirstOrDefault(f => string.Equals(f, style.FontFamily, StringComparison.OrdinalIgnoreCase))
+            ?? families.FirstOrDefault(f => f.Contains("Sans", StringComparison.OrdinalIgnoreCase)) ?? families.FirstOrDefault() ?? style.FontFamily;
+
         // A long font name is cut off rather than widening the bar.
         // While typing, the family, Bold and Italic land on the selected letters only, as the color does.
         void ChangeFace(Func<TextFace, TextFace> change) { if (!updating) s.SetTextFace(change); }

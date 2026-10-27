@@ -53,7 +53,15 @@ public sealed record TextStyle
     public const double MinBox = 16, MaxBox = DocumentLimits.MaxSide;
 
     public string Text { get; init; } = "";
-    public string FontFamily { get; init; } = "Inter";
+    /// <summary>
+    /// The family new text is set in. On Windows that is Microsoft YaHei, which is what the interface's words are set
+    /// in and the one family that is certainly installed and certainly has Chinese letters: Inter has no Chinese at
+    /// all, so typing 中文 in it draws nothing but empty boxes. Elsewhere the old default stays, and Skia substitutes.
+    /// </summary>
+    public string FontFamily { get; init; } = DefaultFamily;
+
+    /// <summary>The family a style that names none takes.</summary>
+    public static string DefaultFamily => OperatingSystem.IsWindows() ? "Microsoft YaHei" : "Inter";
     /// <summary>Font size in layer pixels.</summary>
     public double Size { get; init; } = 72;
     public uint Color { get; init; } = 0xFF000000;

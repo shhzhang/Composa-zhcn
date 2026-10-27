@@ -35,7 +35,7 @@ public class TextLayoutTests
     [Fact]
     public void Bold_and_italic_render_even_for_a_family_Skia_does_not_have()
     {
-        // Inter is the default style's family: Avalonia's font for the interface, which is not installed for Skia.
+        // A family Skia does not have, which is what the Chinese edition's default is on Windows when it is missing.
         foreach (var family in new[] { "Inter", Family })
         {
             var plain = new TextStyle { Text = "Hello", Size = 40, FontFamily = family };
@@ -44,6 +44,15 @@ public class TextLayoutTests
             using var italic = new TextLayout(plain with { Italic = true }).Render();
             Assert.False(upright.GetPixelSpan().SequenceEqual(italic.GetPixelSpan()), $"{family}: italic renders the same as upright");
         }
+    }
+
+    [Fact]
+    public void New_text_is_set_in_a_face_that_has_Chinese_letters()
+    {
+        // The default used to be Inter, Avalonia's font for the interface, which has no Chinese at all: 中文 came out
+        // as nothing. On Windows the default is the interface's own face instead.
+        if (OperatingSystem.IsWindows()) Assert.Equal("Microsoft YaHei", new TextStyle().FontFamily);
+        Assert.True(Ink(new TextStyle { Text = "中文", Size = 40 }) > 200, "the default face draws Chinese letters");
     }
 
     [Fact]

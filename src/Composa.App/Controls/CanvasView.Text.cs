@@ -139,6 +139,10 @@ public sealed partial class CanvasView
     private bool HandleTextKey(TextEditor editor, KeyEventArgs e)
     {
         if (session == null) return false;
+        // An input method composing Chinese owns the keyboard until it commits: Space picks a candidate, the digits
+        // pick one by number and Enter takes the whole string. Acting on those here would type a space into the middle
+        // of the composition, so nothing is handled and the keys go on to the IME.
+        if (preedit is { Length: > 0 }) return false;
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         var control = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         var alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
@@ -247,7 +251,9 @@ public sealed partial class CanvasView
         var corners = layer.Transform.Corners(pixels.Width, pixels.Height).Select(p => view.MapPoint(p)).ToArray();
         var layout = editor.Layout;
         var selection = editor.HasSelection ? layout.SelectionRects(editor.SelectionStart, editor.SelectionEnd) : [];
-        var caret = editor.HasSelection || antsPhase % 8 >= 4 ? null : (ValueTuple<float, float, float>?)layout.CaretAt(editor.Caret);
+        // What an input method is still composing sits where the text will land, so the caret gives way to it.
+        var composing = preedit;
+        var caret = editor.HasSelection || composing is { Length: > 0 } || antsPhase % 8 >= 4 ? null : (ValueTuple<float, float, float>?)layout.CaretAt(editor.Caret);
         // Text that overflowed a paragraph box is clipped, and so is its caret.
         if (caret is { Item2: var caretTop } && layout.Style.IsBox && caretTop > layout.Height - TextLayout.Padding) caret = null;
         var overflows = layout.Overflows;
@@ -285,5 +291,28 @@ public sealed partial class CanvasView
                 canvas.DrawLine(toView.MapPoint(x, top), toView.MapPoint(x, bottom), pen);
             }
         });
+        if (composing is { Length: > 0 })
+        {
+            // The composition is drawn as text at the caret in the layer's own face, so it looks like what the commit
+            // will leave behind; the underline says it is not in the document yet.
+            var (x, composeTop, _) = layout.CaretAt(editor.Caret);
+            var baseline = composeTop + layout.Ascent;
+            var under = baseline + layout.Descent * 0.55f;
+            var face = layout.Style.FaceAt(editor.Caret);
+            var color = new SKColor(layout.Style.ColorAt(editor.Caret));
+            var size = (float)layout.Style.Size;
+            steps.Add(canvas =>
+            {
+                // In layer pixels, so the composition turns and scales with the text it is about to join.
+                canvas.Save();
+                canvas.Concat(ref toView);
+                using var font = new SKFont(TextLayout.TypefaceFor(face), size);
+                using var paint = new SKPaint { Color = color, IsAntialias = true };
+                canvas.DrawText(composing, x, baseline, font, paint);
+                using var underline = new SKPaint { Color = Accent, StrokeWidth = Math.Max(1, size * 0.05f), IsAntialias = true };
+                canvas.DrawLine(x, under, x + font.MeasureText(composing, paint), under, underline);
+                canvas.Restore();
+            });
+        }
     }
 }
